@@ -80,19 +80,33 @@ class Plugin(plugin.PluginProto):
     if self.taskdevicepluginconfig[0]==0: # RAW
      sval = str(rfid)
     elif self.taskdevicepluginconfig[0]==2: # SHA1ex0
-     if str(rfid)[0] == '0': # exclude commands (entered to keypad) that identified by starting zeros
+     if (str(rfid)[0] == '0') and (len(rfid)<20): # exclude commands (entered to keypad) that identified by starting zero
       sval = str(rfid)
      else:
       sval = hashlib.sha1(bytes(rfid,'utf-8')).hexdigest()
       if sval[0] == '0':
-       sval[0] = '1' # dirty hack
+       sval[0] = '1' # dirty hack to remove zero from the start
     elif self.taskdevicepluginconfig[0]==1: # SHA1
      sval = hashlib.sha1(bytes(rfid,'utf-8')).hexdigest()
   if sval != "":
 #   print(sval) # DEBUG
    self.set_value(1,sval,True)
-  if self.bgreader is not None:
-   self.bgreader.clearbuffer()
+
+ def plugin_write(self,cmd):                                                # Handling commands
+  res = False
+  cmdarr = cmd.split(",")
+  cmdarr[0] = cmdarr[0].strip().lower()
+  if cmdarr[0]== "rfidclear":
+   try:
+    rname = cmdarr[1].strip()
+   except:
+    rname = ""
+   if rname != "" and rname.lower() == self.gettaskname().lower():
+    self.uservar[0] = "0"
+    if self.bgreader is not None:
+     self.bgreader.clearbuffer()
+    res = True
+  return res
 
 class BackgroundThread(object):
    KEYPAD_ESC = 10
