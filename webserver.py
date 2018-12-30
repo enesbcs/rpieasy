@@ -1117,15 +1117,18 @@ def handle_devices(self):
                 TXBuffer  += "'>"
                 numtodisp = Settings.Tasks[x].uservar[varNr]
                 decimalv = Settings.Tasks[x].decimals[varNr]
-                if str(decimalv) == "" or int(decimalv)<0:
-                 decimalv = "0"
+                if str(decimalv) == "-1":
+                 TXBuffer += numtodisp
                 else:
-                 decimalv = str(decimalv).strip()
-                numformat = "{0:."+ decimalv + "f}"
-                try:
-                 TXBuffer += numformat.format(numtodisp)
-                except:
-                 TXBuffer += numtodisp 
+                 if str(decimalv) == "" or int(decimalv)<0:
+                  decimalv = "0"
+                 else:
+                  decimalv = str(decimalv).strip()
+                 numformat = "{0:."+ decimalv + "f}"
+                 try:
+                  TXBuffer += numformat.format(numtodisp)
+                 except:
+                  TXBuffer += numtodisp 
                 TXBuffer += "</div>"
 
        else:
@@ -1866,10 +1869,13 @@ def handle_json(self):
     if str(Settings.Tasks[sc].uservar[tv])=="":
      TXBuffer += '""'
     else:
-     try:
-      ival = int(Settings.Tasks[sc].uservar[tv])
-     except:
+     if str(Settings.Tasks[sc].decimals[tv]) == "-1":
       ival = '"'+ str(Settings.Tasks[sc].uservar[tv]) + '"'
+     else:
+      try:
+       ival = float(Settings.Tasks[sc].uservar[tv])
+      except:
+       ival = '"'+ str(Settings.Tasks[sc].uservar[tv]) + '"'
      TXBuffer += str(ival)
     TXBuffer += '},'
    if TXBuffer[len(TXBuffer)-1]==",":
