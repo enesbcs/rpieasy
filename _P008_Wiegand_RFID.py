@@ -36,7 +36,7 @@ class Plugin(plugin.PluginProto):
   self.decimals[0] = -1
   if self.taskdevicepin[0]>=0 and self.taskdevicepin[1]>=0 and self.enabled:
    try:
-    wiegand_io.initreader(self.taskdevicepin[0],self.taskdevicepin[1])
+    wiegand_io.initreader(int(self.taskdevicepin[0]),int(self.taskdevicepin[1]))
    except Exception as e:
     print("Wiegand IO ERROR:",e)
     self.initialized = False
@@ -104,7 +104,10 @@ class Plugin(plugin.PluginProto):
    if rname != "" and rname.lower() == self.gettaskname().lower():
     self.uservar[0] = "0"
     if self.bgreader is not None:
-     self.bgreader.clearbuffer()
+     try:
+      self.bgreader.clearbuffer()
+     except:
+      pass
     res = True
   return res
 

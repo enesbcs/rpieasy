@@ -3,7 +3,7 @@
 ####################### Dual Switch plugin for RPIEasy ######################
 #############################################################################
 #
-# Made for supporting combined PIR/MW motions sensor.
+# Made for supporting combined PIR/MW motion sensor.
 #
 # Copyright (C) 2018-2019 by Alexander Nagy - https://bitekmindenhol.blog.hu/
 #
@@ -61,11 +61,11 @@ class Plugin(plugin.PluginProto):
    self.laststate = 0
    if self.initialized:
     self.laststate = -1
-    self.p001_handler(self.taskdevicepin[0])
+    self.p001_handler(self.taskdevicepin[0]) # get state
 
  def plugin_read(self):
   result = False
-  if self.initialized:
+  if self.initialized and self.enabled:
    self.set_value(1,self.actualstate,True)
    self._lastdataservetime = rpieTime.millis()
    result = True

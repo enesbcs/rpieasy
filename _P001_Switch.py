@@ -51,8 +51,8 @@ class Plugin(plugin.PluginProto):
 
  def plugin_init(self,enableplugin=None):
   plugin.PluginProto.plugin_init(self,enableplugin)
-  if self.taskdevicepin[0]>=0 and self.enabled:
-   self.set_value(1,gpios.HWPorts.input(self.taskdevicepin[0]),True) # Sync plugin value with real pin state
+  if int(self.taskdevicepin[0])>=0 and self.enabled:
+   self.set_value(1,gpios.HWPorts.input(int(self.taskdevicepin[0])),True) # Sync plugin value with real pin state
    try:
     self.__del__()
     gpios.HWPorts.add_event_detect(self.taskdevicepin[0],gpios.BOTH,self.p001_handler,200)
@@ -64,22 +64,18 @@ class Plugin(plugin.PluginProto):
  def plugin_read(self):
   result = False
   if self.initialized:
-   self.set_value(1,gpios.HWPorts.input(self.taskdevicepin[0]),True)
+   self.set_value(1,gpios.HWPorts.input(int(self.taskdevicepin[0])),True)
    self._lastdataservetime = rpieTime.millis()
    result = True
   return result
  
  def p001_handler(self,channel):
-  if self.initialized and self.enabled:
-   val = gpios.HWPorts.input(self.taskdevicepin[0])
-   if val != self.uservar[0]:
-    self.set_value(1,val,True)
-    self._lastdataservetime = rpieTime.millis()
+  self.timer_ten_per_second()
 
  def timer_ten_per_second(self):
   if self.initialized and self.enabled:
-   val = gpios.HWPorts.input(self.taskdevicepin[0])
-   if val != self.uservar[0]:
+   val = gpios.HWPorts.input(int(self.taskdevicepin[0]))
+   if int(val) != int(self.uservar[0]):
     self.set_value(1,val,True)
     self._lastdataservetime = rpieTime.millis()
 

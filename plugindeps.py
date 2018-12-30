@@ -19,7 +19,7 @@ modulelist = [
 {"name": "Adafruit_ADS1x15",
  "apt": ["python3-pip"],
  "pip": ["adafruit-ads1x15"],
- "testcmd": "import Adafruit_ADS1x15\ntest=Adafruit_ADS1x15.ADS1x15_DEFAULT_ADDRESS",
+ "testcmd": "import Adafruit_ADS1x15",
  "installed":-1},
 {"name": "GPIO",
  "apt": ["python3-dev","python3-rpi.gpio"],
@@ -104,13 +104,13 @@ plugindependencies = [
  "modules":["i2c"]},
 {"pluginid": "25", # ADS1x15
  "supported_os_level": [10],
- "modules":["i2c"]},
+ "modules":["i2c","Adafruit_ADS1x15"]},
 {"pluginid": "28", # BMP280
  "supported_os_level": [10],
  "modules":["i2c"]},
 {"pluginid": "29", # DomoOutput nem csak gpio??
  "supported_os_level": [10],
- "modules":["paho-mqtt","GPIO"]},
+ "modules":["GPIO"]},
 {"pluginid": "51", # AM2320
  "supported_os_level": [10],
  "modules":["i2c"]},

@@ -210,8 +210,8 @@ def doExecuteCommand(cmdline,Parse=True):
          Settings.Controllers[y].mqttclient.publish(topic,data)
          commandfound = True
          cfound = True
-       except Exception as e:
-        pass
+       except:
+        cfound = False
      if cfound==False:
       misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"MQTT capable controller not found!")
   return commandfound

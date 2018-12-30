@@ -21,7 +21,7 @@ try:
  import gpios
 except Exception as e:
  pass
-# sudo apt install python3-pip screen alsa-utils wireless-tools wpasupplicant net-tools
+# sudo apt install python3-pip screen alsa-utils wireless-tools wpasupplicant net-tools zip unzip
 # sudo pip3 install jsonpickle
 
 def signal_handler(signal, frame):

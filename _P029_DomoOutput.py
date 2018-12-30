@@ -63,7 +63,7 @@ class Plugin(plugin.PluginProto):
 
  def plugin_receivedata(self,data):                        # set value based on mqtt input
   if (len(data)>0) and self.initialized and self.enabled:
-   if 'on' in data[0].lower() or str(data[0])=="1":
+   if 'on' in str(data[0]).lower() or str(data[0])=="1":
     val = 1
    else:
     val = 0

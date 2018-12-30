@@ -50,7 +50,15 @@ class Controller(controller.ControllerProto):
  def webform_load(self): 
   webserver.addFormNote("Hint: only the Controller Port parameter used!")
   return True
-  
+
+ def nodesort(self,item):
+  v = 0
+  try:
+   v = int(item["unitno"])
+  except:
+   v = 0
+  return v
+
  def bgreceiver(self): # start with threading!
   if self.enabled:
    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -74,6 +82,7 @@ class Controller(controller.ControllerProto):
          if un==-1:
           Settings.nodelist.append({"unitno":dp.infopacket["unitno"],"name":dp.infopacket["name"],"build":dp.infopacket["build"],"type":dp.infopacket["type"],"ip":dp.infopacket["ip"],"port":dp.infopacket["port"],"age":0})
           misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"New P2P unit discovered: "+str(dp.infopacket["unitno"])+" "+str(dp.infopacket["ip"])+" "+str(dp.infopacket["mac"]))
+          Settings.nodelist.sort(reverse=False,key=self.nodesort)
          else:
           Settings.nodelist[un]["age"] = 0
           if int(dp.infopacket["unitno"]) != int(Settings.Settings["Unit"]):
@@ -408,3 +417,4 @@ def decodezerostr(barr):
    except:
     result = str(barr)
  return result.strip()
+

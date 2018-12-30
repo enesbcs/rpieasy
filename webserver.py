@@ -2088,6 +2088,8 @@ def handle_filelist(self):
 
  dirasked = arg("chgto",responsearr).replace("..","")
  if dirasked:
+  if dirasked[len(dirasked)-1]!="/":
+   dirasked += "/"
   if dirasked.startswith(current_dir):
    current_dir = dirasked
   else:

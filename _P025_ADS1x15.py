@@ -116,7 +116,6 @@ class Plugin(plugin.PluginProto):
  def p025_get_value(self):
   val = -1
   try:
-   print(self.taskdevicepluginconfig[2])
    val = self.adc.read_adc(self.taskdevicepluginconfig[3],gain=self.taskdevicepluginconfig[2])
   except Exception as e:
    val = -1
