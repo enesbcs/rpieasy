@@ -20,7 +20,7 @@ For obvious reasons GPIO based devices needs GPIO support, which only works with
 # Installation
 
     git clone https://github.com/enesbcs/rpieasy.git
-    sudo apt install python3-pip screen alsa-utils wireless-tools wpasupplicant
+    sudo apt install python3-pip screen alsa-utils wireless-tools wpasupplicant zip unzip
     sudo pip3 install jsonpickle
 
 In case of Debian Stretch or other linux that misses "ifconfig" command:
