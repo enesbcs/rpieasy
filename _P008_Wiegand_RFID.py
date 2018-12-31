@@ -146,7 +146,7 @@ class BackgroundThread(object):
      if (wiegand_io.pendingbitcount() > 0):
       wstr,wbl = wiegand_io.wiegandread()
 #      print("Python res:",wstr,wbl)
-      if wbl>2 and wbl<5:
+      if wbl>3 and wbl<5:            # sometimes 2-3bit junk appear on powering up!
        self.analyzekey(wstr)
       elif wbl>6 and wbl<9:
        self.analyzekey(wstr[:4])
