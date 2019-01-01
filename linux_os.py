@@ -172,7 +172,9 @@ def get_rssi():
     try:
      resstr = os.popen("/bin/cat /proc/net/wireless | awk 'NR==3 {print $4}' | sed 's/\.//'").readline().strip()
     except:
-     resstr = "0"
+     resstr = ""
+    if resstr=="":
+     resstr = "-49.20051" # no wireless interface?
     return resstr
 
 def check_permission():

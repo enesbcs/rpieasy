@@ -27,9 +27,8 @@ except Exception as e:
 def signal_handler(signal, frame):
   global init_ok
   init_ok = False
+  commands.rulesProcessing("System#Shutdown",rpieGlobals.RULE_SYSTEM)
   Settings.savetasks()
-  webserver.WebServer.stop()
-  gpios.HWPorts.cleanup()
   procarr = []
   for x in range(0,len(Settings.Tasks)):
    if (Settings.Tasks[x]) and type(Settings.Tasks[x]) is not bool: # device exists
@@ -41,6 +40,8 @@ def signal_handler(signal, frame):
   if len(procarr)>0:
    for process in procarr:
      process.join(1)
+  webserver.WebServer.stop()
+  gpios.HWPorts.cleanup()
 
   for y in range(0,len(Settings.Controllers)):
    if (Settings.Controllers[y]):

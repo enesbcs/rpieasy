@@ -273,6 +273,7 @@ def doExecuteCommand(cmdline,Parse=True):
   return commandfound
  elif cmdarr[0] == "reboot":
   os.popen("sudo reboot")
+  os.kill(os.getpid(), signal.SIGINT)
   commandfound = True
   return commandfound
  elif cmdarr[0] == "reset":
@@ -287,6 +288,7 @@ def doExecuteCommand(cmdline,Parse=True):
   return commandfound
  elif cmdarr[0] == "halt":
   os.popen("sudo shutdown -h now")
+  os.kill(os.getpid(), signal.SIGINT)
   commandfound = True
   return commandfound
  elif cmdarr[0] == "exit":
@@ -325,7 +327,7 @@ def doExecutePluginCommand(cmdline):
 def decodeeventname(eventname):
  ten = eventname.strip().lower()
  ec = -1
- if ("system#boot" in ten) or ("mqtt#connected" in ten) or ("mqtt#disconnected" in ten):
+ if ("system#" in ten) or ("mqtt#connected" in ten) or ("mqtt#disconnected" in ten):
    ec = rpieGlobals.RULE_SYSTEM
  elif ("clock#time" in ten):
    ec = rpieGlobals.RULE_CLOCK

@@ -125,7 +125,8 @@ class PluginProto: # Skeleton for every plugin! Override necessary functions and
      else:
       rval = 0
    self.uservar[valuenum-1] = rval
-   commands.rulesProcessing(self.taskname+"#"+self.valuenames[valuenum-1]+"="+str(rval),rpieGlobals.RULE_USER)
+   if self.valuenames[valuenum-1]!= "":
+    commands.rulesProcessing(self.taskname+"#"+self.valuenames[valuenum-1]+"="+str(rval),rpieGlobals.RULE_USER)
    if self.senddataoption and publish:
     self.plugin_senddata(puserssi=suserssi,pusebattery=susebattery,pchangedvalue=valuenum)
 

@@ -83,7 +83,15 @@ def handle_root(self):
  TXBuffer += "<TR><TD>Load:<TD>" +str( OS.read_cpu_usage() ) + " %"
  TXBuffer += "<TR><TD>Free Mem:<TD>" + str( OS.FreeMem() ) + " kB"
  TXBuffer += "<TR><TD>IP:<TD>" + str( OS.get_ip() )
- TXBuffer += "<TR><TD>Wifi RSSI:<TD>" + str( OS.get_rssi() ) + " dB"
+ try:
+  rssi = OS.get_rssi()
+  if str(rssi)=="-49.20051":
+   rssi = "Wired connection"
+  else:
+   rssi = str(rssi)+" dB"
+ except:
+   rssi = "?"
+ TXBuffer += "<TR><TD>Wifi RSSI:<TD>" + str(rssi)
  TXBuffer += "<TR><TD><TD>"
  addButton("sysinfo", "More info");
  TXBuffer += "</table><BR>"
@@ -1341,7 +1349,7 @@ def handle_devices(self):
             TXBuffer += "<TD>"
             sid = "TDF"
             sid += str(varNr + 1)
-            addTextBox(sid, Settings.Tasks[taskIndex].formula[varNr], 40)
+            addTextBox(sid, Settings.Tasks[taskIndex].formula[varNr], 140)
 
           if (Settings.Tasks[taskIndex].formulaoption or Settings.Tasks[taskIndex].decimalsonly):
             TXBuffer += "<TD>"
@@ -1820,9 +1828,15 @@ def handle_json(self):
    TXBuffer += ',"Local time":"'+ datetime.now().strftime('%Y-%m-%d %H:%M:%S')
    TXBuffer += '","Unit":'+str(Settings.Settings["Unit"])
    TXBuffer += ',"Name":"'+str(Settings.Settings["Name"])
-   TXBuffer += '","Uptime":'+str(rpieTime.getuptime(0))
+   try:
+    TXBuffer += '","Uptime":'+str(float(rpieTime.getuptime(0))/60)
+   except:
+    TXBuffer += '","Uptime":0'
    TXBuffer += ',"Load":'+str(OS.read_cpu_usage())
-   TXBuffer += ',"Free RAM":'+str(OS.FreeMem())
+   try:
+    TXBuffer += ',"Free RAM":'+str(float(OS.FreeMem())*1024)
+   except:
+    TXBuffer += ',"Free RAM":0'
    TXBuffer += "},"
   if showwifi:
    TXBuffer += '"WiFi":{'
@@ -1991,7 +2005,15 @@ def handle_sysinfo(self):
  TXBuffer += "<TR><TD>Load:<TD>" +str( OS.read_cpu_usage() ) + " %"
  TXBuffer += "<TR><TD>Free Mem:<TD>" + str( OS.FreeMem() ) + " kB"
  addTableSeparator("Network", 2, 3)
- TXBuffer += "<TR><TD>Wifi RSSI:<TD>" + str( OS.get_rssi() ) + " dB"
+ try:
+  rssi = OS.get_rssi()
+  if str(rssi)=="-49.20051":
+   rssi = "Wired connection"
+  else:
+   rssi = str(rssi)+" dB"
+ except:
+   rssi = "?"
+ TXBuffer += "<TR><TD>Wifi RSSI:<TD>" + str(rssi)
  wdev = False
  try:
     wdev = Settings.NetMan.getfirstwirelessdev()
