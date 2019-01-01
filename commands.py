@@ -40,7 +40,7 @@ def doExecuteCommand(cmdline,Parse=True):
     cmdarr = [c2[0]] + cmdarr
  cmdarr[0] = cmdarr[0].strip().lower()
  commandfound = False
- misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"CMD: "+cmdline)
+ misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"CMD: "+cmdline.replace("==","="))
 
  if cmdarr[0] == "delay":
   try:
