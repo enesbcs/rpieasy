@@ -59,7 +59,7 @@ def doExecuteCommand(cmdline,Parse=True):
    s = int(cmdarr[1])
   except:
    s = -1
-  if s >0 and (s<len(Settings.Tasks)):
+  if s >0 and (s<=len(Settings.Tasks)):
    s = s-1 # array is 0 based, tasks is 1 based
    if (type(Settings.Tasks[s])!=bool) and (Settings.Tasks[s]):
     if (Settings.Tasks[s].enabled):
@@ -102,7 +102,7 @@ def doExecuteCommand(cmdline,Parse=True):
   except:
    v = 1
   #v=v-1
-  if s >0 and (s<len(Settings.Tasks)):
+  if s >0 and (s<=len(Settings.Tasks)):
    s = s-1 # array is 0 based, tasks is 1 based
    if (type(Settings.Tasks[s])!=bool) and (Settings.Tasks[s]):
     if v>(Settings.Tasks[s].valuecount):
@@ -384,10 +384,14 @@ def getequchars(cstr):
  return res
 
 def gettaskvaluefromname(taskname): # taskname#valuename->value
- taskprop = taskname.split("#")
- taskprop[0] = taskprop[0].strip().lower()
- taskprop[1] = taskprop[1].strip().lower() 
- res = None
+ res = -1
+ try:
+  taskprop = taskname.split("#")
+  taskprop[0] = taskprop[0].strip().lower()
+  taskprop[1] = taskprop[1].strip().lower() 
+ except:
+  res = -1
+  return res
  try:
   for s in range(len(Settings.Tasks)):
    if type(Settings.Tasks[s]) is not bool:
@@ -397,7 +401,7 @@ def gettaskvaluefromname(taskname): # taskname#valuename->value
        res = Settings.Tasks[s].uservar[v]
        break
  except:
-   res=None
+   res=-1
  return res
 
 def getglobalvar(varname):

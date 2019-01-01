@@ -38,6 +38,10 @@ class Plugin(plugin.PluginProto):
   try:
    if self.initialized:
     gpios.HWPorts.remove_event_detect(self.taskdevicepin[0])
+  except: 
+   pass
+  try:
+   if self.initialized:
     gpios.HWPorts.remove_event_detect(self.taskdevicepin[1])
   except: 
    pass
@@ -52,16 +56,19 @@ class Plugin(plugin.PluginProto):
    self.enabled=False
    self.initialized=False
   if self.enabled:
+   self.__del__()
    try:
-    gpios.HWPorts.add_event_detect(self.taskdevicepin[0],gpios.BOTH,self.p001_handler,200)
-    gpios.HWPorts.add_event_detect(self.taskdevicepin[1],gpios.BOTH,self.p001_handler,200)
+    gpios.HWPorts.add_event_detect(self.taskdevicepin[0],gpios.BOTH,self.p200_handler,200)
+    gpios.HWPorts.add_event_detect(self.taskdevicepin[1],gpios.BOTH,self.p200_handler,200)
+    self.timer100ms = False
    except Exception as e:
-    self.initialized = False
     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"GPIO event handlers can not be created "+str(e))
+    self.__del__()
+    self.timer100ms = True
    self.laststate = 0
    if self.initialized:
     self.laststate = -1
-    self.p001_handler(self.taskdevicepin[0]) # get state
+    self.p200_handler(self.taskdevicepin[0]) # get state
 
  def plugin_read(self):
   result = False
@@ -70,9 +77,9 @@ class Plugin(plugin.PluginProto):
    self._lastdataservetime = rpieTime.millis()
    result = True
   return result
- 
- def p001_handler(self,channel):
-  if self.initialized:
+
+ def timer_ten_per_second(self):
+  if self.initialized and self.enabled:
    v1 = gpios.HWPorts.input(self.taskdevicepin[0])
    v2 = gpios.HWPorts.input(self.taskdevicepin[1])
    if (v1==1) and (v2==1):
@@ -87,3 +94,6 @@ class Plugin(plugin.PluginProto):
     self.set_value(2,v1,False)
    if int(self.uservar[2])!=int(v2):
     self.set_value(3,v2,False)
+
+ def p200_handler(self,channel):
+  self.timer_ten_per_second()
