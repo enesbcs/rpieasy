@@ -174,7 +174,7 @@ def doExecuteCommand(cmdline,Parse=True):
   if len(cmdarr)>2:
    sepp = ( len(cmdarr[0]) + len(cmdarr[1]) + 1 )
    sepp = cmdline.find(',',sepp)
-   data = cmdline[sepp+1:]
+   data = cmdline[sepp+1:].replace("==","=")
   else:
    unitno = -1
   if unitno>=0 and unitno<=255:
@@ -196,7 +196,7 @@ def doExecuteCommand(cmdline,Parse=True):
   if len(cmdarr)>2:
    sepp = ( len(cmdarr[0]) + len(cmdarr[1]) + 1 )
    sepp = cmdline.find(',',sepp)
-   data = cmdline[sepp+1:]
+   data = cmdline[sepp+1:].replace("==","=")
   else:
    topic = ""
   commandfound = False
@@ -226,7 +226,7 @@ def doExecuteCommand(cmdline,Parse=True):
   if len(cmdarr)>3:
    sepp = ( len(cmdarr[0]) + len(cmdarr[1])+ len(cmdarr[2]) + 2 )
    sepp = cmdline.find(',',sepp)
-   data = cmdline[sepp+1:]
+   data = cmdline[sepp+1:].replace("==","=")
   else:
    destport = -1
   if destport > 0:
@@ -249,7 +249,7 @@ def doExecuteCommand(cmdline,Parse=True):
   if len(cmdarr)>3:
    sepp = ( len(cmdarr[0]) + len(cmdarr[1])+ len(cmdarr[2]) + 2 )
    sepp = cmdline.find(',',sepp)
-   data = cmdline[sepp+1:]
+   data = cmdline[sepp+1:].replace("==","=")
   else:
    destport = -1
   if destport > 0:
@@ -302,8 +302,8 @@ def doExecuteCommand(cmdline,Parse=True):
 def urlget(url):
   try:
    urllib.request.urlopen(url,None,1)
-  except:
-   pass
+  except Exception as e:
+   misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,str(e))
 
 def TimerCallback(tid):
   rulesProcessing("Rules#Timer="+str(tid),rpieGlobals.RULE_TIMER)

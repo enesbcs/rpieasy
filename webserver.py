@@ -227,9 +227,10 @@ def handle_config(self):
  addSubmitButton()
 
  oslvl = misc.getsupportlevel(1)
- if oslvl in [1,10]: # maintain supported system list!!!
+ if oslvl in [1,2,10]: # maintain supported system list!!!
   addFormSeparator(2)
-  addFormCheckBox("I have root rights and i really want to manage network settings below","netman", netmanage)
+  if oslvl != 2:
+   addFormCheckBox("I have root rights and i really want to manage network settings below","netman", netmanage)
   addFormNote("<font color=red><b>If not enabled, OS config files will not be overwritten!</b></font>")
  
   addFormSubHeader("Wifi Settings") #/etc/wpa_supplicant/wpa_supplicant.conf
@@ -315,8 +316,8 @@ def handle_config(self):
    addFormTextBox("DNS", "nd1_dns", nd1_dns,15)
    addFormNote("If DHCP enabled these fields will not be saved or used!")
 
- TXBuffer += "<TR><TD style='width:150px;' align='left'><TD>"
- addSubmitButton()
+  TXBuffer += "<TR><TD style='width:150px;' align='left'><TD>"
+  addSubmitButton()
  TXBuffer += "</table></form>"
   
  sendHeadandTail("TmplStd",_TAIL);
@@ -1828,8 +1829,15 @@ def handle_json(self):
    defaultdev = -1
    try:
     defaultdev = Settings.NetMan.getprimarydevice()
+    if Settings.NetworkDevices[defaultdev].ip=="":
+     defaultdev = -1
    except: 
     defaultdev = -1
+   if defaultdev==-1:
+    try:
+     defaultdev = Settings.NetMan.getsecondarydevice()
+    except: 
+     defaultdev = -1
    if defaultdev != -1:
     if Settings.NetworkDevices[defaultdev].dhcp:
      nam = "DHCP"
@@ -1992,10 +2000,19 @@ def handle_sysinfo(self):
  if wdev:
     TXBuffer += '<tr><td>SSID<td>'+str(Network.get_ssid(wdev))
  defaultdev = -1
+
  try:
     defaultdev = Settings.NetMan.getprimarydevice()
+    if Settings.NetworkDevices[defaultdev].ip=="":
+     defaultdev = -1
  except: 
     defaultdev = -1
+ if defaultdev==-1:
+    try:
+     defaultdev = Settings.NetMan.getsecondarydevice()
+    except: 
+     defaultdev = -1
+
  if defaultdev != -1:
   if Settings.NetworkDevices[defaultdev].dhcp:
      nam = "DHCP"
