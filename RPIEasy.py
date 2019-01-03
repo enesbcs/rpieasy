@@ -162,7 +162,7 @@ def CPluginInit():
           Settings.Tasks[x].controllercb[y] = Settings.Controllers[y].senddata # assign controller callback to plugins that sends data
    except Exception as e:
     Settings.Tasks[x] = False
-    misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Task" +str(x+1)+ " is malformed, deleted!")
+    misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Task" +str(x+1)+ " is malformed, deleted! "+str(e))
 
  for y in range(0,len(Settings.Controllers)):
    if (Settings.Controllers[y]):
