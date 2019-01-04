@@ -1029,6 +1029,7 @@ class hwports:
           params2 = params[p].split('=')
           try:
            pin = int(params2[1].strip())
+           pinfound = True
           except:
            pin = 0
          if pin!= 0:
