@@ -598,11 +598,15 @@ class hwports:
 
  def is_spi_usable(self,channel):
    result = False
+   try:
+    channel = int(channel)
+   except:
+    return False
    if channel==0:
-    if self.pinnum=="26R1" or self.pinnum=="26R2" or self.pinnum=="40":
+    if str(self.pinnum)=="26R1" or str(self.pinnum)=="26R2" or str(self.pinnum)=="40":
      result = True
    else:
-    if self.pinnum=="40":
+    if str(self.pinnum)=="40":
      result = True
    return result
 
@@ -613,6 +617,11 @@ class hwports:
    return False
 
  def enable_spi(self,channel,cs=3): # cs can 1,2,3 for spi1, 2 for spi0
+  try:
+   channel=int(channel)
+   cs=int(cs)
+  except:
+   return False
   if self.is_spi_usable(channel):
    if (self.is_spi_enabled(channel)==False):
     self.spi_channels.append(channel)
@@ -637,6 +646,10 @@ class hwports:
       Settings.Pinout[36]["altfunc"] = 1
 
  def disable_spi(self,channel):
+  try:
+   channel=int(channel)
+  except:
+   return False
   if self.is_spi_enabled(channel):
    self.spi_channels.remove(channel)
    if channel==0:

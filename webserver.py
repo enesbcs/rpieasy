@@ -618,58 +618,90 @@ def handle_pinout(self):
 
  if arg("reread",responsearr) != '':
   submit = ''
-  gpios.HWPorts.readconfig()
- 
+  try:
+   gpios.HWPorts.readconfig()
+  except Exception as e:
+   misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Config read error="+str(e))
+
  if (submit=="Submit") or (setbtn!=''):
-  stat = arg("i2c0",responsearr)
-  if stat=="on":
-   gpios.HWPorts.enable_i2c(0)
-  else:
-   gpios.HWPorts.disable_i2c(0)
-  stat = arg("i2c1",responsearr)
-  if stat=="on":
-   gpios.HWPorts.enable_i2c(1)
-  else:
-   gpios.HWPorts.disable_i2c(1)
-
-  stat = arg("spi0",responsearr)
-  if stat=="on":
-   gpios.HWPorts.enable_spi(0,2)
-  else:
-   gpios.HWPorts.disable_spi(0)
-
-  stat = int(arg("spi1",responsearr).strip())
-  if stat == 0:
-   gpios.HWPorts.disable_spi(1)
-  else:
-   gpios.HWPorts.enable_spi(1,stat)
-
-  stat = arg("uart",responsearr)
-  if stat=="on":
-   gpios.HWPorts.set_serial(1)
-  else:
-   gpios.HWPorts.set_serial(0)
-  stat = arg("audio",responsearr)
-  if stat=="on":
-   gpios.HWPorts.set_audio(1)
-  else:
-   gpios.HWPorts.set_audio(0)
-  stat = arg("i2s",responsearr)
-  if stat=="on":
-   gpios.HWPorts.set_i2s(1)
-  else:
-   gpios.HWPorts.set_i2s(0)
+  try:
+   stat = arg("i2c0",responsearr)
+   if stat=="on":
+    gpios.HWPorts.enable_i2c(0)
+   else:
+    gpios.HWPorts.disable_i2c(0)
+  except Exception as e:
+   misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"I2C-0 error="+str(e))
+  try:
+   stat = arg("i2c1",responsearr)
+   if stat=="on":
+    gpios.HWPorts.enable_i2c(1)
+   else:
+    gpios.HWPorts.disable_i2c(1)
+  except Exception as e:
+   misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"I2C-1 error="+str(e))
+  try:
+   stat = arg("spi0",responsearr)
+   if stat=="on":
+    gpios.HWPorts.enable_spi(0,2)
+   else:
+    gpios.HWPorts.disable_spi(0)
+  except Exception as e:
+   misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"SPI-0 error="+str(e))
 
   try:
-   stat = int(arg("bluetooth",responsearr).strip())  
+   stat = int(arg("spi1",responsearr).strip())
+  except:
+   stat = 0
+  try:
+   if stat == "":
+    stat = 0
+   if stat == 0:
+     gpios.HWPorts.disable_spi(1)
+   else:
+     gpios.HWPorts.enable_spi(1,stat)
+  except Exception as e:
+   misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"SPI-1 error="+str(e))
+
+  try:
+   stat = arg("uart",responsearr)
+   if stat=="on":
+    gpios.HWPorts.set_serial(1)
+   else:
+    gpios.HWPorts.set_serial(0)
+  except Exception as e:
+   misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"UART init error="+str(e))
+
+  try:
+   stat = arg("audio",responsearr)
+   if stat=="on":
+    gpios.HWPorts.set_audio(1)
+   else:
+    gpios.HWPorts.set_audio(0)
+  except Exception as e:
+   misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Audio init error="+str(e))
+  try:
+   stat = arg("i2s",responsearr)
+   if stat=="on":
+    gpios.HWPorts.set_i2s(1)
+   else:
+    gpios.HWPorts.set_i2s(0)
+  except Exception as e:
+   misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"I2S init error="+str(e))
+
+  try:
+   stat = int(arg("bluetooth",responsearr).strip())
   except:
    stat=0
-  gpios.HWPorts.set_internal_bt(stat)
-  stat = arg("wifi",responsearr)
-  if stat=="on":
-   gpios.HWPorts.set_wifi(1)
-  else:
-   gpios.HWPorts.set_wifi(0)
+  try:
+   gpios.HWPorts.set_internal_bt(stat)
+   stat = arg("wifi",responsearr)
+   if stat=="on":
+    gpios.HWPorts.set_wifi(1)
+   else:
+    gpios.HWPorts.set_wifi(0)
+  except Exception as e:
+   misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"WLAN init error="+str(e))
 
   try:
    stat = int(arg("gpumem",responsearr).strip())
@@ -679,12 +711,21 @@ def handle_pinout(self):
 
   for p in range(len(Settings.Pinout)):
    pins = arg("pinstate"+str(p),responsearr)
-   if pins:
-    gpios.HWPorts.setpinstate(p,int(pins))
+   if pins and pins!="" and p!= "":
+    try:
+     gpios.HWPorts.setpinstate(p,int(pins))
+    except Exception as e:
+     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Pin "+str(p)+" "+str(e))
 
   if OS.check_permission() and setbtn=='':
-   gpios.HWPorts.saveconfig()
-  Settings.savepinout()
+   try:
+    gpios.HWPorts.saveconfig()
+   except Exception as e:
+    misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,str(e))
+  try:
+   Settings.savepinout()
+  except Exception as e:
+   misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,str(e))
 
  if (len(Settings.Pinout)>1):
   TXBuffer += "<form name='frmselect' method='post'><table class='normal'>"
