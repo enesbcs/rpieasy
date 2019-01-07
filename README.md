@@ -1,5 +1,13 @@
+| PayPal |
+|-------|
+|  [![donate](https://img.shields.io/badge/donate-PayPal-blue.svg)](https://www.paypal.me/rpieasy) |
+If you like this project, or you wants to support the development, you can do that the links above or by doing pull requests, if you knew Python language.
+
 # RPIEasy
+
 Easy MultiSensor device based on Raspberry PI
+
+![RPIEasy](https://m.blog.hu/bi/bitekmindenhol/image/rpi_devs.png)
 
 Based on Python 3.x and Raspberry PI (Raspbian Linux) this project tries to mimic the magnificent [ESPEasy](https://www.letscontrolit.com/wiki/index.php/ESPEasy) project functions.
 Main goal is to create a multisensor device, that can be install and setup quickly. 
@@ -31,9 +39,3 @@ In case of Debian Stretch or other linux that misses "ifconfig" command:
 Other dependencies can be reached and installed through the webGUI after starting with:
 
 `sudo ./RPIEasy.py`
-
-
-| PayPal |
-|-------|
-|  [![donate](https://img.shields.io/badge/donate-PayPal-blue.svg)](https://www.paypal.me/rpieasy) |
-If you like this project, or you wants to support the development, you can do that the links above or by doing pull requests, if you knew Python language.
