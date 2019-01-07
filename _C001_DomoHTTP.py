@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #############################################################################
-################# Domoticz HTTP Controller for RPIEasy ######################
+############### Domoticz HTTP/HTTPS Controller for RPIEasy ##################
 #############################################################################
 #
 # Only one way data sending supported for obvious reasons.
@@ -14,16 +14,35 @@ import misc
 import urllib.request
 from multiprocessing import Process
 import base64
+import webserver
 
 class Controller(controller.ControllerProto):
  CONTROLLER_ID = 1
- CONTROLLER_NAME = "Domoticz HTTP"
+ CONTROLLER_NAME = "Domoticz HTTP/HTTPS"
 
  def __init__(self,controllerindex):
   controller.ControllerProto.__init__(self,controllerindex)
   self.usesID = True
   self.usesAccount = True
   self.usesPassword = True
+  self.authmode = 0
+  
+ def webform_load(self):
+  try:
+   am = self.authmode
+  except:
+   am = 0
+  options = ["HTTP","HTTPS/auto negotiation","HTTPS/disable verify"]
+  optionvalues = [0,1,2]
+  webserver.addFormSelector("Mode","c001_mode",len(optionvalues),options,optionvalues,None,int(am))
+  return True
+  
+ def webform_save(self,params):
+  try:
+   self.authmode = int(webserver.arg("c001_mode",params))
+  except:
+   self.authmode = 0
+  return True
 
  def senddata(self,idx,sensortype,value,userssi=-1,usebattery=-1,tasknum=-1,changedvalue=-1):
   if self.enabled:
@@ -59,7 +78,7 @@ class Controller(controller.ControllerProto):
      bval = misc.get_battery_value()
      url += "&battery="
      url += str(bval)
-    urlstr = "http://"+self.controllerip+":"+self.controllerport+url+self.getaccountstr()
+    urlstr = self.controllerip+":"+self.controllerport+url+self.getaccountstr()
     misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,urlstr) # sendviahttp
     httpproc = Process(target=self.urlget, args=(urlstr,))  # use multiprocess to avoid blocking
     httpproc.start()
@@ -68,9 +87,31 @@ class Controller(controller.ControllerProto):
 
  def urlget(self,url):
   try:
-   content = urllib.request.urlopen(url,None,2)
+     am = self.authmode
   except:
-   misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Controller: "+self.controllerip+" connection failed")
+     am = 0
+  if am==0:         # http
+     url = "http://"+str(url)
+  elif am==1 or am==2: # https
+     url = "https://"+str(url)
+     try:
+      import ssl
+     except:
+      misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"OpenSSL is not reachable!")
+      return False
+     if am==2: # https insecure
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+     else:
+        ctx = ssl.SSLContext(ssl.PROTOCOL_TLS)
+  try:
+   if am == 0:
+    content = urllib.request.urlopen(url,None,2)
+   else:
+    content = urllib.request.urlopen(url,None,2, context=ctx)
+  except Exception as e:
+   misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Controller: "+self.controllerip+" connection failed "+str(e))
 
  def getaccountstr(self):
   retstr = ""

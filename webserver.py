@@ -1168,7 +1168,7 @@ def handle_devices(self):
                 numtodisp = Settings.Tasks[x].uservar[varNr]
                 decimalv = Settings.Tasks[x].decimals[varNr]
                 if str(decimalv) == "-1":
-                 TXBuffer += numtodisp
+                 TXBuffer += str(numtodisp)
                 else:
                  if str(decimalv) == "" or int(decimalv)<0:
                   decimalv = "0"
@@ -1184,6 +1184,7 @@ def handle_devices(self):
        else:
         TXBuffer += "<TD><TD><TD><TD><TD><TD>"
       TXBuffer += "</table></form>"
+      
  else: #Show edit form if a specific entry is chosen with the edit button
 
     TXBuffer += "<form name='frmselect' method='post'><table class='normal'>"
