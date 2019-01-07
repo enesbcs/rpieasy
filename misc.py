@@ -9,6 +9,7 @@ import platform
 import rpieGlobals
 from datetime import datetime
 import Settings
+import socket
 
 supportedsys = ['Not supported', 'Linux-apt (partially supported)', 'Linux-pacman (experimental support)','Reserved','Reserved','Reserved','Reserved','Reserved','Reserved','Reserved','RPI-Linux-apt (supported)']
 
@@ -55,6 +56,9 @@ def addLog(logLevel, line):
  lstamp = datetime.now().strftime('%H:%M:%S')
  if int(logLevel)<=int(Settings.AdvSettings["webloglevel"]): # if weblogging enabled
     WebLog(logLevel,lstamp,line)
+ if int(logLevel)<=int(Settings.AdvSettings["sysloglevel"]): # if syslogging enabled
+    lstamp2 = datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f%z')
+    SysLog(logLevel,lstamp2,line)
  if int(logLevel)<=int(Settings.AdvSettings["consoleloglevel"]): # if console logging enabled
     if logLevel==rpieGlobals.LOG_LEVEL_ERROR:
      lstamp += ": !"
@@ -62,6 +66,40 @@ def addLog(logLevel, line):
      lstamp += ": "
     print(lstamp+line)
 
+def udpsender(destip,data,dport=514,retrynum=1):
+  if destip != "":
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    if type(data) is bytes:
+     dsend = data
+    elif type(data) is str:
+     dsend = bytes(data,"utf-8")
+    else:
+     dsend = bytes(data)
+    for r in range(retrynum):
+      s.sendto(dsend, (destip,int(dport)))
+      if r<retrynum-1:
+       time.sleep(0.1)
+
+def SysLog(lvl,logstamp,line):
+   slip = ""
+   try:
+    slip = Settings.AdvSettings["syslogip"]
+   except:
+    slip = ""
+   if slip != "":
+    facility = 0
+    prio = (facility*8)
+    if (lvl == rpieGlobals.LOG_LEVEL_ERROR):
+     prio += 3
+    elif (lvl == rpieGlobals.LOG_LEVEL_INFO):
+     prio += 5
+    else:
+     prio += 7
+    lstr = "<"+str(prio)+">RPIEasy "+str(Settings.Settings["Name"])+": "+str(line)
+    udpsender(slip,lstr)
+   else:
+    print("Syslog IP is empty!")
+ 
 def str2num(data):
  try:
   data + ''

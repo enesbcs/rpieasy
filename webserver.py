@@ -226,7 +226,7 @@ def handle_config(self):
 
  addFormTextBox( "Unit Name", "name", Settings.Settings["Name"], 25)
  
- addFormNumericBox( "Unit Number", "unit", Settings.Settings["Unit"], 0, 9999)
+ addFormNumericBox( "Unit Number", "unit", Settings.Settings["Unit"], 0, 256)
 # addFormPasswordBox( "Admin Password" , "password", Settings.Settings["Password"], 25)   # Not implemented MISSING!
 
 # addFormCheckBox("AP Mode enable on connection failure","apmode",Settings.NetMan.APMode) # Not implemented MISSING!
@@ -242,10 +242,10 @@ def handle_config(self):
   addFormNote("<font color=red><b>If not enabled, OS config files will not be overwritten!</b></font>")
  
   addFormSubHeader("Wifi Settings") #/etc/wpa_supplicant/wpa_supplicant.conf
-  addFormTextBox( "SSID", "ssid", Settings.NetMan.WifiSSID, 64)
-  addFormPasswordBox("WPA Key", "key", Settings.NetMan.WifiKey, 128)
-  addFormTextBox( "Fallback SSID", "ssid2", Settings.NetMan.WifiSSID2, 64)
-  addFormPasswordBox( "Fallback WPA Key", "key2", Settings.NetMan.WifiKey2, 128)
+  addFormTextBox( "SSID", "ssid", Settings.NetMan.WifiSSID, 32)
+  addFormPasswordBox("WPA Key", "key", Settings.NetMan.WifiKey, 64)
+  addFormTextBox( "Fallback SSID", "ssid2", Settings.NetMan.WifiSSID2, 32)
+  addFormPasswordBox( "Fallback WPA Key", "key2", Settings.NetMan.WifiKey2, 64)
   addFormSeparator(2)
 
   addFormSubHeader("IP Settings")
@@ -1775,6 +1775,13 @@ def handle_advanced(self):
   except:
    Settings.AdvSettings["consoleloglevel"]  = 0
   try:
+   Settings.AdvSettings["sysloglevel"]  = int(arg("sysloglevel",responsearr))
+   Settings.AdvSettings["syslogip"]  = str(arg("syslogip",responsearr))
+  except Exception as e:
+   print(e,arg("sysloglevel",responsearr))
+   Settings.AdvSettings["sysloglevel"]  = 0
+   Settings.AdvSettings["syslogip"]  = ""
+  try:
    Settings.AdvSettings["battery"]["enabled"] = (arg("battery_mon",responsearr)=="on")
    Settings.AdvSettings["battery"]["tasknum"] = int(arg("battery_task",responsearr))
    Settings.AdvSettings["battery"]["taskvaluenum"] = int(arg("battery_valuenum",responsearr))
@@ -1786,8 +1793,15 @@ def handle_advanced(self):
  addFormHeader("Advanced Settings")
  addFormSubHeader("Log Settings")
 
- addFormLogLevelSelect("Console log Level","consoleloglevel", Settings.AdvSettings["consoleloglevel"]);
- addFormLogLevelSelect("Web log Level",    "webloglevel",     Settings.AdvSettings["webloglevel"]);
+ addFormLogLevelSelect("Console log Level","consoleloglevel", Settings.AdvSettings["consoleloglevel"])
+ addFormLogLevelSelect("Web log Level",    "webloglevel",     Settings.AdvSettings["webloglevel"])
+ addFormLogLevelSelect("Syslog Level",    "sysloglevel",     Settings.AdvSettings["sysloglevel"])
+ try:
+  val = Settings.AdvSettings["syslogip"]
+ except:
+  val = ""
+  Settings.AdvSettings["syslogip"] = val
+ addFormTextBox("Syslog IP", "syslogip", val,64)
 
  addFormSubHeader("Battery reporting source")
  try:
