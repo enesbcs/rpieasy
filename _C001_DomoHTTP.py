@@ -18,7 +18,7 @@ import webserver
 
 class Controller(controller.ControllerProto):
  CONTROLLER_ID = 1
- CONTROLLER_NAME = "Domoticz HTTP/HTTPS"
+ CONTROLLER_NAME = "Domoticz HTTP"
 
  def __init__(self,controllerindex):
   controller.ControllerProto.__init__(self,controllerindex)
@@ -98,6 +98,7 @@ class Controller(controller.ControllerProto):
       import ssl
      except:
       misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"OpenSSL is not reachable!")
+      #self.authmode=0
       return False
      if am==2: # https insecure
         ctx = ssl.create_default_context()

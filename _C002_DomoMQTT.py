@@ -9,6 +9,7 @@
 #
 # Copyright (C) 2018-2019 by Alexander Nagy - https://bitekmindenhol.blog.hu/
 #
+# missing! complete it based on c014!
 import controller
 import paho.mqtt.client as mqtt
 import json
@@ -19,6 +20,7 @@ import re
 import webserver
 import commands
 from helper_domoticz import *
+import os
 
 class Controller(controller.ControllerProto):
  CONTROLLER_ID = 2
@@ -36,15 +38,22 @@ class Controller(controller.ControllerProto):
   self.usesAccount = True
   self.usesPassword = True
   self.usesMQTT = True
+  self.authmode = 0
+  self.certfile = ""
+  self.laststatus = False
 
  def controller_init(self,enablecontroller=None):
   if enablecontroller != None:
    self.enabled = enablecontroller
+  self.connectinprogress = 0
+  self.laststatus = False
+  self.mqttclient = DMQTTClient()
+  self.mqttclient.subscribechannel = self.outchannel
+  self.mqttclient.controllercb = self.on_message
+  self.mqttclient.connectcb = self.on_connect
+  self.mqttclient.disconnectcb = self.on_disconnect
   self.initialized = True
   if self.enabled:
-   self.mqttclient = DMQTTClient()
-   self.mqttclient.subscribechannel = self.outchannel
-   self.mqttclient.controllercb = self.on_message
    self.connect()
   else:
    self.disconnect()
@@ -52,44 +61,99 @@ class Controller(controller.ControllerProto):
 
  def connect(self):
   if self.enabled and self.initialized:
-   if self.mqttclient.connected:
+   if self.isconnected():
     self.disconnect()
+   self.connectinprogress = 1
    self.lastreconnect = time.time()
    if self.controlleruser!="" or self.controllerpassword!="":
     self.mqttclient.username_pw_set(username=self.controlleruser,password=self.controllerpassword)
    try:
+    am = self.authmode
+   except:
+    am = 0
+   if am==1 or am==2: # mqtts
+     try:
+      import ssl
+     except:
+      misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"OpenSSL is not reachable!")
+      self.initialized = False
+      return False
+     if am==1: # with cert file
+      try:
+       fname = self.certfile.strip()
+      except:
+       fname = ""
+      if (fname=="") or (str(fname)=="0") or (os.path.exists(fname)==False):
+       misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Certificate file not found!")
+       self.initialized = False
+       return False
+      try:
+       self.mqttclient.tls_set(fname, tls_version=ssl.PROTOCOL_TLSv1_2)
+       self.mqttclient.tls_insecure_set(True) # or False?
+      except:
+       pass
+     elif am==2: # no cert! connect somehow..
+      try:
+       ssl_ctx = ssl.create_default_context()
+       ssl_ctx.check_hostname = False
+       ssl_ctx.verify_mode = ssl.CERT_NONE
+       self.mqttclient.tls_set_context(ssl_ctx)
+       self.mqttclient.tls_insecure_set(True)
+      except:
+       pass
+   try:
     self.mqttclient.connect_async(self.controllerip,int(self.controllerport))
     self.mqttclient.loop_start()
    except:
-    misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"MQTT controller: "+self.controllerip+" connection failed")
+    misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"MQTT controller: "+self.controllerip+":"+str(self.controllerport)+" connection failed")
   return self.mqttclient.connected
 
  def disconnect(self):
   try:
    self.mqttclient.loop_stop(True)
    self.mqttclient.disconnect()
+   self.mqttclient.connected=False
   except:
    pass
-  return self.mqttclient.connected
+  return self.isconnected()
 
  def isconnected(self):
   res = False
   if self.enabled and self.initialized:
-   if self.mqttclient:
+   if self.mqttclient is not None:
     try:
      res = self.mqttclient.connected
     except:
      res = False
+  self.laststatus = res
   return res
 
  def webform_load(self): # create html page for settings
   webserver.addFormTextBox("Controller Publish","inchannel",self.inchannel,255)
   webserver.addFormTextBox("Controller Subscribe","outchannel",self.outchannel,255)
+  try:
+   am = self.authmode
+   fname = self.certfile
+  except:
+   am = 0
+   fname = ""
+  options = ["MQTT","MQTTS/with cert","MQTTS/insecure"]
+  optionvalues = [0,1,2]
+  webserver.addFormSelector("Mode","c002_mode",len(optionvalues),options,optionvalues,None,int(am))
+  webserver.addFormTextBox("Server certificate file","c002_cert",str(fname),120)
+  webserver.addBrowseButton("Browse","c002_cert",startdir=str(fname))
+  webserver.addFormNote("Upload certificate first at <a href='filelist'>filelist</a> then select here!")
   return True
 
  def webform_save(self,params): # process settings post reply
   self.inchannel = webserver.arg("inchannel",params)
   self.outchannel = webserver.arg("outchannel",params)
+  try:
+   self.authmode = int(webserver.arg("c002_mode",params))
+   self.certfile = webserver.arg("c002_cert",params)
+  except:
+   self.authmode = 0
+   self.certfile = ""
   return True
 
  def on_message(self, msg):
@@ -198,20 +262,37 @@ class Controller(controller.ControllerProto):
     if (time.time()-self.lastreconnect)>30:
      self.connect()
 
+ def on_connect(self):
+  if self.enabled and self.initialized:
+   if self.connectinprogress==1:
+    commands.rulesProcessing("DomoMQTT#Connected",rpieGlobals.RULE_SYSTEM)
+    self.connectinprogress=0
+  else:
+   self.disconnect()
+
+ def on_disconnect(self):
+  if self.enabled and self.initialized:
+   if self.laststatus:
+    commands.rulesProcessing("DomoMQTT#Disconnected",rpieGlobals.RULE_SYSTEM)
+
 class DMQTTClient(mqtt.Client):
  subscribechannel = ""
  controllercb = None
+ connected = False
+ disconnectcb = None
  connected = False
 
  def on_connect(self, client, userdata, flags, rc):
   if rc==0:
    self.subscribe(self.subscribechannel,0)
    self.connected = True
-   commands.rulesProcessing("DomoMQTT#Connected",rpieGlobals.RULE_SYSTEM)
+   if self.connectcb is not None:
+    self.connectcb()
 
  def on_disconnect(self, client, userdata, rc):
   self.connected = False
-  commands.rulesProcessing("DomoMQTT#Disconnected",rpieGlobals.RULE_SYSTEM)
+  if self.disconnectcb is not None:
+    self.disconnectcb()  
 
  def on_message(self, mqttc, obj, msg):
   if self.connected and self.controllercb:

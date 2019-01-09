@@ -34,6 +34,7 @@ AdvSettings = {
 "consoleloglevel":2,
 "fileloglevel":0,
 "sysloglevel":0,
+"syslogip":"",
 "battery": { "enabled":0,"tasknum":0,"taskvaluenum":0}
 }
 
@@ -144,7 +145,7 @@ def savecontrollers():
  success = 1
  try:
   f = open(controllersfile,'w')
-  settingjson = jsonpickle.encode(Controllers)
+  settingjson = jsonpickle.encode(Controllers,max_depth=2) # Restrict Jsonpickle to encode vars at first object
   f.write(settingjson)
  except:
   success = 0
@@ -157,7 +158,8 @@ def loadcontrollers():
   f = open(controllersfile)
   settingjson = f.read()
   Controllers = jsonpickle.decode(settingjson)
- except:
+ except Exception as e:
+  print("Critical Jsonpickle error:",str(e))
   success = 0
  return success
 

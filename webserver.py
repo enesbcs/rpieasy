@@ -861,6 +861,9 @@ def handle_pinout(self):
   addSubmitButton("Set without save","set")
   addSubmitButton("Reread config","reread")
   TXBuffer += "</td></tr>"
+  if OS.check_permission():
+   if OS.checkboot_ro():
+     addFormNote("<font color='red'>WARNING: Your /boot partition is mounted READONLY! Changes could not be saved! Run 'sudo mount -o remount,rw /boot' or whatever necessary to solve it!")
   addFormNote("WARNING: Some changes needed to reboot after submitting changes! And most changes requires root permission.")
   addHtml("</table></form>")
  else:

@@ -985,6 +985,8 @@ class hwports:
         self.set_serial(0)
        elif self.CONFIG_DISABLE_UART2 in line.lower():
         self.set_serial(0)
+       elif self.CONFIG_ENABLE_UART in line.lower():
+        self.set_serial(1)
        elif self.CONFIG_BT_SWUART in line.lower():
         self.set_internal_bt(1)
        elif self.CONFIG_DISABLE_BT in line.lower():
@@ -1100,6 +1102,8 @@ class hwports:
        elif self.CONFIG_DISABLE_UART in line.lower():
         line = ""
        elif self.CONFIG_DISABLE_UART2 in line.lower():
+        line = ""
+       elif self.CONFIG_ENABLE_UART in line.lower():
         line = ""
        elif self.CONFIG_BT_SWUART in line.lower():
         line = ""

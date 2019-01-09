@@ -532,3 +532,15 @@ def runasfirstuser(subprocess_options): # some applications, such as VLC will no
       result = False
    return result
 
+def checkboot_ro():
+     err = False
+     try:
+      output = os.popen('cat /proc/mounts | grep /boot')
+      for l in output:
+       if "ro," in l:
+        err = True
+        break
+     except:
+      err = False
+     return err
+
