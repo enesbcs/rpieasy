@@ -60,10 +60,12 @@ class Plugin(plugin.PluginProto):
      gpios.HWPorts.add_event_detect(self.taskdevicepin[0],gpios.FALLING,self.p064_handler,200)
      self.timer100ms = False
     except Exception as e:
-     self.timer100ms = True
+     if str(self.taskdevicepluginconfig[0])=="0":
+      self.timer100ms = True
      misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Interrupt error "+str(e)) 
    else:
-    self.timer100ms = True
+    if str(self.taskdevicepluginconfig[0])=="0":
+     self.timer100ms = True
 
    try:
      i2cok = gpios.HWPorts.i2c_init()
@@ -85,7 +87,7 @@ class Plugin(plugin.PluginProto):
   if initok:
    try:
     self.apds.setProximityIntLowThreshold(50)
-    if self.taskdevicepluginconfig[0]==1:
+    if str(self.taskdevicepluginconfig[0])=="1":
      self.apds.enableProximitySensor()
      self.apds.enableLightSensor()
     else:
@@ -121,7 +123,8 @@ class Plugin(plugin.PluginProto):
     self.set_valuenames(self.PLUGIN_VALUENAME1)
     self.vtype = rpieGlobals.SENSOR_TYPE_DIMMER
    try:
-    gpios.HWPorts.remove_event_detect(self.taskdevicepin[0])
+    if self.taskdevicepin[0]>=0:
+     gpios.HWPorts.remove_event_detect(self.taskdevicepin[0])
    except:
     pass
    self.set_value(1,0,False)
@@ -162,7 +165,7 @@ class Plugin(plugin.PluginProto):
   if self.initialized and self.enabled:
    tvar = self.uservar[0]
    self.p064_get_gesture()
-   if tvar != self.uservar[0]: # publish changes if different gesture received than previous
+   if int(tvar) != int(self.uservar[0]): # publish changes if different gesture received than previous
     self.plugin_senddata()
     rpieTime.addsystemtimer(3,self.p064_timercb,[-1]) # reset gesture to None (0) after 3 sec
   return True
