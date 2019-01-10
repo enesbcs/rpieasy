@@ -32,6 +32,7 @@ class Plugin(plugin.PluginProto):
 
  def plugin_init(self,enableplugin=None):
   plugin.PluginProto.plugin_init(self,enableplugin)
+  self.decimals[0] = 0
   if self.enabled:
    self.set_value(1,0,False) # init with 0 cmd!
 

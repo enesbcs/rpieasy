@@ -55,6 +55,8 @@ def formatDomoticzSensorType(sensortype,valuearr):
   if (sensortype==rpieGlobals.SENSOR_TYPE_SINGLE) or (sensortype==rpieGlobals.SENSOR_TYPE_TEXT):
    valuestr += str(valuearr[0]).strip()
   elif (sensortype==rpieGlobals.SENSOR_TYPE_LONG):
+   valuearr[0] = float(valuearr[0])
+   valuearr[1] = float(valuearr[1])
    valuestr += str(valuearr[0] + (valuearr[1] << 16)).strip()
   elif (sensortype==rpieGlobals.SENSOR_TYPE_DUAL):
    valuestr += str(valuearr[0]).strip() + ";" + str(valuearr[1]).strip()

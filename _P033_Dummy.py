@@ -63,7 +63,7 @@ class Plugin(plugin.PluginProto):
   result = False
   if self.initialized:
    for x in range(self.valuecount):
-    logs = self.gettaskname()+"#"+self.valuenames[x]+"="+str(self.uservar[x])
+    logs = self.gettaskname()+"#"+self.valuenames[x]+"="+str(misc.formatnum(self.uservar[x],self.decimals[x]))
     misc.addLog(rpieGlobals.LOG_LEVEL_INFO,logs)
    self._lastdataservetime = rpieTime.millis()
    self.plugin_senddata()

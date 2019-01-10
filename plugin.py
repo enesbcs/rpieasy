@@ -8,6 +8,7 @@
 import rpieGlobals
 import rpieTime
 import commands
+import misc
 
 class PluginProto: # Skeleton for every plugin! Override necessary functions and extend as neeeded!
  PLUGIN_ID = -1
@@ -108,11 +109,6 @@ class PluginProto: # Skeleton for every plugin! Override necessary functions and
      tval = commands.parseformula(self.formula[valuenum-1],value)
      if tval!=False:
       rval = tval
-   if int(self.decimals[valuenum-1])>=0: # handle decimals if needed
-    try:
-     rval = round(float(rval),int(self.decimals[valuenum-1]))
-    except:
-     pass
    if self.pininversed:          # only binary sensors supported for inversion!
     if type(rval) is str:
      if (rval.lower() == "off") or (rval=="0"):
@@ -124,6 +120,11 @@ class PluginProto: # Skeleton for every plugin! Override necessary functions and
       rval = 1
      else:
       rval = 0
+   if int(self.decimals[valuenum-1])>=0: # handle decimals if needed
+    try:
+     rval = misc.formatnum(rval,int(self.decimals[valuenum-1]))
+    except:
+     pass
    self.uservar[valuenum-1] = rval
    if self.valuenames[valuenum-1]!= "":
     commands.rulesProcessing(self.taskname+"#"+self.valuenames[valuenum-1]+"="+str(rval),rpieGlobals.RULE_USER)

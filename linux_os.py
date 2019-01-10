@@ -537,7 +537,7 @@ def checkboot_ro():
      try:
       output = os.popen('cat /proc/mounts | grep /boot')
       for l in output:
-       if "ro," in l:
+       if ("ro," in l) or ("tmpfs" in l):
         err = True
         break
      except:

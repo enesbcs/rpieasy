@@ -40,13 +40,12 @@ class Controller(controller.ControllerProto):
   self.usesMQTT = True
   self.authmode = 0
   self.certfile = ""
-  self.laststatus = False
+  self.laststatus = -1
 
  def controller_init(self,enablecontroller=None):
   if enablecontroller != None:
    self.enabled = enablecontroller
   self.connectinprogress = 0
-  self.laststatus = False
   self.mqttclient = DMQTTClient()
   self.mqttclient.subscribechannel = self.outchannel
   self.mqttclient.controllercb = self.on_message
@@ -115,7 +114,10 @@ class Controller(controller.ControllerProto):
    self.mqttclient.connected=False
   except:
    pass
-  return self.isconnected()
+  stat=self.isconnected()
+  if stat==False:
+   self.on_disconnect()
+  return stat
 
  def isconnected(self):
   res = False
@@ -125,7 +127,6 @@ class Controller(controller.ControllerProto):
      res = self.mqttclient.connected
     except:
      res = False
-  self.laststatus = res
   return res
 
  def webform_load(self): # create html page for settings
@@ -266,21 +267,23 @@ class Controller(controller.ControllerProto):
   if self.enabled and self.initialized:
    if self.connectinprogress==1:
     commands.rulesProcessing("DomoMQTT#Connected",rpieGlobals.RULE_SYSTEM)
+    self.laststatus = 1
     self.connectinprogress=0
   else:
    self.disconnect()
 
  def on_disconnect(self):
-  if self.enabled and self.initialized:
-   if self.laststatus:
+  if self.initialized:
+   if self.laststatus==1:
     commands.rulesProcessing("DomoMQTT#Disconnected",rpieGlobals.RULE_SYSTEM)
+    self.laststatus = 0
 
 class DMQTTClient(mqtt.Client):
  subscribechannel = ""
  controllercb = None
  connected = False
  disconnectcb = None
- connected = False
+ connectcb = None
 
  def on_connect(self, client, userdata, flags, rc):
   if rc==0:
@@ -292,8 +295,8 @@ class DMQTTClient(mqtt.Client):
  def on_disconnect(self, client, userdata, rc):
   self.connected = False
   if self.disconnectcb is not None:
-    self.disconnectcb()  
+    self.disconnectcb()
 
  def on_message(self, mqttc, obj, msg):
-  if self.connected and self.controllercb:
+  if self.connected and self.controllercb is not None:
    self.controllercb(msg)

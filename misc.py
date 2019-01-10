@@ -112,6 +112,26 @@ def str2num2(data):
   return round(str2num(data),2)
  except:
   return data
+  
+def formatnum(num,decimal):
+ res = ""
+ try:
+  decimal = int(decimal)
+ except:
+  decimal=0
+ try:
+  num=float(num)
+ except:
+  pass
+ if decimal<0:
+  res = str(num)
+ else:
+  nformat = "{0:."+str(decimal)+"f}"
+  try:
+   res = nformat.format(num)
+  except:
+   res = num
+ return res
 
 def get_battery_value():
  bval = 255

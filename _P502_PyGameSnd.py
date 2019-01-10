@@ -39,6 +39,7 @@ class Plugin(plugin.PluginProto):
 
  def plugin_init(self,enableplugin=None):
   plugin.PluginProto.plugin_init(self,enableplugin)
+  self.decimals[0] = 0
   if Settings.SoundSystem["usable"]==False:
    self.initialized = False
    self.enabled = False

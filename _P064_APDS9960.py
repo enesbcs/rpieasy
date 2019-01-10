@@ -37,7 +37,7 @@ class Plugin(plugin.PluginProto):
   self.timeroption = True
   self.timeroptional = True
   self.apds = None
-  self.timer100ms = True
+  self.timer100ms = False
   self.readinprogress = False
 
  def __del__(self):
@@ -119,8 +119,11 @@ class Plugin(plugin.PluginProto):
    if int(par)==1:
     self.set_valuenames(self.PLUGIN_VALUENAME2,self.PLUGIN_VALUENAME3)
     self.vtype = rpieGlobals.SENSOR_TYPE_DUAL
+    self.formulaoption = True
    else:
     self.set_valuenames(self.PLUGIN_VALUENAME1)
+    self.formulaoption = False
+    self.decimals[0] = 0
     self.vtype = rpieGlobals.SENSOR_TYPE_DIMMER
    try:
     if self.taskdevicepin[0]>=0:

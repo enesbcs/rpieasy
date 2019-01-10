@@ -1170,18 +1170,19 @@ def handle_devices(self):
                 TXBuffer  += "'>"
                 numtodisp = Settings.Tasks[x].uservar[varNr]
                 decimalv = Settings.Tasks[x].decimals[varNr]
-                if str(decimalv) == "-1":
-                 TXBuffer += str(numtodisp)
-                else:
-                 if str(decimalv) == "" or int(decimalv)<0:
-                  decimalv = "0"
-                 else:
-                  decimalv = str(decimalv).strip()
-                 numformat = "{0:."+ decimalv + "f}"
-                 try:
-                  TXBuffer += numformat.format(numtodisp)
-                 except:
-                  TXBuffer += numtodisp 
+                TXBuffer += str(misc.formatnum(numtodisp,decimalv))
+#                if str(decimalv) == "-1":
+#                 TXBuffer += str(numtodisp)
+#                else:
+#                 if str(decimalv) == "" or int(decimalv)<0:
+#                  decimalv = "0"
+#                 else:
+#                  decimalv = str(decimalv).strip()
+#                 numformat = "{0:."+ decimalv + "f}"
+#                 try:
+#                  TXBuffer += numformat.format(numtodisp)
+#                 except:
+#                  TXBuffer += numtodisp 
                 TXBuffer += "</div>"
 
        else:
