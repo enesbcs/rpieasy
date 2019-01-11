@@ -2341,6 +2341,7 @@ def handle_upload(self):
 @WebServer.post('/upload')
 def handle_upload_post(self):
  if self.post:
+  misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG, "File upload started...")
   current_dir = 'files/'
   upath = arg("path",self.post).strip()
   if upath:
@@ -2366,13 +2367,18 @@ def handle_upload_post(self):
    upath += '/'
   fname = ""
   try:
+   logstr = "Upload destination path:"+str(fname)+" Filename:"+str(self.post['datafile']['filename'])+" Filesize:"+str(len(self.post['datafile']['file']))
+  except Exception as e:
+   logstr = str(e)
+  misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG, logstr)
+  try:
    if self.post['datafile']['filename']:
     fname = upath + self.post['datafile']['filename'].strip()
     fout = open(fname,"wb")
     fout.write(self.post['datafile']['file'])
     fout.close()
   except Exception as e:
-   print(e)
+   misc.addLog(rpieGlobals.LOG_LEVEL_ERROR, "Exception while uploading "+str(e))
  self.redirect("filelist?chgto="+str(upath))
 
 # -----------------------------
