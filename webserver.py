@@ -380,7 +380,8 @@ def handle_controllers(self):
      Settings.Controllers[controllerindex].controllerip = controllerip
      Settings.Controllers[controllerindex].controllerport = controllerport
      Settings.Controllers[controllerindex].controlleruser = controlleruser
-     Settings.Controllers[controllerindex].controllerpassword = controllerpassword
+     if "**" not in controllerpassword:
+      Settings.Controllers[controllerindex].controllerpassword = controllerpassword
      Settings.Controllers[controllerindex].enabled = enabled
      Settings.Controllers[controllerindex].webform_save(responsearr)
      Settings.savecontrollers()

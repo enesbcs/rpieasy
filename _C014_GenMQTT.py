@@ -78,7 +78,7 @@ class Controller(controller.ControllerProto):
    self.connectinprogress = 1
    self.lastreconnect = time.time()
    if self.controlleruser!="" or self.controllerpassword!="":
-    self.mqttclient.username_pw_set(username=self.controlleruser,password=self.controllerpassword)
+    self.mqttclient.username_pw_set(self.controlleruser,self.controllerpassword)
    try:
     am = self.authmode
    except:
@@ -247,6 +247,8 @@ class GMQTTClient(mqtt.Client):
    self.connected = True
    if self.connectcb is not None:
     self.connectcb()
+  else:
+    misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"MQTT connection error: "+str(rc))
 
  def on_disconnect(self, client, userdata, rc):
   self.connected = False
