@@ -24,6 +24,7 @@ import misc
 import commands
 import linux_network as Network
 import urllib
+import hashlib
 
 HTML_SYMBOL_WARNING = "&#9888;"
 TASKS_PER_PAGE = 16
@@ -38,10 +39,22 @@ WebServer = Perver()
 WebServer.timeout = 10
 WebServer.get_max = 65535
 
-def isLoggedIn():
+def isLoggedIn(pget,pcookie):
 #  if (not clientIPallowed()) return False
+  rpieGlobals.WebLoggedIn = False
   if (Settings.Settings["Password"] == ""):
     rpieGlobals.WebLoggedIn = True
+  else:
+    spw = str(hashlib.sha1(bytes(Settings.Settings["Password"],'utf-8')).hexdigest())
+    pws = str(arg("password",pget)).strip()
+    if pws != "":
+     if pws==Settings.Settings["Password"] or pws==spw:
+      rpieGlobals.WebLoggedIn = True
+    else:
+     for c in pcookie:
+      if 'password' in c:
+       if spw==str(pcookie[c].strip()):
+        rpieGlobals.WebLoggedIn = True
   return rpieGlobals.WebLoggedIn
 
 def arg(argname,parent):
@@ -52,11 +65,10 @@ def handle_root(self):
  global TXBuffer, navMenuIndex
  TXBuffer=""
  navMenuIndex=0
-
  if (rpieGlobals.wifiSetup):
-  return self.redirect('/setup')
- if (not isLoggedIn()):
-  return self.redirect('/login')
+   return self.redirect('/setup')
+ if (not isLoggedIn(self.get,self.cookie)):
+   return self.redirect('/login')
 
  if self.type == "GET":
   responsearr = self.get
@@ -130,7 +142,7 @@ def handle_config(self):
  navMenuIndex=1
  if (rpieGlobals.wifiSetup):
   return self.redirect('/setup')
- if (not isLoggedIn()):
+ if (not isLoggedIn(self.get,self.cookie)):
   return self.redirect('/login')
 
  if self.type == "GET":
@@ -227,7 +239,7 @@ def handle_config(self):
  addFormTextBox( "Unit Name", "name", Settings.Settings["Name"], 25)
  
  addFormNumericBox( "Unit Number", "unit", Settings.Settings["Unit"], 0, 256)
-# addFormPasswordBox( "Admin Password" , "password", Settings.Settings["Password"], 25)   # Not implemented MISSING!
+ addFormPasswordBox( "Admin Password" , "password", Settings.Settings["Password"], 25)
 
 # addFormCheckBox("AP Mode enable on connection failure","apmode",Settings.NetMan.APMode) # Not implemented MISSING!
 # addFormPasswordBox("WPA AP Mode Key", "apkey", Settings.NetMan.WifiAPKey, 128)          # Not implemented MISSING!
@@ -338,7 +350,7 @@ def handle_controllers(self):
  navMenuIndex=2
  if (rpieGlobals.wifiSetup):
   return self.redirect('/setup')
- if (not isLoggedIn()):
+ if (not isLoggedIn(self.get,self.cookie)):
   return self.redirect('/login')
  sendHeadandTail("TmplStd",_HEAD); 
 
@@ -504,7 +516,7 @@ def handle_hardware(self):
  navMenuIndex=3
  if (rpieGlobals.wifiSetup):
   return self.redirect('/setup')
- if (not isLoggedIn()):
+ if (not isLoggedIn(self.get,self.cookie)):
   return self.redirect('/login')
  sendHeadandTail("TmplStd",_HEAD)
  suplvl = misc.getsupportlevel()
@@ -600,7 +612,7 @@ def handle_pinout(self):
  navMenuIndex=3
  if (rpieGlobals.wifiSetup):
   return self.redirect('/setup')
- if (not isLoggedIn()):
+ if (not isLoggedIn(self.get,self.cookie)):
   return self.redirect('/login')
  sendHeadandTail("TmplStd",_HEAD)
 
@@ -880,7 +892,7 @@ def handle_plugins(self):
  navMenuIndex=3
  if (rpieGlobals.wifiSetup):
   return self.redirect('/setup')
- if (not isLoggedIn()):
+ if (not isLoggedIn(self.get,self.cookie)):
   return self.redirect('/login')
  sendHeadandTail("TmplStd",_HEAD); 
 
@@ -987,7 +999,7 @@ def handle_devices(self):
  navMenuIndex=4
  if (rpieGlobals.wifiSetup):
   return self.redirect('/setup')
- if (not isLoggedIn()):
+ if (not isLoggedIn(self.get,self.cookie)):
   return self.redirect('/login')
  sendHeadandTail("TmplStd",_HEAD); 
 
@@ -1430,7 +1442,7 @@ def handle_notifications(self):
  navMenuIndex=6
  if (rpieGlobals.wifiSetup):
   return self.redirect('/setup')
- if (not isLoggedIn()):
+ if (not isLoggedIn(self.get,self.cookie)):
   return self.redirect('/login')
  sendHeadandTail("TmplStd",_HEAD); 
 
@@ -1446,7 +1458,7 @@ def handle_log(self):
  navMenuIndex=7
  if (rpieGlobals.wifiSetup):
   return self.redirect('/setup')
- if (not isLoggedIn()):
+ if (not isLoggedIn(self.get,self.cookie)):
   return self.redirect('/login')
  sendHeadandTail("TmplStd",_HEAD); 
 
@@ -1475,7 +1487,7 @@ def handle_tools(self):
  navMenuIndex=7
  if (rpieGlobals.wifiSetup):
   return self.redirect('/setup')
- if (not isLoggedIn()):
+ if (not isLoggedIn(self.get,self.cookie)):
   return self.redirect('/login')
  sendHeadandTail("TmplStd",_HEAD); 
 
@@ -1598,7 +1610,7 @@ def handle_i2cscanner(self):
  navMenuIndex=3
  if (rpieGlobals.wifiSetup):
   return self.redirect('/setup')
- if (not isLoggedIn()):
+ if (not isLoggedIn(self.get,self.cookie)):
   return self.redirect('/login')
  sendHeadandTail("TmplStd",_HEAD)
  try:
@@ -1656,7 +1668,7 @@ def handle_wifiscanner(self):
  navMenuIndex=3
  if (rpieGlobals.wifiSetup):
   return self.redirect('/setup')
- if (not isLoggedIn()):
+ if (not isLoggedIn(self.get,self.cookie)):
   return self.redirect('/login')
  sendHeadandTail("TmplStd",_HEAD)
  wifidev = Settings.NetMan.getfirstwirelessdev()
@@ -1689,7 +1701,7 @@ def handle_blescanner(self):
  navMenuIndex=3
  if (rpieGlobals.wifiSetup):
   return self.redirect('/setup')
- if (not isLoggedIn()):
+ if (not isLoggedIn(self.get,self.cookie)):
   return self.redirect('/login')
  sendHeadandTail("TmplStd",_HEAD)
 
@@ -1734,16 +1746,42 @@ def handle_blescanner(self):
 
 @WebServer.route('/login')
 def handle_login(self):
- global TXBuffer
+ global TXBuffer, navMenuIndex
  TXBuffer=""
- addHtml('Login page')
+ navMenuIndex=0
+ if self.type == "GET":
+  responsearr = self.get
+ else:
+  responsearr = self.post
+ webrequest = str(arg("password",responsearr)).strip()
+ self.set_cookie("password","")
+ pwok = isLoggedIn(responsearr,[])
+ if webrequest != "":
+  if pwok:
+   self.set_cookie("password",hashlib.sha1(bytes(webrequest,'utf-8')).hexdigest())
+  else:
+   commands.rulesProcessing("Login#Failed",rpieGlobals.RULE_SYSTEM)
+ sendHeadandTail("TmplStd",_HEAD)
+
+ if pwok:
+  TXBuffer += "<p>Password accepted!"
+ else:
+  TXBuffer += "<form method='post'>"
+  TXBuffer += "<TR><TD>Password<TD>"
+  TXBuffer += "<input class='wide' type='password' name='password' value='"
+  TXBuffer += webrequest
+  TXBuffer += "'><TR><TD><TD>"
+  addSubmitButton();
+  TXBuffer += "<TR><TD></TABLE></FORM>"
+
+ sendHeadandTail("TmplStd",_TAIL);
  return TXBuffer
 
 @WebServer.route('/control')
 def handle_control(self):
  if (rpieGlobals.wifiSetup):
   return self.redirect('/setup')
- if (not isLoggedIn()):
+ if (not isLoggedIn(self.get,self.cookie)):
   return self.redirect('/login')
  if self.type == "GET":
   responsearr = self.get
@@ -1761,7 +1799,7 @@ def handle_advanced(self):
  navMenuIndex=7
  if (rpieGlobals.wifiSetup):
   return self.redirect('/setup')
- if (not isLoggedIn()):
+ if (not isLoggedIn(self.get,self.cookie)):
   return self.redirect('/login')
  sendHeadandTail("TmplStd",_HEAD)
  
@@ -1852,7 +1890,7 @@ def handle_json(self):
  TXBuffer=""
  if (rpieGlobals.wifiSetup):
   return self.redirect('/setup')
- if (not isLoggedIn()):
+ if (not isLoggedIn(self.get,self.cookie)):
   return self.redirect('/login')
 
  if self.type == "GET":
@@ -1991,7 +2029,7 @@ def handle_rules(self):
  navMenuIndex=5
  if (rpieGlobals.wifiSetup):
   return self.redirect('/setup')
- if (not isLoggedIn()):
+ if (not isLoggedIn(self.get,self.cookie)):
   return self.redirect('/login')
  sendHeadandTail("TmplStd",_HEAD); 
 
@@ -2034,7 +2072,7 @@ def handle_rules(self):
  navMenuIndex=7
  if (rpieGlobals.wifiSetup):
   return self.redirect('/setup')
- if (not isLoggedIn()):
+ if (not isLoggedIn(self.get,self.cookie)):
   return self.redirect('/login')
  sendHeadandTail("TmplStd",_HEAD); 
  TXBuffer += "<table class='normal'><TR><TH align='left'>System Variables<TH align='left'>Normal"
@@ -2054,7 +2092,7 @@ def handle_sysinfo(self):
  navMenuIndex=7
  if (rpieGlobals.wifiSetup):
   return self.redirect('/setup')
- if (not isLoggedIn()):
+ if (not isLoggedIn(self.get,self.cookie)):
   return self.redirect('/login')
  sendHeadandTail("TmplStd",_HEAD); 
  TXBuffer += "<table class='normal'><TR><TH style='width:150px;' align='left'>System Info<TH align='left'>"
@@ -2151,7 +2189,7 @@ def handle_filelist(self):
  navMenuIndex=7
  if (rpieGlobals.wifiSetup):
   return self.redirect('/setup')
- if (not isLoggedIn()):
+ if (not isLoggedIn(self.get,self.cookie)):
   return self.redirect('/login')
 
  if self.type == "GET":
@@ -2280,7 +2318,7 @@ def handle_favicon(self,imagename):
 def handle_download(self):
  if (rpieGlobals.wifiSetup):
   return self.redirect('/setup')
- if (not isLoggedIn()):
+ if (not isLoggedIn(self.get,self.cookie)):
   return self.redirect('/login')
  if self.type == "GET":
   responsearr = self.get
@@ -2317,7 +2355,7 @@ def handle_upload(self):
  navMenuIndex=7
  if (rpieGlobals.wifiSetup):
   return self.redirect('/setup')
- if (not isLoggedIn()):
+ if (not isLoggedIn(self.get,self.cookie)):
   return self.redirect('/login')
  sendHeadandTail("TmplStd",_HEAD)
  current_dir = "files/"
