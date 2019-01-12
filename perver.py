@@ -339,7 +339,7 @@ class PerverHandler:
 				field_rows = field.split(b'\r\n\r\n')
 				if len(field_rows) == 2:
 					header, value = field_rows
-					value = value[:-2]
+					value = value[:-4]
 					
 					# Decoding key:
 					key = re.findall(b';[ ]*name="([^;]+)"', header)[0]
