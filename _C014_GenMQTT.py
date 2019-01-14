@@ -49,6 +49,7 @@ class Controller(controller.ControllerProto):
   self.authmode = 0
   self.certfile = ""
   self.laststatus = -1
+  self.pwset = False
 
  def controller_init(self,enablecontroller=None):
   if enablecontroller != None:
@@ -64,6 +65,9 @@ class Controller(controller.ControllerProto):
   self.mqttclient.controllercb = self.on_message
   self.mqttclient.connectcb = self.on_connect
   self.mqttclient.disconnectcb = self.on_disconnect
+  if self.controllerpassword=="*****":
+   self.controllerpassword=""
+  self.pwset = False
   self.initialized = True
   if self.enabled:
    self.connect()
@@ -77,8 +81,9 @@ class Controller(controller.ControllerProto):
     self.disconnect()
    self.connectinprogress = 1
    self.lastreconnect = time.time()
-   if self.controlleruser!="" or self.controllerpassword!="":
+   if (self.controlleruser!="" or self.controllerpassword!="") and (self.pwset==False):
     self.mqttclient.username_pw_set(self.controlleruser,self.controllerpassword)
+    self.pwset=True
    try:
     am = self.authmode
    except:
@@ -114,7 +119,7 @@ class Controller(controller.ControllerProto):
       except:
        pass
    try:
-    self.mqttclient.connect_async(self.controllerip,int(self.controllerport))
+    self.mqttclient.connect(self.controllerip,int(self.controllerport)) # connect_async() is faster but maybe not the best for user/pass method
     self.mqttclient.loop_start()
    except:
     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"MQTT controller: "+self.controllerip+":"+str(self.controllerport)+" connection failed")
@@ -242,13 +247,20 @@ class GMQTTClient(mqtt.Client):
  connectcb = None
 
  def on_connect(self, client, userdata, flags, rc):
+  try:
+   rc = int(rc)
+  except:
+   rc=-1
   if rc==0:
    self.subscribe(self.subscribechannel,0)
    self.connected = True
    if self.connectcb is not None:
     self.connectcb()
   else:
-    misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"MQTT connection error: "+str(rc))
+   estr = str(rc)
+   if rc==5:
+      estr += " Invalid user/pass!"
+   misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"MQTT connection error: "+estr)
 
  def on_disconnect(self, client, userdata, rc):
   self.connected = False

@@ -1544,7 +1544,7 @@ def handle_tools(self):
  TXBuffer += '"'
  TXBuffer += " href='/?cmd=exit'>Exit</a>"
  TXBuffer += "<TD>"
- TXBuffer += "Exit from RPIEasy"
+ TXBuffer += "Exit from RPIEasy (or Restart if autostart script used)"
 
  html_TR_TD_height(30)
  addWideButton("log", "Log", "")

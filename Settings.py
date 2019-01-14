@@ -159,7 +159,7 @@ def loadcontrollers():
   settingjson = f.read()
   Controllers = jsonpickle.decode(settingjson)
  except Exception as e:
-  print("Critical Jsonpickle error:",str(e))
+#  print("Critical Jsonpickle error:",str(e))
   success = 0
  return success
 
