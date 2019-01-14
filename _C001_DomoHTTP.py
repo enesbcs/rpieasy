@@ -51,7 +51,7 @@ class Controller(controller.ControllerProto):
       url = "/json.htm?type=command&param=switchlight&idx="
       url += str(idx)
       url += "&switchcmd="
-      if int(value[0]) == 0:
+      if round(float(value[0])) == 0:
          url += "Off"
       else:
          url += "On"
@@ -59,7 +59,7 @@ class Controller(controller.ControllerProto):
       url = "/json.htm?type=command&param=switchlight&idx="
       url += str(idx)
       url += "&switchcmd="
-      if int(value[0]) == 0:
+      if float(value[0]) == 0:
        url += "Off"
       else:
        url += "Set%20Level&level="

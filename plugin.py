@@ -116,7 +116,7 @@ class PluginProto: # Skeleton for every plugin! Override necessary functions and
      else:
       rval = 0
     else:
-     if (int(rval) == 0):
+     if (float(rval) == 0):
       rval = 1
      else:
       rval = 0

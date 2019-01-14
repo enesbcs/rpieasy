@@ -52,6 +52,9 @@ class Plugin(plugin.PluginProto):
 
  def plugin_init(self,enableplugin=None):
   plugin.PluginProto.plugin_init(self,enableplugin)
+  self.decimals[0]=0
+  self.decimals[1]=0
+  self.decimals[2]=0
   if self.taskdevicepin[0]<0 or self.taskdevicepin[1]<0:
    self.enabled=False
    self.initialized=False
@@ -73,6 +76,7 @@ class Plugin(plugin.PluginProto):
  def plugin_read(self):
   result = False
   if self.initialized and self.enabled:
+   self.timer_ten_per_second()
    self.set_value(1,self.actualstate,True)
    self._lastdataservetime = rpieTime.millis()
    result = True
@@ -86,7 +90,7 @@ class Plugin(plugin.PluginProto):
     self.actualstate = 1
    if (v1==0) and (v2==0):
     self.actualstate = 0
-   if self.actualstate != self.laststate:
+   if float(self.actualstate) != float(self.laststate):
     self.set_value(1,self.actualstate,True)
     self.laststate = self.actualstate
     self._lastdataservetime = rpieTime.millis()

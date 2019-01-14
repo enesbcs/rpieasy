@@ -51,6 +51,7 @@ class Plugin(plugin.PluginProto):
 
  def plugin_init(self,enableplugin=None):
   plugin.PluginProto.plugin_init(self,enableplugin)
+  self.decimals[0]=0
   if int(self.taskdevicepin[0])>=0 and self.enabled:
    self.set_value(1,gpios.HWPorts.input(int(self.taskdevicepin[0])),True) # Sync plugin value with real pin state
    try:

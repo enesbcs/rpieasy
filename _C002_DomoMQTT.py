@@ -247,7 +247,7 @@ class Controller(controller.ControllerProto):
      msg = ""
      if (int(sensortype)==rpieGlobals.SENSOR_TYPE_SWITCH):
       try:
-       stateid = int(round(value[0]))
+       stateid = round(float(value[0]))
       except:
        stateid = 0
       if stateid<0:

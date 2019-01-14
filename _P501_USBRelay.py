@@ -39,6 +39,7 @@ class Plugin(plugin.PluginProto):
   self.timeroptional = True
 
  def plugin_init(self,enableplugin=None):
+  self.decimals[0]=0
   try:
    if (enableplugin==True and self.enabled==False) or (len(vusb.usbrelay.getcompatibledevlist())<1):
     vusb.vusb_force_refresh()
