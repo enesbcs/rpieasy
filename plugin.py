@@ -185,7 +185,7 @@ class PluginProto: # Skeleton for every plugin! Override necessary functions and
      if type(self.controllercb[x])==type(self.plugin_senddata):
       self.controllercb[x](self.controlleridx[x],self.vtype,self.uservar,userssi=puserssi,usebattery=pusebattery,tasknum=self.taskindex,changedvalue=pchangedvalue)
     except Exception as e:
-      print("Plugin SendData Exception: ",e)
+      print("Plugin SendData Exception: ",e,self.uservar)
 
  def timer_once_per_second(self): # once per sec
   return self.timer1s

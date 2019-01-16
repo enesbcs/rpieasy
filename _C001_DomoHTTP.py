@@ -47,6 +47,10 @@ class Controller(controller.ControllerProto):
  def senddata(self,idx,sensortype,value,userssi=-1,usebattery=-1,tasknum=-1,changedvalue=-1):
   if self.enabled:
    if int(idx) != 0:
+    try:
+     usebattery = float(usebattery)
+    except:
+     userbattery = -1
     if int(sensortype)==rpieGlobals.SENSOR_TYPE_SWITCH:
       url = "/json.htm?type=command&param=switchlight&idx="
       url += str(idx)

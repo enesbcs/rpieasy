@@ -137,7 +137,7 @@ def get_battery_value():
  bval = 255
  try:
   if Settings.AdvSettings["battery"]["enabled"]:
-   bval = Settings.Tasks[int(Settings.AdvSettings["battery"]["tasknum"])].uservar[int(Settings.AdvSettings["battery"]["taskvaluenum"])]
+   bval = float(Settings.Tasks[int(Settings.AdvSettings["battery"]["tasknum"])].uservar[int(Settings.AdvSettings["battery"]["taskvaluenum"])])
   else:
    bval = 255
  except: 

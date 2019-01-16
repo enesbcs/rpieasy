@@ -96,8 +96,8 @@ class HTU21D:
      try:
       self.i2cr = open("/dev/i2c-"+str(device_number),"rb",buffering=0)
       self.i2cw = open("/dev/i2c-"+str(device_number),"wb",buffering=0)
-      fcntl.ioctl(self.i2cr, self.I2C_SLAVE,0x40)
-      fcntl.ioctl(self.i2cw, self.I2C_SLAVE,0x40)
+      fcntl.ioctl(self.i2cr, self.I2C_SLAVE,0x40) # I2CADDR
+      fcntl.ioctl(self.i2cw, self.I2C_SLAVE,0x40) # I2CADDR
       self.i2cw.write(self._SOFTRESET)
       time.sleep(0.015)
       self.init = True

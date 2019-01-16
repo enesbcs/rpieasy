@@ -1859,6 +1859,7 @@ def handle_advanced(self):
  addFormCheckBox("Enable watching battery monitoring task","battery_mon",bmon)
  addFormNumericBox("Task Number", "battery_task", btask, 0, rpieGlobals.TASKS_MAX)
  addFormNumericBox("Task Value Number", "battery_valuenum", btval, 0, rpieGlobals.VARS_PER_TASK)
+ addFormNote("These values are currently zero based! (WIP)")
  if bmon:
   bval = 0
   try:

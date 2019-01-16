@@ -377,7 +377,12 @@ I2CDevices = [
  {"name": "BMP085/BMP180 Temp/Barometric",
   "addr": [0x77]},
  {"name": "BMP280 Temp/Barometric;BME180 Temp/Barometric/Humidity",
-  "addr": [0x76,0x77]}
+  "addr": [0x76,0x77]},
+ {"name": "ProMini Extender (standard)",
+  "addr": [0x3F]},
+ {"name": "ProMini Extender (non-standard)",
+  "addr": [0x7F]}
+
 ]
 
 try:
@@ -1227,6 +1232,13 @@ def i2cscan(bus_number):
       devices.append(0x5c)
      except:
       pass
+    if (0x7f not in devices): # 0x7f is non-standard used by PME
+     try: 
+      bus.read_byte(0x7f)
+      devices.append(0x7f)
+     except:
+      pass
+
     try:
      bus.close()
     except:
