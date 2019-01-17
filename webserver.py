@@ -1135,15 +1135,17 @@ def handle_devices(self):
         TXBuffer += "<TD>"
 
         if (Settings.Tasks[x].dtype == rpieGlobals.DEVICE_TYPE_I2C):
-            i2cpins = Settings.get_i2c_pins()
-            TXBuffer += i2cpins[0]
-            TXBuffer += "<BR>"+i2cpins[1]
+            try:
+             i2cpins = Settings.get_i2c_pins()
+             TXBuffer += i2cpins[0]
+             TXBuffer += "<BR>"+i2cpins[1]
+            except:
+             TXBuffer += "NO-I2C"
         for tp in range(0,len(Settings.Tasks[x].taskdevicepin)):
           if int(Settings.Tasks[x].taskdevicepin[tp])>=0:
             TXBuffer += "<br>GPIO-"
             TXBuffer += str(Settings.Tasks[x].taskdevicepin[tp])
         TXBuffer += "<TD>"
-
         customValues = False
 #        customValues = PluginCall(PLUGIN_WEBFORM_SHOW_VALUES, &TempEvent,TXBuffer.buf);
         if not(customValues):

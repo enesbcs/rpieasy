@@ -84,10 +84,13 @@ def callback_from_controllers(controllerindex,idx,values,taskname="",valuename="
 def get_i2c_pins():                    # get list of enabled i2c pin numbers
   global Pinout
   gplist = []
-  for p in range(len(Pinout)):
-   if int(Pinout[p]["altfunc"])==1:
-    if "I2C" in Pinout[p]["name"][1]:
-     gplist.append(Pinout[p]["name"][0]+"/"+Pinout[p]["name"][1])
+  try:
+   for p in range(len(Pinout)):
+    if int(Pinout[p]["altfunc"])==1:
+     if "I2C" in Pinout[p]["name"][1]:
+      gplist.append(Pinout[p]["name"][0]+"/"+Pinout[p]["name"][1])
+  except:
+   pass
   return gplist
 
 def savesettings():

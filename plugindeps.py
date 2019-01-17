@@ -71,7 +71,13 @@ modulelist = [
  "installed":-1},
 {"name":"linux-kernel",
 "testcmd" : "if misc.getosname(0)!='linux':\n raise Exception('Linux kernel needed')",
-"installed":-1}
+"installed":-1},
+{"name":"pyserial",
+ "apt": ["python3-pip"],
+ "pip": ["pyserial"],
+ "testcmd": "import serial.tools.list_ports",
+ "installed":-1}
+
 
 ]
 
@@ -99,6 +105,9 @@ plugindependencies = [
 {"pluginid": "10", # BH1750
  "supported_os_level": [10],
  "modules":["i2c"]},
+{"pluginid": "11", # PME
+ "supported_os_level": [10],
+ "modules":["i2c"]},
 {"pluginid": "14", # Si7021
  "supported_os_level": [10],
  "modules":["i2c"]},
@@ -120,6 +129,9 @@ plugindependencies = [
 {"pluginid": "200", #Dual Switch
  "supported_os_level": [10],
  "modules":["GPIO"]},
+{"pluginid": "201", #Generic Serial
+ "supported_os_level": [1,2,10],
+ "modules":["pyserial"]},
 {"pluginid": "501", # USB relay
  "modules":["hidapi"]},
 {"pluginid": "502", # pygame play wav/mp3
