@@ -374,7 +374,7 @@ def handle_controllers(self):
   protocol=0
  controlleruser = arg("controlleruser",responsearr)
  controllerpassword = arg("controllerpassword",responsearr)
- enabled = arg("controllerenabled",responsearr)
+ enabled = (arg("controllerenabled",responsearr)=="on")
 
  if ((protocol == 0) and (edit=='') and (controllerindex!='')) or (arg('del',responsearr) != ''):
    try:
@@ -2421,7 +2421,125 @@ def handle_upload_post(self):
     fout.close()
   except Exception as e:
    misc.addLog(rpieGlobals.LOG_LEVEL_ERROR, "Exception while uploading "+str(e))
- self.redirect("filelist?chgto="+str(upath))
+ return self.redirect("filelist?chgto="+str(upath))
+
+@WebServer.route('/dashboard.esp') # still experimental!
+def handle_custom(self):
+ global TXBuffer, navMenuIndex
+ TXBuffer=""
+ navMenuIndex=0
+ if (rpieGlobals.wifiSetup):
+  return self.redirect('/setup')
+ if (not isLoggedIn(self.get,self.cookie)):
+  return self.redirect('/login')
+ if self.type == "GET":
+  responsearr = self.get
+ else:
+  responsearr = self.post
+
+ webrequest = arg("cmd",responsearr)
+ if len(webrequest)>0:
+  responsestr = str(commands.doExecuteCommand(webrequest))
+ 
+ unit = arg("unit",responsearr).strip()
+ btnunit = arg("btnunit",responsearr).strip()
+ if unit == "":
+  unit = btnunit
+
+ if str(unit) != "":
+   if str(unit) != str(Settings.Settings["Unit"]):
+    ipa = ""
+    if len(Settings.nodelist)>0:
+     for n in Settings.nodelist:
+      if str(n["unitno"]) == str(unit):
+       ipa = str(n["ip"])
+       break
+    if ipa != "":
+     if str(n["port"]) != "" and str(n["port"]) != "0" and str(n["port"]) != "80":
+      ipa += ":" + str(n["port"])
+     return self.redirect("http://"+str(ipa)+"/dashboard.esp")
+#    sendHeadandTail("TmplDsh",_HEAD)
+#    TXBuffer += "<meta http-equiv=\"refresh\" content=\"0; URL=http://"
+#    TXBuffer += ipa
+#    TXBuffer += "/dashboard.esp\">"
+#    sendHeadandTail("TmplDsh",_TAIL)
+#    return TXBuffer
+
+ if len(Settings.nodelist)>0:
+  prevn = 0
+  nextn = 0
+  nlen = len(Settings.nodelist)
+  for n in range(0,nlen):
+      if str(Settings.nodelist[n]["unitno"]) == str(Settings.Settings["Unit"]):
+       if n>0:
+        prevn=n-1
+       else:
+        prevn=n
+       if n<(nlen-1):
+        nextn=n+1
+       else:
+        nextn=n
+       break
+
+  sendHeadandTail("TmplDsh",_HEAD)
+  TXBuffer += "<script><!--\nfunction dept_onchange(frmselect) {frmselect.submit();}\n//--></script>"
+  TXBuffer += "<form name='frmselect' method='post'>"
+  addSelector_Head("unit",True)
+  choice = int(Settings.Settings["Unit"])
+  for n in range(nlen):
+    addSelector_Item((str(Settings.nodelist[n]["unitno"])+" - "+ str(Settings.nodelist[n]["name"])),int(Settings.nodelist[n]["unitno"]),(int(Settings.nodelist[n]["unitno"])==int(choice)),False)
+  addSelector_Foot()
+  TXBuffer += "<a class='button link' href='http://"
+  ipa = str(Settings.nodelist[prevn]["ip"])
+  iport = str(Settings.nodelist[prevn]["port"])
+  if str(iport) != "" and str(iport) != "0" and str(iport) != "80":
+    ipa += ":" + str(iport)
+  TXBuffer += ipa + "/dashboard.esp"
+  TXBuffer += "?btnunit="+str(Settings.nodelist[prevn]["unitno"])
+  TXBuffer += "'>&lt;</a>"
+
+  TXBuffer += "<a class='button link' href='http://"
+  ipa = str(Settings.nodelist[nextn]["ip"])
+  iport = str(Settings.nodelist[nextn]["port"])
+  if str(iport) != "" and str(iport) != "0" and str(iport) != "80":
+    ipa += ":" + str(iport)
+  TXBuffer += ipa + "/dashboard.esp"
+  TXBuffer += "?btnunit="+str(Settings.nodelist[nextn]["unitno"])
+  TXBuffer += "'>&gt;</a>"
+
+ try:
+  customcont = OS.getfilecontent("dashboard.esp")
+ except Exception as e:
+  print(e)
+ if len(customcont)>0:
+  for l in customcont:
+   try:
+    cl, st = commands.parseruleline(str(l))
+    if st=="CMD":
+     TXBuffer += str(cl)
+    else:
+     TXBuffer += str(l)
+   except Exception as e:
+    print(e)
+ else: # if template not found
+  sendHeadandTail("TmplDsh",_HEAD); 
+  TXBuffer += "<table class='normal'>"
+  try:
+   for sc in range(0,len(Settings.Tasks)):
+    if Settings.Tasks[sc] != False:
+     TXBuffer += "<TR><TD>"+Settings.Tasks[sc].gettaskname()
+     fl = False
+     for tv in range(0,Settings.Tasks[sc].valuecount):
+      if str(Settings.Tasks[sc].valuenames[tv])!="":
+       if fl:
+        TXBuffer += "<TR><TD>"
+       TXBuffer += '<TD>' + str(Settings.Tasks[sc].valuenames[tv]) + "<td>" + str(Settings.Tasks[sc].uservar[tv]) + "</TR>"
+       fl = True
+  except Exception as e:
+   print(e)
+  TXBuffer += "</table><BR>"
+  sendHeadandTail("TmplDsh",_TAIL);
+ return TXBuffer
 
 # -----------------------------
 

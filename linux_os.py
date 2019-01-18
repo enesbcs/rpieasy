@@ -544,3 +544,17 @@ def checkboot_ro():
       err = False
      return err
 
+def getfilecontent(fname):
+     resbuf = []
+     cfname = str(fname)
+     if fname.startswith("files/") == False:
+      cfname = "files/"+cfname
+     try:
+      if os.path.exists(cfname):
+       with open(cfname) as f:
+        for line in f:
+         line = line.strip()
+         resbuf.append(line)
+     except:
+      resbuf = []
+     return resbuf

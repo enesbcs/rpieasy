@@ -123,13 +123,18 @@ class Controller(controller.ControllerProto):
   return self.isconnected()
 
  def disconnect(self):
-  try:
-   self.mqttclient.loop_stop(True)
-   self.mqttclient.disconnect()
-  except:
-   pass
-  stat=self.isconnected()
-  return stat
+   try:
+    self.mqttclient.loop_stop(True)
+   except:
+    pass
+   try:
+    self.mqttclient.disconnect()
+   except:
+    pass
+   stat=self.isconnected()
+   if self.enabled!=True:
+    commands.rulesProcessing("DomoMQTT#Disconnected",rpieGlobals.RULE_SYSTEM)
+   return stat
 
  def isconnected(self,ForceCheck=True):
   res = False

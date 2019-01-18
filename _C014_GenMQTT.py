@@ -77,6 +77,7 @@ class Controller(controller.ControllerProto):
     misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"MQTT: Try to connect")
     self.connect()
   else:
+   self.laststatus = -1
    self.disconnect()
   return True
 
@@ -138,10 +139,15 @@ class Controller(controller.ControllerProto):
  def disconnect(self):
    try:
     self.mqttclient.loop_stop(True)
+   except:
+    pass
+   try:
     self.mqttclient.disconnect()
    except:
     pass
    stat=self.isconnected()
+   if self.enabled!=True:
+    commands.rulesProcessing("GenMQTT#Disconnected",rpieGlobals.RULE_SYSTEM)
    return stat
 
  def isconnected(self,ForceCheck=True):

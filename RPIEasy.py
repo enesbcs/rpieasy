@@ -167,8 +167,12 @@ def CPluginInit():
  for y in range(0,len(Settings.Controllers)):
    if (Settings.Controllers[y]):
     if (Settings.Controllers[y].enabled): 
+     try:
       Settings.Controllers[y].controller_init(None) # init controller at startup
       Settings.Controllers[y].setonmsgcallback(Settings.callback_from_controllers) # set global msg callback for 2way comm
+     except Exception as e:
+      Settings.Controllers[y] = False
+      misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Controller" +str(y+1)+ " is malformed, deleted! "+str(e))
 
  return 0
 

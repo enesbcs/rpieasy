@@ -520,7 +520,8 @@ def parseruleline(linestr,rulenum=-1):
   m = re.findall(r"\%([A-Za-z0-9_#]+)\%", cline)
   if len(m)>0: # replace with values
    for r in range(len(m)):
-    cline = cline.replace("%"+m[r]+"%",str(getglobalvar(m[r])))
+    if m[r] in SysVars:
+     cline = cline.replace("%"+m[r]+"%",str(getglobalvar(m[r])))
  if "=" == getequchars(cline):
   cline = cline.replace("=","==") # prep for python interpreter
  equ = getfirstequpos(cline)
