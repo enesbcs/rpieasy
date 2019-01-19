@@ -104,6 +104,7 @@ def handle_root(self):
  except:
    rssi = "?"
  TXBuffer += "<TR><TD>Wifi RSSI:<TD>" + str(rssi)
+ TXBuffer += '<tr><td>Build<td>' + str(rpieGlobals.PROGNAME) + " " + str(rpieGlobals.PROGVER)
  TXBuffer += "<TR><TD><TD>"
  addButton("sysinfo", "More info");
  TXBuffer += "</table><BR>"
