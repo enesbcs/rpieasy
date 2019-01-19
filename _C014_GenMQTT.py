@@ -275,7 +275,7 @@ class Controller(controller.ControllerProto):
         mres = 1
         try:
          (mres,mid) = self.mqttclient.publish(gtopic,gval)
-         print(gtopic) # DEBUG
+#         print(gtopic) # DEBUG
         except:
          mres = 1
         if mres!=0:
@@ -296,7 +296,7 @@ class Controller(controller.ControllerProto):
        mres = 1
        try:
          (mres,mid) = self.mqttclient.publish(gtopic,gval)
-         print(gtopic) # DEBUG
+#         print(gtopic) # DEBUG
        except:
          mres = 1
        if mres!=0:
