@@ -263,13 +263,19 @@ class Controller(controller.ControllerProto):
       for u in range(Settings.Tasks[tasknum].valuecount):
        vname = Settings.Tasks[tasknum].valuenames[u]
        if vname != "":
-        gtopic = self.inch.replace('#',tname+"/"+vname)
+        if ('%t' in self.inch) or ('%v' in self.inch):
+         gtopic = self.inch.replace('#','')
+         gtopic = gtopic.replace('%tskname%',tname)
+         gtopic = gtopic.replace('%valname%',vname)
+        else:
+         gtopic = self.inch.replace('#',tname+"/"+vname)
         gval = str(value[u])
         if gval == "":
          gval = "0"
         mres = 1
         try:
          (mres,mid) = self.mqttclient.publish(gtopic,gval)
+         print(gtopic) # DEBUG
         except:
          mres = 1
         if mres!=0:
@@ -277,7 +283,12 @@ class Controller(controller.ControllerProto):
          break
      else:
       vname = Settings.Tasks[tasknum].valuenames[changedvalue-1]
-      gtopic = self.inch.replace('#',tname+"/"+vname)
+      if ('%t' in self.inch) or ('%v' in self.inch):
+         gtopic = self.inch.replace('#','')
+         gtopic = gtopic.replace('%tskname%',tname)
+         gtopic = gtopic.replace('%valname%',vname)
+      else:
+         gtopic = self.inch.replace('#',tname+"/"+vname)
       if vname != "":
        gval = str(value[changedvalue-1])
        if gval == "":
@@ -285,6 +296,7 @@ class Controller(controller.ControllerProto):
        mres = 1
        try:
          (mres,mid) = self.mqttclient.publish(gtopic,gval)
+         print(gtopic) # DEBUG
        except:
          mres = 1
        if mres!=0:
