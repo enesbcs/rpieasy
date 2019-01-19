@@ -28,7 +28,7 @@ class Plugin(plugin.PluginProto):
   self.valuecount = 1
   self.senddataoption = True
   self.timeroption = True
-  self.timeroptional = False
+  self.timeroptional = True
   self.formulaoption = True
   self.pme = None
 
@@ -65,6 +65,13 @@ class Plugin(plugin.PluginProto):
    if self.pme is None:
     self.initialized = False
     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"PME can not be initialized! "+str(e))
+   else:
+    if self.interval>0:
+     self.timer100ms = False # normal read
+    else:
+     self.uservar[0] = -1
+     self.readinprogress = 0
+     self.timer100ms = True  # oversampling method
 
  def webform_load(self): # create html page for settings
   choice1 = self.taskdevicepluginconfig[0]
@@ -110,6 +117,20 @@ class Plugin(plugin.PluginProto):
    self._lastdataservetime = rpieTime.millis()
    result = True
   return result
+
+ def timer_ten_per_second(self):
+  if self.readinprogress == 0 and self.timer100ms:
+   self.readinprogress = 1
+   try:
+    pt = int(self.taskdevicepluginconfig[1])
+    pn = int(self.taskdevicepluginconfig[2])
+    result = self.pme.read(pt,pn)
+    if float(result)!=float(self.uservar[0]):
+     self.set_value(1,result,True)
+   except Exception as e:
+    print(e)
+   self.readinprogress = 0
+  return self.timer100ms
 
  def plugin_write(self,cmd): # handle incoming commands
   res = False
@@ -240,11 +261,14 @@ class PME:
    carr.append(0)
    carr.append(0)
    barr = bytes(carr)
-#   print("send data",barr)
+#   print("send data",barr) # DEBUG
    self.i2cw.write(barr)    # send read data command
-   time.sleep(0.01)        # wait some
+   time.sleep(0.001)
    data = self.i2cr.read(4) # read data
-#   print("rec data",data)
+   if len(data)!=4:
+    time.sleep(0.001)        # wait some
+    data = self.i2cr.read(4) # reread data
+#   print("rec data",data) # DEBUG
    if len(data)>0:
     if ptype==0:
      return data[0]
