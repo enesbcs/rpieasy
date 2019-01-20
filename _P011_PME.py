@@ -261,14 +261,14 @@ class PME:
    carr.append(0)
    carr.append(0)
    barr = bytes(carr)
-   print("send data",barr) # DEBUG
+#   print("send data",barr) # DEBUG
    self.i2cw.write(barr)    # send read data command
    if ptype==0:
     time.sleep(0.001)  # digital read is almost instantous
    else:
     time.sleep(0.01)   # analog read takes more time
    data = self.i2cr.read(4) # read data
-   print("rec data",data) # DEBUG
+#   print("rec data",data) # DEBUG
    if len(data)>0:
     if ptype==0:
      return data[0]
