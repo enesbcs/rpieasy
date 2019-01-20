@@ -39,3 +39,7 @@ In case of Debian Stretch or other linux that misses "ifconfig" command:
 Other dependencies can be reached and installed through the webGUI after starting with:
 
 `sudo ./RPIEasy.py`
+
+# Update
+There are an external update script at:
+https://github.com/haraldtux/rpieasy-update
