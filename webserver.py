@@ -1574,6 +1574,15 @@ def handle_tools(self):
  TXBuffer += "<TD>"
  TXBuffer += "Show all system variables"
 
+ html_TR_TD_height(30)
+ TXBuffer += "<a class='button link wide' onclick="
+ TXBuffer += '"'
+ TXBuffer += "return confirm('Do you really want to Update device?')"
+ TXBuffer += '"'
+ TXBuffer += " href='/?cmd=update'>Update</a>"
+ TXBuffer += "<TD>"
+ TXBuffer += "Pulls new version from Github then restart. (Manual backup is recommended, and restart will not work if you not use run.sh or autostart)"
+
  addFormSubHeader("Settings")
  html_TR_TD_height(30)
  addWideButton("upload?type=settings", "Load", "")
