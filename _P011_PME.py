@@ -13,6 +13,7 @@ import misc
 import gpios
 import fcntl
 import time
+import Settings
 
 class Plugin(plugin.PluginProto):
  PLUGIN_ID = 11
@@ -63,8 +64,9 @@ class Plugin(plugin.PluginProto):
     except:
      self.pme = None
    if self.pme is None:
-    self.initialized = False
+    self.enabled = False
     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"PME can not be initialized! "+str(e))
+    return False
    else:
     if self.interval>0:
      self.timer100ms = False # normal read
@@ -72,6 +74,8 @@ class Plugin(plugin.PluginProto):
      self.uservar[0] = -1
      self.readinprogress = 0
      self.timer100ms = True  # oversampling method
+    if str(self.taskdevicepluginconfig[1])=="1":
+     self.timer100ms = False # oversampling will not work for analog read
 
  def webform_load(self): # create html page for settings
   choice1 = self.taskdevicepluginconfig[0]
@@ -106,16 +110,26 @@ class Plugin(plugin.PluginProto):
 
  def plugin_read(self): # deal with data processing at specified time interval
   result = False
-  if self.initialized and self.enabled:
-   try:
-    pt = int(self.taskdevicepluginconfig[1])
-    pn = int(self.taskdevicepluginconfig[2])
-    result = self.pme.read(pt,pn)
-    self.set_value(1,result,True)
-   except Exception as e:
-    misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,str(e))
-   self._lastdataservetime = rpieTime.millis()
-   result = True
+  if self.initialized and self.enabled and self.readinprogress==0:
+   linefree = True
+   for s in range(len(Settings.Tasks)):
+    if Settings.Tasks[s] and type(Settings.Tasks[s]) is not bool:
+     if Settings.Tasks[s].pluginid == self.pluginid:
+      if Settings.Tasks[s].enabled and Settings.Tasks[s].readinprogress==1:
+       linefree = False
+       break
+   if linefree:
+    self.readinprogress = 1
+    try:
+     pt = int(self.taskdevicepluginconfig[1])
+     pn = int(self.taskdevicepluginconfig[2])
+     result = self.pme.read(pt,pn)
+     self.set_value(1,result,True)
+    except Exception as e:
+     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,str(e))
+    self.readinprogress = 0
+    self._lastdataservetime = rpieTime.millis()
+    result = True
   return result
 
  def timer_ten_per_second(self):
@@ -266,7 +280,7 @@ class PME:
    if ptype==0:
     time.sleep(0.001)  # digital read is almost instantous
    else:
-    time.sleep(0.01)   # analog read takes more time
+    time.sleep(0.015)   # analog read takes more time
    data = self.i2cr.read(4) # read data
 #   print("rec data",data) # DEBUG
    if len(data)>0:

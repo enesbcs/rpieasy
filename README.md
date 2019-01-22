@@ -16,7 +16,7 @@ Main goal is to create a multisensor device, that can be install and setup quick
 
 Expect major changes in later versions that may cause incompatibility with earlier versions!
 
-Currently feedbacks and test results needed to fix core functions. New plugins and controllers will not be added until serious bugs fixed.
+Currently feedbacks and test results needed to fix core functions. New plugins and controllers may be added to expose hidden bugs. :)
 
 # Requirements
 - Debian/Ubuntu/Raspbian Linux

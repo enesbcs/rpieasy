@@ -76,8 +76,12 @@ modulelist = [
  "apt": ["python3-pip"],
  "pip": ["pyserial"],
  "testcmd": "import serial.tools.list_ports",
+ "installed":-1},
+{"name": "OLED",
+ "apt": ["python3-pip", "libfreetype6-dev", "libjpeg-dev", "build-essential"],
+ "pip": ["luma.oled"],
+ "testcmd": "from luma.core.render import canvas",
  "installed":-1}
-
 
 ]
 
@@ -111,6 +115,9 @@ plugindependencies = [
 {"pluginid": "14", # Si7021
  "supported_os_level": [10],
  "modules":["i2c"]},
+{"pluginid": "23", # OLED
+ "supported_os_level": [10],
+ "modules":["i2c","OLED"]},
 {"pluginid": "25", # ADS1x15
  "supported_os_level": [10],
  "modules":["i2c","Adafruit_ADS1x15"]},
