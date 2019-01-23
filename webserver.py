@@ -1218,7 +1218,13 @@ def handle_devices(self):
     if (tte<=0):
       addSelector_Head("TDNUM",True)
       for y in range(0,len(rpieGlobals.deviceselector)):
-       addSelector_Item(rpieGlobals.deviceselector[y][2],int(rpieGlobals.deviceselector[y][1]),(rpieGlobals.deviceselector[y][1]==tte),False,"")
+       pname = rpieGlobals.deviceselector[y][2]
+       try:
+        if int(rpieGlobals.deviceselector[y][1]) != 0:
+         pname = "P"+str(int(rpieGlobals.deviceselector[y][1])).rjust(3,"0")+" - "+ rpieGlobals.deviceselector[y][2]
+       except:
+        pass
+       addSelector_Item(pname,int(rpieGlobals.deviceselector[y][1]),(rpieGlobals.deviceselector[y][1]==tte),False,"")
       addSelector_Foot()
     else: # device selected
       createnewdevice = True
