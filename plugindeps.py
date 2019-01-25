@@ -78,7 +78,7 @@ modulelist = [
  "testcmd": "import serial.tools.list_ports",
  "installed":-1},
 {"name": "OLED",
- "apt": ["python3-pip", "libfreetype6-dev", "libjpeg-dev", "build-essential","python3-dev","libtiff5"],
+ "apt": ["python3-pip", "libfreetype6-dev", "libjpeg-dev", "build-essential","python3-dev","libtiff5","libopenjp2-7"],
  "pip": ["luma.oled"],
  "testcmd": "from luma.core.render import canvas",
  "installed":-1}

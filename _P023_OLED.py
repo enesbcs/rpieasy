@@ -3,9 +3,6 @@
 ########################## OLED plugin for RPIEasy ##########################
 #############################################################################
 #
-# Available commands:
-#  OLEDCMD,value          - value can be: on, off, clear
-#
 # Copyright (C) 2018-2019 by Alexander Nagy - https://bitekmindenhol.blog.hu/
 #
 import plugin
@@ -17,7 +14,7 @@ import gpios
 import commands
 from luma.core.interface.serial import i2c
 from luma.core.render import canvas
-from PIL import ImageFont
+from PIL import ImageFont, ImageDraw, Image
 
 class Plugin(plugin.PluginProto):
  PLUGIN_ID = 23
@@ -41,6 +38,8 @@ class Plugin(plugin.PluginProto):
   self.lines  = []
   self.ufont  = None
   self.lineheight = 11
+  self.charwidth   = 8
+  self.dispimage = None
 
  def plugin_init(self,enableplugin=None):
   plugin.PluginProto.plugin_init(self,enableplugin)
@@ -156,11 +155,26 @@ class Plugin(plugin.PluginProto):
      except:
       pass
      with canvas(self.device) as draw:
+      maxcols = int(self.taskdevicepluginconfig[5])
+      if maxcols < 1:
+       maxcols = 1
+      tstr = "X"*maxcols
       try:
-       self.lineheight = draw.textsize("NS",self.ufont)[1]
+       sw = draw.textsize(tstr,self.ufont)[0]
       except:
-       self.lineheight = 11
-#     print(lineheight,lheight)
+       sw = self.device.width
+      while (sw>self.device.width):
+       lineheight-=1
+       self.ufont=ImageFont.truetype('img/UbuntuMono-R.ttf', lineheight)
+       sw = draw.textsize(tstr,self.ufont)[0]
+      self.charwidth, self.lineheight = draw.textsize("X",self.ufont)
+     if self.interval>2:
+       nextr = self.interval-2
+     else:
+       nextr = 0
+     self._lastdataservetime = rpieTime.millis()-(nextr*1000)
+#     print(lineheight,self.lineheight,sw,self.charwidth) # DEBUG
+     self.dispimage = Image.new('1', (self.device.width,self.device.height), "black")
     else:
      self.initialized = False
 
@@ -196,6 +210,8 @@ class Plugin(plugin.PluginProto):
   for l in range(1,self.P23_Nlines+1):
    webserver.addSelector_Item(str(l),l,(l==choice5),False)
   webserver.addSelector_Foot()
+  webserver.addFormNumericBox("Try to display # characters per row","p023_charperl",self.taskdevicepluginconfig[5],1,32)
+  webserver.addFormNote("Leave it '1' if you do not care")
   if choice5 > 0 and choice5<9:
    lc = choice5
   else:
@@ -214,8 +230,8 @@ class Plugin(plugin.PluginProto):
    if self.device is not None:
     self.device.clear()
     self.device.hide()
-  except Exception as e:
-   print(e)
+  except:
+   pass
 
  def webform_save(self,params): # process settings post reply
    par = webserver.arg("p023_type",params)
@@ -241,6 +257,11 @@ class Plugin(plugin.PluginProto):
     par = 8
    self.taskdevicepluginconfig[4] = int(par)
 
+   par = webserver.arg("p023_charperl",params)
+   if par == "":
+    par = 1
+   self.taskdevicepluginconfig[5] = int(par)
+
    for l in range(self.P23_Nlines):
     linestr = webserver.arg("p023_template"+str(l),params).strip()
     if linestr!="" and linestr!="0":
@@ -253,22 +274,20 @@ class Plugin(plugin.PluginProto):
 
  def plugin_read(self): # deal with data processing at specified time interval
   if self.initialized and self.enabled:
-   with canvas(self.device) as draw:
      try:
+      self.dispimage = Image.new('1', (self.device.width,self.device.height), "black")
+      draw = ImageDraw.Draw(self.dispimage)
       for l in range(int(self.taskdevicepluginconfig[4])):
         resstr = ""
         try:
          linestr=self.lines[l]
-         cl, st = commands.parseruleline(linestr)
-         if st=="CMD":
-          resstr=cl
-         else:
-          resstr=linestr
+         resstr = self.oledparse(linestr)
         except:
          resstr=""
         draw.text( (0,(l*self.lineheight)), resstr, fill="white", font=self.ufont)
+      self.device.display(self.dispimage)
      except Exception as e:
-      print(e)
+      misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"OLED write error! "+str(e))
      self._lastdataservetime = rpieTime.millis()
   return True
 
@@ -291,8 +310,64 @@ class Plugin(plugin.PluginProto):
       res = True
      elif cmd == "clear":
       self.device.clear()
+      self.dispimage = Image.new('1', (self.device.width,self.device.height), "black")
+      res = True
+     if cmd == "low":
+      self.device.contrast(64)
+      res = True
+     if cmd == "med":
+      self.device.contrast(0xcf)
+      res = True
+     if cmd == "high":
+      self.device.contrast(0xff)
       res = True
    except Exception as e:
-    print(e) 
+    misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"OLED command error! "+str(e))
+    res = False
+  elif cmdarr[0] == "oled":
+   sepp = len(cmdarr[0])+len(cmdarr[1])+len(cmdarr[2])+1
+   sepp = cmd.find(',',sepp)
+   try:
+    x = int(cmdarr[1].strip())
+    y = int(cmdarr[2].strip())
+    text = cmd[sepp+1:]
+   except Exception as e:
+    misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Parameter error: "+str(e))
+    return False
+   try:
+    if self.device is not None:
+      draw = ImageDraw.Draw(self.dispimage)
+      resstr = self.oledparse(text)
+      draw.text( ((x*self.charwidth),(y*self.lineheight)), resstr, fill="white", font=self.ufont)
+      self.device.display(self.dispimage)
+      res = True
+   except Exception as e:
+    misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"OLED command error! "+str(e))
     res = False
   return res
+
+ def oledparse(self,ostr):
+      cl, st = commands.parseruleline(ostr)
+      if st=="CMD":
+          resstr=cl
+      else:
+          resstr=linestr
+      if "{" in resstr or "&" in resstr:
+       resstr = resstr.replace("{D}","˚").replace("&deg;","˚")
+       resstr = resstr.replace("{<<}","«").replace("&laquo;","«")
+       resstr = resstr.replace("{>>} ","»").replace("&raquo;","»")
+       resstr = resstr.replace("{u} ","µ").replace("&micro; ","µ")
+       resstr = resstr.replace("{E}","€").replace("&euro;","€")
+       resstr = resstr.replace("{Y}","¥").replace("&yen;","¥")
+       resstr = resstr.replace("{P}","£").replace("&pound;","£")
+       resstr = resstr.replace("{c}","¢").replace("&cent;","¢")
+       resstr = resstr.replace("{^1}","¹").replace("&sup1;","¹")
+       resstr = resstr.replace("{^2}","²").replace("&sup2;","²")
+       resstr = resstr.replace("{^3}","³").replace("&sup3;","³")
+       resstr = resstr.replace("{1_4}","¼").replace("&frac14;","¼")
+       resstr = resstr.replace("{1_2}","½").replace("&frac24;","½")
+       resstr = resstr.replace("{3_4}","¾").replace("&frac34;","¾")
+       resstr = resstr.replace("{+-}","±").replace("&plusmn;","±")
+       resstr = resstr.replace("{x}","×").replace("&times;","×")
+       resstr = resstr.replace("{..}","÷").replace("&divide;","÷")
+      return resstr
