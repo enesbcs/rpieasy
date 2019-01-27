@@ -14,11 +14,13 @@ import rpieGlobals
 start_time = datetime.now()
 
 def millis():
+   global start_time
    dt = datetime.now() - start_time
    ms = int((dt.days * 86400000) + (dt.seconds * 1000) + (dt.microseconds / 1000))
    return ms
 
 def getuptime(form=0):
+   global start_time
    rs = datetime.now() - start_time
    upts = ""
    if form==0:
@@ -27,6 +29,8 @@ def getuptime(form=0):
     hours, remainder = divmod(rs.seconds, 3600)
     minutes, seconds = divmod(remainder, 60)
     upts = str(rs.days) + " days " + str(hours) + " hours " + str(minutes) + " minutes"
+   elif form==2:
+    upts = ((rs.days * 86400) + rs.seconds)/60
    return upts
 
 class timer:

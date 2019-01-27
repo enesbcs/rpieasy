@@ -76,7 +76,7 @@ class Plugin(plugin.PluginProto):
  def timer_ten_per_second(self):
   if self.initialized and self.enabled:
    val = gpios.HWPorts.input(int(self.taskdevicepin[0]))
-   if int(val) != int(self.uservar[0]):
+   if int(val) != int(float(self.uservar[0])):
     self.set_value(1,val,True)
     self._lastdataservetime = rpieTime.millis()
 

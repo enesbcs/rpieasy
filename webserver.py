@@ -1947,7 +1947,7 @@ def handle_json(self):
    TXBuffer += '","Unit":'+str(Settings.Settings["Unit"])
    TXBuffer += ',"Name":"'+str(Settings.Settings["Name"])
    try:
-    TXBuffer += '","Uptime":'+str(float(rpieTime.getuptime(0))/60)
+    TXBuffer += '","Uptime":'+str(float(rpieTime.getuptime(2)))
    except:
     TXBuffer += '","Uptime":0'
    TXBuffer += ',"Load":'+str(OS.read_cpu_usage())

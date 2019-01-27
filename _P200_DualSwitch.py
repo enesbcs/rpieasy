@@ -94,9 +94,9 @@ class Plugin(plugin.PluginProto):
     self.set_value(1,self.actualstate,True)
     self.laststate = self.actualstate
     self._lastdataservetime = rpieTime.millis()
-   if int(self.uservar[1])!=int(v1):
+   if int(float(self.uservar[1]))!=int(v1):
     self.set_value(2,v1,False)
-   if int(self.uservar[2])!=int(v2):
+   if int(float(self.uservar[2]))!=int(v2):
     self.set_value(3,v2,False)
 
  def p200_handler(self,channel):

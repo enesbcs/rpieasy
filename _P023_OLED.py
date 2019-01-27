@@ -3,6 +3,10 @@
 ########################## OLED plugin for RPIEasy ##########################
 #############################################################################
 #
+# Available commands:
+#  OLEDCMD,<value>          - value can be: on, off, clear, low, med, high
+#  OLED,<row>,<col>,<text>  - write text message to OLED screen at the requested position
+#
 # Copyright (C) 2018-2019 by Alexander Nagy - https://bitekmindenhol.blog.hu/
 #
 import plugin
@@ -264,10 +268,10 @@ class Plugin(plugin.PluginProto):
 
    for l in range(self.P23_Nlines):
     linestr = webserver.arg("p023_template"+str(l),params).strip()
-    if linestr!="" and linestr!="0":
-     try:
+#    if linestr!="" and linestr!="0":
+    try:
       self.lines[l]=linestr
-     except:
+    except:
       self.lines.append(linestr)
    self.plugin_init()
    return True
@@ -281,7 +285,7 @@ class Plugin(plugin.PluginProto):
         resstr = ""
         try:
          linestr=self.lines[l]
-         resstr = self.oledparse(linestr)
+         resstr=self.oledparse(linestr)
         except:
          resstr=""
         draw.text( (0,(l*self.lineheight)), resstr, fill="white", font=self.ufont)
@@ -328,12 +332,15 @@ class Plugin(plugin.PluginProto):
    sepp = len(cmdarr[0])+len(cmdarr[1])+len(cmdarr[2])+1
    sepp = cmd.find(',',sepp)
    try:
-    x = int(cmdarr[1].strip())
-    y = int(cmdarr[2].strip())
+    y = int(cmdarr[1].strip())
+    x = int(cmdarr[2].strip())
     text = cmd[sepp+1:]
    except Exception as e:
     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Parameter error: "+str(e))
     return False
+   if x>0 and y>0:
+    x -= 1
+    y -= 1
    try:
     if self.device is not None:
       draw = ImageDraw.Draw(self.dispimage)

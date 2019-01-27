@@ -37,7 +37,7 @@ modulelist = [
 {"name":"apds",
  "apt": ["python3-pip"],
  "pip": ["apds9960"],
- "testcmd": "from apds9960.const import *\ntest=APDS9960_I2C_ADDR",
+ "testcmd": "from apds9960.const import *",
  "installed":-1},
 {"name":"pygame",
  "apt": ["python3-pip"],

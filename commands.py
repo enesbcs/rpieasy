@@ -451,7 +451,7 @@ def getglobalvar(varname):
    elif svname==SysVars[12]: #%unixtime% 	1521731277 	Unix time (seconds since epoch, 1970-01-01 00:00:00)
     return str(int(time.time()))
    elif svname==SysVars[13]: #%uptime% 	3244 	Uptime in minutes
-    return str(rpieTime.getuptime(0))
+    return str(rpieTime.getuptime(2))
    elif svname==SysVars[14]: #%rssi% 	-45 	WiFi signal strength (dBm)
     return str(OS.get_rssi())
    elif svname==SysVars[15]: #%ip% 	192.168.0.123 	Current IP address
@@ -504,7 +504,7 @@ def getglobalvar(varname):
 def parsevalue(pvalue):
    retval = pvalue
    if ('%' in pvalue) or ('[' in pvalue):
-    retval, state = parseruleline(pvalue) # replace variables    
+    retval, state = parseruleline(pvalue) # replace variables
    oparr = "+-*/%&|^~<>"
    op = False
    for o in oparr:
@@ -514,6 +514,54 @@ def parsevalue(pvalue):
    if op:
     retval = eval(retval)  # evaluate expressions
    return retval
+
+def parseconversions(cvalue):
+ retval = cvalue
+ if ("%c_" in retval):
+  cf = retval.find("%c_m2day%")
+  if cf>=0:
+   ps = retval.find("(",cf)
+   pe = -1
+   if ps >=0:
+    pe = retval.find(")",ps)
+   if pe >= 0:
+    param = retval[ps+1:pe].strip()
+   try:
+    param = float(param)
+   except:
+    param = 0
+   retval = retval[:cf]+str(misc.formatnum((param/1440),2))+retval[pe+1:]
+  cf = retval.find("%c_m2dh%")
+  if cf>=0:
+   ps = retval.find("(",cf)
+   pe = -1
+   if ps >=0:
+    pe = retval.find(")",ps)
+   if pe >= 0:
+    param = retval[ps+1:pe].strip()
+   try:
+    param = float(param)
+   except:
+    param = 0
+   days, remainder = divmod(param, 1440)
+   hours, minutes = divmod(remainder, 60)
+   retval = retval[:cf]+str(int(days))+"d "+str(int(hours))+"h"+retval[pe+1:]
+  cf = retval.find("%c_m2dhm%")
+  if cf>=0:
+   ps = retval.find("(",cf)
+   pe = -1
+   if ps >=0:
+    pe = retval.find(")",ps)
+   if pe >= 0:
+    param = retval[ps+1:pe].strip()
+   try:
+    param = float(param)
+   except:
+    param = 0
+   days, remainder = divmod(param, 1440)
+   hours, minutes = divmod(remainder, 60)
+   retval = retval[:cf]+str(int(days))+"d "+str(int(hours))+"h "+str(int(minutes))+"m"+retval[pe+1:]
+ return retval
 
 def parseruleline(linestr,rulenum=-1):
  global GlobalRules
@@ -535,6 +583,7 @@ def parseruleline(linestr,rulenum=-1):
    for r in range(len(m)):
     if m[r] in SysVars:
      cline = cline.replace("%"+m[r]+"%",str(getglobalvar(m[r])))
+ cline = parseconversions(cline)
  if "=" == getequchars(cline):
   cline = cline.replace("=","==") # prep for python interpreter
  equ = getfirstequpos(cline)
@@ -650,3 +699,4 @@ def comparetime(tstr):
  except:
   result = False
  return result
+
