@@ -218,6 +218,7 @@ class Plugin(plugin.PluginProto):
   webserver.addSelector_Foot()
   webserver.addFormNumericBox("Try to display # characters per row","p023_charperl",self.taskdevicepluginconfig[5],1,32)
   webserver.addFormNote("Leave it '1' if you do not care")
+  webserver.addFormCheckBox("Clear only used lines","p023_partialclear",self.taskdevicepluginconfig[6])
   if choice5 > 0 and choice5<9:
    lc = choice5
   else:
@@ -268,6 +269,11 @@ class Plugin(plugin.PluginProto):
     par = 1
    self.taskdevicepluginconfig[5] = int(par)
 
+   if (webserver.arg("p023_partialclear",params)=="on"):
+    self.taskdevicepluginconfig[6] = True
+   else:
+    self.taskdevicepluginconfig[6] = False
+
    for l in range(self.P23_Nlines):
     linestr = webserver.arg("p023_template"+str(l),params).strip()
 #    if linestr!="" and linestr!="0":
@@ -279,19 +285,25 @@ class Plugin(plugin.PluginProto):
    return True
 
  def plugin_read(self): # deal with data processing at specified time interval
-  if self.initialized and self.enabled:
+  if self.initialized and self.enabled and self.device:
      try:
-      self.dispimage = Image.new('1', (self.device.width,self.device.height), "black")
-      draw = ImageDraw.Draw(self.dispimage)
-      for l in range(int(self.taskdevicepluginconfig[4])):
+      if self.taskdevicepluginconfig[6] == False:
+       self.dispimage = Image.new('1', (self.device.width,self.device.height), "black")
+      if self.dispimage:
+       draw = ImageDraw.Draw(self.dispimage)
+       for l in range(int(self.taskdevicepluginconfig[4])):
         resstr = ""
         try:
-         linestr=self.lines[l]
+         linestr=str(self.lines[l])
          resstr=self.oledparse(linestr)
         except:
          resstr=""
-        draw.text( (0,(l*self.lineheight)), resstr, fill="white", font=self.ufont)
-      self.device.display(self.dispimage)
+        if resstr != "":
+         y = (l*self.lineheight)
+         if self.taskdevicepluginconfig[6]:
+          draw.rectangle( ((0,y+2), (self.device.width,y+self.lineheight)), fill="black")
+         draw.text( (0,y), resstr, fill="white", font=self.ufont)
+       self.device.display(self.dispimage)
      except Exception as e:
       misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"OLED write error! "+str(e))
      self._lastdataservetime = rpieTime.millis()
@@ -358,9 +370,9 @@ class Plugin(plugin.PluginProto):
  def oledparse(self,ostr):
       cl, st = commands.parseruleline(ostr)
       if st=="CMD":
-          resstr=cl
+          resstr=str(cl)
       else:
-          resstr=linestr
+          resstr=str(linestr)
       if "{" in resstr or "&" in resstr:
        resstr = resstr.replace("{D}","˚").replace("&deg;","˚")
        resstr = resstr.replace("{<<}","«").replace("&laquo;","«")
