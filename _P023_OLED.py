@@ -9,6 +9,8 @@
 #
 # Copyright (C) 2018-2019 by Alexander Nagy - https://bitekmindenhol.blog.hu/
 #
+# Made with the support of Budman1758
+#
 import plugin
 import webserver
 import rpieGlobals

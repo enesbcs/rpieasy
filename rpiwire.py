@@ -20,6 +20,7 @@ class TwoWire():
     self.i2cr = None
     self.iid  = -1
     self.queue = []
+    self.enddelay = 0.001
     if self.i2c_address!=0:
      self.i2c_bus_num=i2c_bus_num
      self.connect()
@@ -35,6 +36,9 @@ class TwoWire():
       self.i2cr = None
       self.i2c_bus_num=-1
       self.busy = False
+
+ def setEndDelay(self,enddelay):
+  self.enddelay = enddelay
 
  def beginTransmission(self,oid=0,queue_enabled=False): # input: oid, output: iid (iid must be used when read/write!)
    if self.busy:
@@ -76,7 +80,7 @@ class TwoWire():
  def endTransmission(self,iid=0):
   if self.iid==iid:
    if self.busy:
-    time.sleep(0.02) # change to higher if error occurs!
+    time.sleep(self.enddelay) # change to higher if error occurs!
    self.busy = False
    self.iid = -1
 

@@ -3,7 +3,21 @@
 ################### Pro Mini Extender plugin for RPIEasy ####################
 #############################################################################
 #
+# https://www.letscontrolit.com/wiki/index.php/ProMiniExtender
+#
+# If you are experiencing any slowdown, or stopping in data flow, please use this v2 sketch on PME:
+#  https://github.com/enesbcs/ESPEasySlaves/blob/master/MiniProExtender/MiniProExtender.ino
+#
+# Available commands:
+#  EXTGPIO,<pin>,<state>		 - digital GPIO output, state can be: 0/1
+#  EXTPWM,<pin>,<level>			 - level can be 0-255 which is proportional to 0V to VCC
+#  EXTPULSE,<pin>,<state>,<duration>	 - state can be 0/1, set gpio to <state> then after <duration> milliseconds reverses it's state
+#  EXTLONGPULSE,<pin>,<state>,<duration> - state can be 0/1, set gpio to <state> then after <duration> seconds reverses it's state
+#
 # Copyright (C) 2018-2019 by Alexander Nagy - https://bitekmindenhol.blog.hu/
+#
+# Made with the support of happytm
+# This plugin would never have been created without happytm! :)
 #
 import plugin
 import webserver
@@ -22,6 +36,7 @@ class Plugin(plugin.PluginProto):
  CMD_DIGITAL_READ  = 2
  CMD_ANALOG_WRITE  = 3
  CMD_ANALOG_READ   = 4
+ ANALOG_DIVERSION  = 1
 
  def __init__(self,taskindex): # general init
   plugin.PluginProto.__init__(self,taskindex)
@@ -35,6 +50,7 @@ class Plugin(plugin.PluginProto):
   self.timeroptional = True
   self.formulaoption = True
   self.pme = None
+  self.sketch = 0
 
  def plugin_init(self,enableplugin=None):
   plugin.PluginProto.plugin_init(self,enableplugin)
@@ -72,16 +88,29 @@ class Plugin(plugin.PluginProto):
     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"PME can not be initialized! ")
     return False
    else:
+    self.sketch = self.check_sketch()
+    if self.sketch==0:
+     misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"Used PME sketch is outdated! Try: https://github.com/enesbcs/ESPEasySlaves/blob/master/MiniProExtender/MiniProExtender.ino")
+     self.pme.setEndDelay(0.1) # increase timeout for old sketch as it is unable to handle multiple fast calls repeatedly
+    else:
+     self.pme.setEndDelay(0.001)
     self.initialized = True
+    try:
+     self.ports = str(self.taskdevicepluginconfig[2])
+    except:
+     self.ports = 0
     if self.interval>0:
      self.timer100ms = False # normal read
     else:
      self.uservar[0] = -1
      self.readinprogress = 0
      self.timer100ms = True  # oversampling method
-    if str(self.taskdevicepluginconfig[1])=="1":
-     self.timer100ms = False # oversampling will not work for analog read
-
+#     if sketch==0:
+#      if str(self.taskdevicepluginconfig[1])=="1":
+#       self.timer100ms = False # oversampling will not work for analog read
+  else:
+   self.ports = 0
+ 
  def webform_load(self): # create html page for settings
   choice1 = self.taskdevicepluginconfig[0]
   options = ["0x3f","0x4f","0x5f","0x6f","0x7f"]
@@ -134,7 +163,8 @@ class Plugin(plugin.PluginProto):
       data = self.pme.read(4,pmeid) # read data
       if len(data)>3:
        if data[2] == data[3] and data[3] == 255:
-        misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"ProMini I2C deadlock, restart it")
+        if self.sketch==0:
+         misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"ProMini I2C frozen, restart it manually and consider using new sketch!")
         data = []
       self.pme.endTransmission(pmeid)
       result = 0
@@ -154,7 +184,7 @@ class Plugin(plugin.PluginProto):
   return result
 
  def timer_ten_per_second(self):
-  if self.readinprogress == 0 and self.timer100ms:
+  if self.readinprogress == 0 and self.timer100ms and self.initialized:
     self.readinprogress = 1
     try:
      pt = int(self.taskdevicepluginconfig[1])
@@ -173,7 +203,8 @@ class Plugin(plugin.PluginProto):
       data = self.pme.read(4,pmeid) # read data
       if len(data)>3:
        if data[2] == data[3] and data[3] == 255:
-        misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"ProMini I2C deadlock, restart it")
+        if self.sketch==0:
+         misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"ProMini I2C frozen, restart it manually and consider using new sketch!")
         data = []
       self.pme.endTransmission(pmeid)
       result = 0
@@ -182,11 +213,12 @@ class Plugin(plugin.PluginProto):
         result = int(data[0])
         if result not in [0,1]: # invalid value,digital can only be 0 or 1!
          return False
+        if float(result)!=float(self.uservar[0]):
+         self.set_value(1,result,True)
        elif len(data)>1:
-        result = (data[1] << 8 | data[0]) # 0-1023
-       if float(result)!=float(self.uservar[0]):
-        self.set_value(1,result,True)
-#        print(data) # DEBUG
+        result = int(data[1] << 8 | data[0]) # 0-1023
+        if abs(result-float(self.uservar[0]))>self.ANALOG_DIVERSION:
+         self.set_value(1,result,True)
      except Exception as e:
       misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,str(e))
     self.readinprogress = 0
@@ -285,8 +317,8 @@ class Plugin(plugin.PluginProto):
      writecmd = self.create_write_buffer(0,pin,val)
      self.pme_write_retry(writecmd,pin)
      s = float(dur/1000)
-     if s>0.001:
-      s = (s-0.001) # endtransmission sleep
+     if s>self.pme.enddelay:
+      s = (s-self.pme.enddelay) # endtransmission sleep
       time.sleep(s)
      writecmd = self.create_write_buffer(0,pin,(1-val))
      self.pme_write_retry(writecmd,pin)
@@ -338,3 +370,28 @@ class Plugin(plugin.PluginProto):
    if pmeid != 0:
       self.pme.write(cmdbuf,pmeid)   # send write data command
       self.pme.endTransmission(pmeid)
+
+ def check_sketch(self):
+   sketch = 0
+   pn = 0x10
+   try:
+    for c in range(0,10):
+     pmeid = self.pme.beginTransmission(pn)
+     if pmeid != 0:
+      break
+     time.sleep(0.01)
+    if pmeid != 0:
+     carr = [pn,0,0,0]
+     self.pme.write(bytes(carr),pmeid)
+     time.sleep(0.001)
+     data = self.pme.read(4,pmeid) # read data
+     self.pme.endTransmission(pmeid)
+     if len(data)>3:
+      if int(data[0]) == pn and int(data[1]) == 0xfe and int(data[2]) != 0 and int(data[2]) != 0xff: # check sketch version packet validity
+       sketch = int(data[3])
+   except Exception as e:
+    if pmeid != 0:
+     self.pme.endTransmission(pmeid)
+    sketch = 0
+   return sketch
+

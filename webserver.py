@@ -1105,12 +1105,14 @@ def handle_devices(self):
         TXBuffer += Settings.Tasks[x].gettaskname()
         TXBuffer += "<TD>"
 
-        customConfig = False;
+        #customConfig = False;
         #customConfig = PluginCall(PLUGIN_WEBFORM_SHOW_CONFIG, &TempEvent,TXBuffer.buf);
-        if not(customConfig):
-          if (Settings.Tasks[x].ports != 0):
-            TXBuffer += str(Settings.Tasks[x].taskdeviceport)
-
+        #if not(customConfig):
+        try:
+          if (str(Settings.Tasks[x].ports) != "0" and str(Settings.Tasks[x].ports) != ""):
+            TXBuffer += str(Settings.Tasks[x].ports)
+        except:
+         pass
         TXBuffer += "<TD>"
 
         if (Settings.Tasks[x].senddataoption):
@@ -1336,11 +1338,11 @@ def handle_devices(self):
       addFormTextBox( "Name", "TDN", str(Settings.Tasks[taskIndex].gettaskname()), 40)
       addFormCheckBox("Enabled", "TDE", Settings.Tasks[taskIndex].enabled)
       # section: Sensor / Actuator
-      if (Settings.Tasks[taskIndex].ports>0) or (Settings.Tasks[taskIndex].dtype>=rpieGlobals.DEVICE_TYPE_SINGLE and Settings.Tasks[taskIndex].dtype<= rpieGlobals.DEVICE_TYPE_QUAD):
+      if (Settings.Tasks[taskIndex].dtype>=rpieGlobals.DEVICE_TYPE_SINGLE and Settings.Tasks[taskIndex].dtype<= rpieGlobals.DEVICE_TYPE_QUAD):
         addFormSubHeader( "Sensor" if Settings.Tasks[taskIndex].senddataoption else "Actuator" )
 
-        if (Settings.Tasks[taskIndex].ports != 0):
-          addFormNumericBox("Port", "TDP", Settings.Tasks[taskIndex].taskdeviceport)
+#        if (Settings.Tasks[taskIndex].ports != 0):
+#          addFormNumericBox("Port", "TDP", Settings.Tasks[taskIndex].taskdeviceport)
 #        if (Settings.Tasks[taskIndex].pullupoption):
 #          addFormCheckBox("Internal PullUp", "TDPPU", Settings.Tasks[taskIndex].pullup)
         if (Settings.Tasks[taskIndex].inverselogicoption):

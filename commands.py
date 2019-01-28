@@ -273,7 +273,7 @@ def doExecuteCommand(cmdline,Parse=True):
   return commandfound
  elif cmdarr[0] == "reboot":
   os.popen("sudo reboot")
-  os.kill(os.getpid(), signal.SIGINT)
+#  os.kill(os.getpid(), signal.SIGINT)
   commandfound = True
   return commandfound
  elif cmdarr[0] == "reset":
@@ -288,7 +288,7 @@ def doExecuteCommand(cmdline,Parse=True):
   return commandfound
  elif cmdarr[0] == "halt":
   os.popen("sudo shutdown -h now")
-  os.kill(os.getpid(), signal.SIGINT)
+#  os.kill(os.getpid(), signal.SIGINT)
   commandfound = True
   return commandfound
  elif cmdarr[0] == "update":
