@@ -154,7 +154,7 @@ class Plugin(plugin.PluginProto):
       lc = self.P23_Nlines
      if lc < 1:
       lc = self.P23_Nlines
-     lineheight = int(self.device.height / lc)+2
+     lineheight = int(self.device.height / lc)+1
      self.ufont=ImageFont.truetype('img/UbuntuMono-R.ttf', lineheight)
      try:
       self.device.show()
@@ -174,12 +174,13 @@ class Plugin(plugin.PluginProto):
        self.ufont=ImageFont.truetype('img/UbuntuMono-R.ttf', lineheight)
        sw = draw.textsize(tstr,self.ufont)[0]
       self.charwidth, self.lineheight = draw.textsize("X",self.ufont)
+      if lc in [2,4,6,8]:
+       self.lineheight += 1
      if self.interval>2:
        nextr = self.interval-2
      else:
        nextr = 0
      self._lastdataservetime = rpieTime.millis()-(nextr*1000)
-#     print(lineheight,self.lineheight,sw,self.charwidth) # DEBUG
      self.dispimage = Image.new('1', (self.device.width,self.device.height), "black")
     else:
      self.initialized = False
@@ -228,7 +229,7 @@ class Plugin(plugin.PluginProto):
     linestr = self.lines[l]
    except:
     linestr = ""
-   webserver.addFormTextBox("Line"+str(l),"p023_template"+str(l),linestr,128)
+   webserver.addFormTextBox("Line"+str(l+1),"p023_template"+str(l),linestr,128)
 
   return True
 
