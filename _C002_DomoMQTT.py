@@ -295,7 +295,7 @@ class Controller(controller.ControllerProto):
    domomsgwb = '{{ "idx": {0}, "nvalue": {1:0.2f}, "svalue": "{2}", "RSSI": {3}, "Battery": {4} }}'
    domosmsgw = '{{"command": "switchlight", "idx": {0}, "switchcmd": "Set Level", "level":"{1}", "RSSI": {2} }}'
    domosmsgwb = '{{"command": "switchlight", "idx": {0}, "switchcmd": "Set Level", "level":"{1}", "RSSI": {2}, "Battery": {3} }}'
-   if self.isconnected():
+   if self.isconnected(False):
     try:
      usebattery = float(usebattery)
     except:
