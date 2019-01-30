@@ -5,6 +5,7 @@
 #
 # Available commands:
 #  OLEDCMD,<value>          - value can be: on, off, clear, low, med, high
+#  OLEDCMD,clearline,<row>  - clears selected <row>
 #  OLED,<row>,<col>,<text>  - write text message to OLED screen at the requested position
 #
 # Copyright (C) 2018-2019 by Alexander Nagy - https://bitekmindenhol.blog.hu/
@@ -24,7 +25,7 @@ from PIL import ImageFont, ImageDraw, Image
 
 class Plugin(plugin.PluginProto):
  PLUGIN_ID = 23
- PLUGIN_NAME = "Display - Simple OLED (TESTING)"
+ PLUGIN_NAME = "Display - Simple OLED"
  PLUGIN_VALUENAME1 = "OLED"
  P23_Nlines = 8
 
@@ -330,6 +331,20 @@ class Plugin(plugin.PluginProto):
      elif cmd == "clear":
       self.device.clear()
       self.dispimage = Image.new('1', (self.device.width,self.device.height), "black")
+      res = True
+     elif cmd == "clearline":
+      try:
+       l = int(cmdarr[2].strip())
+      except Exception as e:
+       misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Parameter error: "+str(e))
+       return False
+      if self.device is not None and self.dispimage is not None:
+        if l>0:
+         l-=1
+        draw = ImageDraw.Draw(self.dispimage)
+        y = (l*self.lineheight)
+        draw.rectangle( ((0,y+2), (self.device.width,y+self.lineheight)), fill="black")
+        self.device.display(self.dispimage)
       res = True
      if cmd == "low":
       self.device.contrast(64)
