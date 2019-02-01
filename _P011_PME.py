@@ -56,6 +56,8 @@ class Plugin(plugin.PluginProto):
   plugin.PluginProto.plugin_init(self,enableplugin)
   self.uservar[0] = 0
   self.initialized = False
+  self.timer100ms = False
+  time.sleep(0.1)
   if self.enabled:
    i2cport = -1
    try:
@@ -88,11 +90,13 @@ class Plugin(plugin.PluginProto):
     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"PME can not be initialized! ")
     return False
    else:
-    self.sketch = self.check_sketch()
+    if self.sketch < 1:
+     self.sketch = self.check_sketch()
     if self.sketch==0:
-     misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"Used PME sketch is outdated! Try: https://github.com/enesbcs/ESPEasySlaves/blob/master/MiniProExtender/MiniProExtender.ino")
+     misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"No answer or the used PME sketch is outdated! Try: https://github.com/enesbcs/ESPEasySlaves/blob/master/MiniProExtender/MiniProExtender.ino")
      self.pme.setEndDelay(0.1) # increase timeout for old sketch as it is unable to handle multiple fast calls repeatedly
     else:
+     misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"PME sketch v"+str(self.sketch)+" detected")
      self.pme.setEndDelay(0.001)
     self.initialized = True
     try:
@@ -110,7 +114,8 @@ class Plugin(plugin.PluginProto):
 #       self.timer100ms = False # oversampling will not work for analog read
   else:
    self.ports = 0
- 
+   self.sketch = 0
+
  def webform_load(self): # create html page for settings
   choice1 = self.taskdevicepluginconfig[0]
   options = ["0x3f","0x4f","0x5f","0x6f","0x7f"]
@@ -121,7 +126,7 @@ class Plugin(plugin.PluginProto):
   options = ["Digital","Analog"]
   optionvalues = [0,1]
   webserver.addFormSelector("Type","plugin_011_ptype",2,options,optionvalues,None,int(choice2))
-  webserver.addFormNumericBox("Port number","plugin_011_pnum",self.taskdevicepluginconfig[2],0,30)
+  webserver.addFormNumericBox("Port number","plugin_011_pnum",self.taskdevicepluginconfig[2],0,101)
   webserver.addFormNote("Digital ports 0-13, Analog ports 0-7 (20-27)")
   return True
 
@@ -383,7 +388,7 @@ class Plugin(plugin.PluginProto):
     if pmeid != 0:
      carr = [pn,0,0,0]
      self.pme.write(bytes(carr),pmeid)
-     time.sleep(0.001)
+     time.sleep(0.01)
      data = self.pme.read(4,pmeid) # read data
      self.pme.endTransmission(pmeid)
      if len(data)>3:
