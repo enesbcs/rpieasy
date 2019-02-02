@@ -530,6 +530,9 @@ def handle_hardware(self):
  else:
   responsearr = self.post
 
+ if (arg('nokernelserial',responsearr) != ""):
+  OS.disable_serialsyslog()
+
  submit = arg("Submit",responsearr)
 
  if (submit=="Submit") and (suplvl[0] != "N"):
@@ -600,6 +603,11 @@ def handle_hardware(self):
  addWideButton("i2cscanner", "I2C Scan", "")
  TXBuffer += "<TR><TD HEIGHT=30>"
  addWideButton("blescanner", "Scan Bluetooth LE", "")
+
+ bpcont = OS.get_bootparams()
+ if ("ttyAMA" in bpcont) or ("ttyS" in bpcont) or ("serial" in bpcont):
+  addFormSeparator(2)
+  addSubmitButton("Disable Serial port usage by kernel","nokernelserial")
 
  TXBuffer += "</table></form>"
 

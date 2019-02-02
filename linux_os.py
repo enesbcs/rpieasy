@@ -558,3 +558,31 @@ def getfilecontent(fname):
      except:
       resbuf = []
      return resbuf
+
+def get_bootparams(): # RPI only
+     fname = "/boot/cmdline.txt"
+     tstr = ""
+     try:
+      if os.path.exists(fname):
+       tstr = os.popen('/bin/cat '+fname).read()
+     except:
+      tstr = ""
+     return tstr
+
+def disable_serialsyslog():
+    fname = "/boot/cmdline.txt"
+    content = get_bootparams().strip()
+    if len(content)>0:
+     pcontent = content.split(" ")
+     content2 = ""
+     sf = False
+     for i in range(len(pcontent)):
+      if ("ttyAMA" not in pcontent[i] and "ttyS" not in pcontent[i] and "serial" not in pcontent[i]):
+       content2 += pcontent[i].strip() + " "
+      else:
+       sf = True
+     if sf:
+       os.popen('/bin/cp '+fname+" "+fname+".bak").read()
+       with open(fname,"w") as f:
+        f.write(content2.strip()+"\n")
+
