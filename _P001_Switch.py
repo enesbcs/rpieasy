@@ -5,13 +5,15 @@
 #
 # Can only be used with devices that supports GPIO operations!
 #
-# Available commands:
-#  gpio,26,1          - set pin GPIO26 to 1 (HIGH)
+# Available commands: (It is evident, that you have to enable at least one P001 device if you want to use it's commands)
+#  gpio,26,1          - set pin GPIO26 to 1 (HIGH) 
 #  pwm,18,50,20000    - set pin GPIO18 to PWM mode with 20000Hz sample rate and 50% fill ratio
 #                       PWM is software based if not one of the dedicated H-PWM pins
 #                       H-PWM has to be set before use this command and may need root rights!
 #  pulse,26,1,500     - set pin GPIO26 to 1 for 500 msec than set back to 0 (blocking mode)
 #  longpulse,26,1,10  - set pin GPIO26 to 1 for 10 seconds than set back to 0 (non-blocking mode)
+#
+# Also be sure to set up pin using mode at Hardware->Pinout&Ports menu.
 #
 # Copyright (C) 2018-2019 by Alexander Nagy - https://bitekmindenhol.blog.hu/
 #

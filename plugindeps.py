@@ -37,7 +37,7 @@ modulelist = [
 {"name":"apds",
  "apt": ["python3-pip"],
  "pip": ["apds9960"],
- "testcmd": "from apds9960.const import *",
+ "testcmd": "from apds9960.const import *\ntest=APDS9960_I2C_ADDR",
  "installed":-1},
 {"name":"pygame",
  "apt": ["python3-pip"],
@@ -150,6 +150,8 @@ plugindependencies = [
 {"pluginid": "505", # vlc radio play
  "supported_os_level": [1,2,10],
  "modules":["vlc"]},
+{"pluginid": "509", # EVDEV
+ "modules":["linux-kernel"]},
 {"pluginid": "510", # BLE iTag
  "modules":["bluepy"]}
 ]
