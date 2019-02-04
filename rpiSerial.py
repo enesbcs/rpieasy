@@ -1,3 +1,10 @@
+#!/usr/bin/env python3
+#############################################################################
+############### Serial Helper Library for I2C protocol ######################
+#############################################################################
+#
+# Copyright (C) 2018-2019 by Alexander Nagy - https://bitekmindenhol.blog.hu/
+#
 try:
  import serial
  import serial.tools.list_ports
@@ -85,12 +92,6 @@ class SerialPort:
  def getportname(self):
   return str(self.name)
 
-   
-# def isopened(self):
-#  return self.ser.isOpen()
-# def available(self):
-#  return self.ser.inWaiting()
-  
  def read(self,rlen=1):
   return self.ser.read(rlen)
 
@@ -128,11 +129,3 @@ def serial_portlist():
    ports.append(str(port.device))
   return ports
 
-UsedSerialPorts = []
-
-#ser = SerialPort("/dev/ttyUSB0",9600)
-#while 1:
-#         inbuff = ser.available()
-#         if inbuff > 0:
-#           msgCOM = ser.read(inbuff)
-#           print(msgCOM)

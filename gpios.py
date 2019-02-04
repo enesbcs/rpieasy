@@ -549,7 +549,10 @@ class hwports:
       else:
        pass # i am lazy and not sure if is it can happen anyday...
      break
-  GPIO.add_event_detect(pin,detection,callback=pcallback,bouncetime=pbouncetime)
+  if pbouncetime==0:
+   GPIO.add_event_detect(pin,detection,callback=pcallback)
+  else:
+   GPIO.add_event_detect(pin,detection,callback=pcallback,bouncetime=pbouncetime)
 
  def remove_event_detect(self,pin):
   GPIO.remove_event_detect(pin)

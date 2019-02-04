@@ -81,6 +81,11 @@ modulelist = [
  "apt": ["python3-pip", "libfreetype6-dev", "libjpeg-dev", "build-essential","python3-dev","libtiff5","libopenjp2-7"],
  "pip": ["luma.oled"],
  "testcmd": "from luma.core.render import canvas",
+ "installed":-1},
+{"name": "MCP",
+ "apt": [],
+ "pip": [],
+ "testcmd": "import lib.MCP230XX.MCP230XX",
  "installed":-1}
 
 ]
@@ -106,6 +111,9 @@ plugindependencies = [
 {"pluginid": "8", # Wiegand GPIO
  "supported_os_level": [10],
  "modules":["GPIO","wiegand_io"]},
+{"pluginid": "9", # MCP
+ "supported_os_level": [10],
+ "modules":["GPIO","i2c","MCP"]},
 {"pluginid": "10", # BH1750
  "supported_os_level": [10],
  "modules":["i2c"]},
