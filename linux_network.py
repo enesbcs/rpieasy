@@ -384,12 +384,15 @@ class NetworkManager:
   return rs
 
  def getfirstwirelessdev(self):
-  pd = self.getprimarydevice()
-  if Settings.NetworkDevices[pd].iswireless():
-   return Settings.NetworkDevices[pd].devicename
-  pd = self.getsecondarydevice()
-  if Settings.NetworkDevices[pd].iswireless():
-   return Settings.NetworkDevices[pd].devicename
+  try:
+   pd = self.getprimarydevice()
+   if Settings.NetworkDevices[pd].iswireless():
+    return Settings.NetworkDevices[pd].devicename
+   pd = self.getsecondarydevice()
+   if Settings.NetworkDevices[pd].iswireless():
+    return Settings.NetworkDevices[pd].devicename
+  except:
+   return False
   return False
 
  def getprimarydevice(self):

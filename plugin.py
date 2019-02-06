@@ -8,6 +8,7 @@
 import rpieGlobals
 import rpieTime
 import commands
+import misc
 
 class PluginProto: # Skeleton for every plugin! Override necessary functions and extend as neeeded!
  PLUGIN_ID = -1
@@ -108,13 +109,25 @@ class PluginProto: # Skeleton for every plugin! Override necessary functions and
      tval = commands.parseformula(self.formula[valuenum-1],value)
      if tval!=False:
       rval = tval
+   if self.pininversed:          # only binary sensors supported for inversion!
+    if type(rval) is str:
+     if (rval.lower() == "off") or (rval=="0"):
+      rval = 1
+     else:
+      rval = 0
+    else:
+     if (float(rval) == 0):
+      rval = 1
+     else:
+      rval = 0
    if int(self.decimals[valuenum-1])>=0: # handle decimals if needed
     try:
-     rval = round(float(rval),int(self.decimals[valuenum-1]))
+     rval = misc.formatnum(rval,int(self.decimals[valuenum-1]))
     except:
      pass
    self.uservar[valuenum-1] = rval
-   commands.rulesProcessing(self.taskname+"#"+self.valuenames[valuenum-1]+"="+str(rval),rpieGlobals.RULE_USER)
+   if self.valuenames[valuenum-1]!= "":
+    commands.rulesProcessing(self.taskname+"#"+self.valuenames[valuenum-1]+"="+str(rval),rpieGlobals.RULE_USER)
    if self.senddataoption and publish:
     self.plugin_senddata(puserssi=suserssi,pusebattery=susebattery,pchangedvalue=valuenum)
 
@@ -137,7 +150,7 @@ class PluginProto: # Skeleton for every plugin! Override necessary functions and
   if self.vtype == rpieGlobals.SENSOR_TYPE_TEXT:
    self.decimals[0]=-1
   return True
- 
+
  def plugin_exit(self): # deinit plugin, save settings?
   if self.initialized:
    self.initialized = False
@@ -172,7 +185,7 @@ class PluginProto: # Skeleton for every plugin! Override necessary functions and
      if type(self.controllercb[x])==type(self.plugin_senddata):
       self.controllercb[x](self.controlleridx[x],self.vtype,self.uservar,userssi=puserssi,usebattery=pusebattery,tasknum=self.taskindex,changedvalue=pchangedvalue)
     except Exception as e:
-      print("Plugin SendData Exception: ",e)
+      print("Plugin SendData Exception: ",e,self.uservar)
 
  def timer_once_per_second(self): # once per sec
   return self.timer1s

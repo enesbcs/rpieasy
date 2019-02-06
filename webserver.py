@@ -24,6 +24,7 @@ import misc
 import commands
 import linux_network as Network
 import urllib
+import hashlib
 
 HTML_SYMBOL_WARNING = "&#9888;"
 TASKS_PER_PAGE = 16
@@ -38,10 +39,22 @@ WebServer = Perver()
 WebServer.timeout = 10
 WebServer.get_max = 65535
 
-def isLoggedIn():
+def isLoggedIn(pget,pcookie):
 #  if (not clientIPallowed()) return False
+  rpieGlobals.WebLoggedIn = False
   if (Settings.Settings["Password"] == ""):
     rpieGlobals.WebLoggedIn = True
+  else:
+    spw = str(hashlib.sha1(bytes(Settings.Settings["Password"],'utf-8')).hexdigest())
+    pws = str(arg("password",pget)).strip()
+    if pws != "":
+     if pws==Settings.Settings["Password"] or pws==spw:
+      rpieGlobals.WebLoggedIn = True
+    else:
+     for c in pcookie:
+      if 'password' in c:
+       if spw==str(pcookie[c].strip()):
+        rpieGlobals.WebLoggedIn = True
   return rpieGlobals.WebLoggedIn
 
 def arg(argname,parent):
@@ -52,11 +65,10 @@ def handle_root(self):
  global TXBuffer, navMenuIndex
  TXBuffer=""
  navMenuIndex=0
-
  if (rpieGlobals.wifiSetup):
-  return self.redirect('/setup')
- if (not isLoggedIn()):
-  return self.redirect('/login')
+   return self.redirect('/setup')
+ if (not isLoggedIn(self.get,self.cookie)):
+   return self.redirect('/login')
 
  if self.type == "GET":
   responsearr = self.get
@@ -83,7 +95,16 @@ def handle_root(self):
  TXBuffer += "<TR><TD>Load:<TD>" +str( OS.read_cpu_usage() ) + " %"
  TXBuffer += "<TR><TD>Free Mem:<TD>" + str( OS.FreeMem() ) + " kB"
  TXBuffer += "<TR><TD>IP:<TD>" + str( OS.get_ip() )
- TXBuffer += "<TR><TD>Wifi RSSI:<TD>" + str( OS.get_rssi() ) + " dB"
+ try:
+  rssi = OS.get_rssi()
+  if str(rssi)=="-49.20051":
+   rssi = "Wired connection"
+  else:
+   rssi = str(rssi)+" dB"
+ except:
+   rssi = "?"
+ TXBuffer += "<TR><TD>Wifi RSSI:<TD>" + str(rssi)
+ TXBuffer += '<tr><td>Build<td>' + str(rpieGlobals.PROGNAME) + " " + str(rpieGlobals.PROGVER)
  TXBuffer += "<TR><TD><TD>"
  addButton("sysinfo", "More info");
  TXBuffer += "</table><BR>"
@@ -122,7 +143,7 @@ def handle_config(self):
  navMenuIndex=1
  if (rpieGlobals.wifiSetup):
   return self.redirect('/setup')
- if (not isLoggedIn()):
+ if (not isLoggedIn(self.get,self.cookie)):
   return self.redirect('/login')
 
  if self.type == "GET":
@@ -218,8 +239,8 @@ def handle_config(self):
 
  addFormTextBox( "Unit Name", "name", Settings.Settings["Name"], 25)
  
- addFormNumericBox( "Unit Number", "unit", Settings.Settings["Unit"], 0, 9999)
-# addFormPasswordBox( "Admin Password" , "password", Settings.Settings["Password"], 25)   # Not implemented MISSING!
+ addFormNumericBox( "Unit Number", "unit", Settings.Settings["Unit"], 0, 256)
+ addFormPasswordBox( "Admin Password" , "password", Settings.Settings["Password"], 25)
 
 # addFormCheckBox("AP Mode enable on connection failure","apmode",Settings.NetMan.APMode) # Not implemented MISSING!
 # addFormPasswordBox("WPA AP Mode Key", "apkey", Settings.NetMan.WifiAPKey, 128)          # Not implemented MISSING!
@@ -227,16 +248,17 @@ def handle_config(self):
  addSubmitButton()
 
  oslvl = misc.getsupportlevel(1)
- if oslvl in [1,10]: # maintain supported system list!!!
+ if oslvl in [1,2,10]: # maintain supported system list!!!
   addFormSeparator(2)
-  addFormCheckBox("I have root rights and i really want to manage network settings below","netman", netmanage)
+  if oslvl != 2:
+   addFormCheckBox("I have root rights and i really want to manage network settings below","netman", netmanage)
   addFormNote("<font color=red><b>If not enabled, OS config files will not be overwritten!</b></font>")
  
   addFormSubHeader("Wifi Settings") #/etc/wpa_supplicant/wpa_supplicant.conf
-  addFormTextBox( "SSID", "ssid", Settings.NetMan.WifiSSID, 64)
-  addFormPasswordBox("WPA Key", "key", Settings.NetMan.WifiKey, 128)
-  addFormTextBox( "Fallback SSID", "ssid2", Settings.NetMan.WifiSSID2, 64)
-  addFormPasswordBox( "Fallback WPA Key", "key2", Settings.NetMan.WifiKey2, 128)
+  addFormTextBox( "SSID", "ssid", Settings.NetMan.WifiSSID, 32)
+  addFormPasswordBox("WPA Key", "key", Settings.NetMan.WifiKey, 64)
+  addFormTextBox( "Fallback SSID", "ssid2", Settings.NetMan.WifiSSID2, 32)
+  addFormPasswordBox( "Fallback WPA Key", "key2", Settings.NetMan.WifiKey2, 64)
   addFormSeparator(2)
 
   addFormSubHeader("IP Settings")
@@ -315,8 +337,8 @@ def handle_config(self):
    addFormTextBox("DNS", "nd1_dns", nd1_dns,15)
    addFormNote("If DHCP enabled these fields will not be saved or used!")
 
- TXBuffer += "<TR><TD style='width:150px;' align='left'><TD>"
- addSubmitButton()
+  TXBuffer += "<TR><TD style='width:150px;' align='left'><TD>"
+  addSubmitButton()
  TXBuffer += "</table></form>"
   
  sendHeadandTail("TmplStd",_TAIL);
@@ -329,7 +351,7 @@ def handle_controllers(self):
  navMenuIndex=2
  if (rpieGlobals.wifiSetup):
   return self.redirect('/setup')
- if (not isLoggedIn()):
+ if (not isLoggedIn(self.get,self.cookie)):
   return self.redirect('/login')
  sendHeadandTail("TmplStd",_HEAD); 
 
@@ -353,7 +375,7 @@ def handle_controllers(self):
   protocol=0
  controlleruser = arg("controlleruser",responsearr)
  controllerpassword = arg("controllerpassword",responsearr)
- enabled = arg("controllerenabled",responsearr)
+ enabled = (arg("controllerenabled",responsearr)=="on")
 
  if ((protocol == 0) and (edit=='') and (controllerindex!='')) or (arg('del',responsearr) != ''):
    try:
@@ -371,7 +393,8 @@ def handle_controllers(self):
      Settings.Controllers[controllerindex].controllerip = controllerip
      Settings.Controllers[controllerindex].controllerport = controllerport
      Settings.Controllers[controllerindex].controlleruser = controlleruser
-     Settings.Controllers[controllerindex].controllerpassword = controllerpassword
+     if "**" not in controllerpassword:
+      Settings.Controllers[controllerindex].controllerpassword = controllerpassword
      Settings.Controllers[controllerindex].enabled = enabled
      Settings.Controllers[controllerindex].webform_save(responsearr)
      Settings.savecontrollers()
@@ -494,7 +517,7 @@ def handle_hardware(self):
  navMenuIndex=3
  if (rpieGlobals.wifiSetup):
   return self.redirect('/setup')
- if (not isLoggedIn()):
+ if (not isLoggedIn(self.get,self.cookie)):
   return self.redirect('/login')
  sendHeadandTail("TmplStd",_HEAD)
  suplvl = misc.getsupportlevel()
@@ -506,6 +529,9 @@ def handle_hardware(self):
   responsearr = self.get
  else:
   responsearr = self.post
+
+ if (arg('nokernelserial',responsearr) != ""):
+  OS.disable_serialsyslog()
 
  submit = arg("Submit",responsearr)
 
@@ -578,6 +604,11 @@ def handle_hardware(self):
  TXBuffer += "<TR><TD HEIGHT=30>"
  addWideButton("blescanner", "Scan Bluetooth LE", "")
 
+ bpcont = OS.get_bootparams()
+ if ("ttyAMA" in bpcont) or ("ttyS" in bpcont) or ("serial" in bpcont):
+  addFormSeparator(2)
+  addSubmitButton("Disable Serial port usage by kernel","nokernelserial")
+
  TXBuffer += "</table></form>"
 
  sendHeadandTail("TmplStd",_TAIL)
@@ -590,7 +621,7 @@ def handle_pinout(self):
  navMenuIndex=3
  if (rpieGlobals.wifiSetup):
   return self.redirect('/setup')
- if (not isLoggedIn()):
+ if (not isLoggedIn(self.get,self.cookie)):
   return self.redirect('/login')
  sendHeadandTail("TmplStd",_HEAD)
 
@@ -609,58 +640,90 @@ def handle_pinout(self):
 
  if arg("reread",responsearr) != '':
   submit = ''
-  gpios.HWPorts.readconfig()
- 
+  try:
+   gpios.HWPorts.readconfig()
+  except Exception as e:
+   misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Config read error="+str(e))
+
  if (submit=="Submit") or (setbtn!=''):
-  stat = arg("i2c0",responsearr)
-  if stat=="on":
-   gpios.HWPorts.enable_i2c(0)
-  else:
-   gpios.HWPorts.disable_i2c(0)
-  stat = arg("i2c1",responsearr)
-  if stat=="on":
-   gpios.HWPorts.enable_i2c(1)
-  else:
-   gpios.HWPorts.disable_i2c(1)
-
-  stat = arg("spi0",responsearr)
-  if stat=="on":
-   gpios.HWPorts.enable_spi(0,2)
-  else:
-   gpios.HWPorts.disable_spi(0)
-
-  stat = int(arg("spi1",responsearr).strip())
-  if stat == 0:
-   gpios.HWPorts.disable_spi(1)
-  else:
-   gpios.HWPorts.enable_spi(1,stat)
-
-  stat = arg("uart",responsearr)
-  if stat=="on":
-   gpios.HWPorts.set_serial(1)
-  else:
-   gpios.HWPorts.set_serial(0)
-  stat = arg("audio",responsearr)
-  if stat=="on":
-   gpios.HWPorts.set_audio(1)
-  else:
-   gpios.HWPorts.set_audio(0)
-  stat = arg("i2s",responsearr)
-  if stat=="on":
-   gpios.HWPorts.set_i2s(1)
-  else:
-   gpios.HWPorts.set_i2s(0)
+  try:
+   stat = arg("i2c0",responsearr)
+   if stat=="on":
+    gpios.HWPorts.enable_i2c(0)
+   else:
+    gpios.HWPorts.disable_i2c(0)
+  except Exception as e:
+   misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"I2C-0 error="+str(e))
+  try:
+   stat = arg("i2c1",responsearr)
+   if stat=="on":
+    gpios.HWPorts.enable_i2c(1)
+   else:
+    gpios.HWPorts.disable_i2c(1)
+  except Exception as e:
+   misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"I2C-1 error="+str(e))
+  try:
+   stat = arg("spi0",responsearr)
+   if stat=="on":
+    gpios.HWPorts.enable_spi(0,2)
+   else:
+    gpios.HWPorts.disable_spi(0)
+  except Exception as e:
+   misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"SPI-0 error="+str(e))
 
   try:
-   stat = int(arg("bluetooth",responsearr).strip())  
+   stat = int(arg("spi1",responsearr).strip())
+  except:
+   stat = 0
+  try:
+   if stat == "":
+    stat = 0
+   if stat == 0:
+     gpios.HWPorts.disable_spi(1)
+   else:
+     gpios.HWPorts.enable_spi(1,stat)
+  except Exception as e:
+   misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"SPI-1 error="+str(e))
+
+  try:
+   stat = arg("uart",responsearr)
+   if stat=="on":
+    gpios.HWPorts.set_serial(1)
+   else:
+    gpios.HWPorts.set_serial(0)
+  except Exception as e:
+   misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"UART init error="+str(e))
+
+  try:
+   stat = arg("audio",responsearr)
+   if stat=="on":
+    gpios.HWPorts.set_audio(1)
+   else:
+    gpios.HWPorts.set_audio(0)
+  except Exception as e:
+   misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Audio init error="+str(e))
+  try:
+   stat = arg("i2s",responsearr)
+   if stat=="on":
+    gpios.HWPorts.set_i2s(1)
+   else:
+    gpios.HWPorts.set_i2s(0)
+  except Exception as e:
+   misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"I2S init error="+str(e))
+
+  try:
+   stat = int(arg("bluetooth",responsearr).strip())
   except:
    stat=0
-  gpios.HWPorts.set_internal_bt(stat)
-  stat = arg("wifi",responsearr)
-  if stat=="on":
-   gpios.HWPorts.set_wifi(1)
-  else:
-   gpios.HWPorts.set_wifi(0)
+  try:
+   gpios.HWPorts.set_internal_bt(stat)
+   stat = arg("wifi",responsearr)
+   if stat=="on":
+    gpios.HWPorts.set_wifi(1)
+   else:
+    gpios.HWPorts.set_wifi(0)
+  except Exception as e:
+   misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"WLAN init error="+str(e))
 
   try:
    stat = int(arg("gpumem",responsearr).strip())
@@ -670,12 +733,21 @@ def handle_pinout(self):
 
   for p in range(len(Settings.Pinout)):
    pins = arg("pinstate"+str(p),responsearr)
-   if pins:
-    gpios.HWPorts.setpinstate(p,int(pins))
+   if pins and pins!="" and p!= "":
+    try:
+     gpios.HWPorts.setpinstate(p,int(pins))
+    except Exception as e:
+     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Pin "+str(p)+" "+str(e))
 
   if OS.check_permission() and setbtn=='':
-   gpios.HWPorts.saveconfig()
-  Settings.savepinout()
+   try:
+    gpios.HWPorts.saveconfig()
+   except Exception as e:
+    misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,str(e))
+  try:
+   Settings.savepinout()
+  except Exception as e:
+   misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,str(e))
 
  if (len(Settings.Pinout)>1):
   TXBuffer += "<form name='frmselect' method='post'><table class='normal'>"
@@ -811,6 +883,9 @@ def handle_pinout(self):
   addSubmitButton("Set without save","set")
   addSubmitButton("Reread config","reread")
   TXBuffer += "</td></tr>"
+  if OS.check_permission():
+   if OS.checkboot_ro():
+     addFormNote("<font color='red'>WARNING: Your /boot partition is mounted READONLY! Changes could not be saved! Run 'sudo mount -o remount,rw /boot' or whatever necessary to solve it!")
   addFormNote("WARNING: Some changes needed to reboot after submitting changes! And most changes requires root permission.")
   addHtml("</table></form>")
  else:
@@ -826,7 +901,7 @@ def handle_plugins(self):
  navMenuIndex=3
  if (rpieGlobals.wifiSetup):
   return self.redirect('/setup')
- if (not isLoggedIn()):
+ if (not isLoggedIn(self.get,self.cookie)):
   return self.redirect('/login')
  sendHeadandTail("TmplStd",_HEAD); 
 
@@ -933,7 +1008,7 @@ def handle_devices(self):
  navMenuIndex=4
  if (rpieGlobals.wifiSetup):
   return self.redirect('/setup')
- if (not isLoggedIn()):
+ if (not isLoggedIn(self.get,self.cookie)):
   return self.redirect('/login')
  sendHeadandTail("TmplStd",_HEAD); 
 
@@ -1038,12 +1113,14 @@ def handle_devices(self):
         TXBuffer += Settings.Tasks[x].gettaskname()
         TXBuffer += "<TD>"
 
-        customConfig = False;
+        #customConfig = False;
         #customConfig = PluginCall(PLUGIN_WEBFORM_SHOW_CONFIG, &TempEvent,TXBuffer.buf);
-        if not(customConfig):
-          if (Settings.Tasks[x].ports != 0):
-            TXBuffer += str(Settings.Tasks[x].taskdeviceport)
-
+        #if not(customConfig):
+        try:
+          if (str(Settings.Tasks[x].ports) != "0" and str(Settings.Tasks[x].ports) != ""):
+            TXBuffer += str(Settings.Tasks[x].ports)
+        except:
+         pass
         TXBuffer += "<TD>"
 
         if (Settings.Tasks[x].senddataoption):
@@ -1069,15 +1146,17 @@ def handle_devices(self):
         TXBuffer += "<TD>"
 
         if (Settings.Tasks[x].dtype == rpieGlobals.DEVICE_TYPE_I2C):
-            i2cpins = Settings.get_i2c_pins()
-            TXBuffer += i2cpins[0]
-            TXBuffer += "<BR>"+i2cpins[1]
+            try:
+             i2cpins = Settings.get_i2c_pins()
+             TXBuffer += i2cpins[0]
+             TXBuffer += "<BR>"+i2cpins[1]
+            except:
+             TXBuffer += "NO-I2C"
         for tp in range(0,len(Settings.Tasks[x].taskdevicepin)):
           if int(Settings.Tasks[x].taskdevicepin[tp])>=0:
             TXBuffer += "<br>GPIO-"
             TXBuffer += str(Settings.Tasks[x].taskdevicepin[tp])
         TXBuffer += "<TD>"
-
         customValues = False
 #        customValues = PluginCall(PLUGIN_WEBFORM_SHOW_VALUES, &TempEvent,TXBuffer.buf);
         if not(customValues):
@@ -1117,23 +1196,25 @@ def handle_devices(self):
                 TXBuffer  += "'>"
                 numtodisp = Settings.Tasks[x].uservar[varNr]
                 decimalv = Settings.Tasks[x].decimals[varNr]
-                if str(decimalv) == "-1":
-                 TXBuffer += numtodisp
-                else:
-                 if str(decimalv) == "" or int(decimalv)<0:
-                  decimalv = "0"
-                 else:
-                  decimalv = str(decimalv).strip()
-                 numformat = "{0:."+ decimalv + "f}"
-                 try:
-                  TXBuffer += numformat.format(numtodisp)
-                 except:
-                  TXBuffer += numtodisp 
+                TXBuffer += str(misc.formatnum(numtodisp,decimalv))
+#                if str(decimalv) == "-1":
+#                 TXBuffer += str(numtodisp)
+#                else:
+#                 if str(decimalv) == "" or int(decimalv)<0:
+#                  decimalv = "0"
+#                 else:
+#                  decimalv = str(decimalv).strip()
+#                 numformat = "{0:."+ decimalv + "f}"
+#                 try:
+#                  TXBuffer += numformat.format(numtodisp)
+#                 except:
+#                  TXBuffer += numtodisp 
                 TXBuffer += "</div>"
 
        else:
         TXBuffer += "<TD><TD><TD><TD><TD><TD>"
       TXBuffer += "</table></form>"
+      
  else: #Show edit form if a specific entry is chosen with the edit button
 
     TXBuffer += "<form name='frmselect' method='post'><table class='normal'>"
@@ -1147,7 +1228,13 @@ def handle_devices(self):
     if (tte<=0):
       addSelector_Head("TDNUM",True)
       for y in range(0,len(rpieGlobals.deviceselector)):
-       addSelector_Item(rpieGlobals.deviceselector[y][2],int(rpieGlobals.deviceselector[y][1]),(rpieGlobals.deviceselector[y][1]==tte),False,"")
+       pname = rpieGlobals.deviceselector[y][2]
+       try:
+        if int(rpieGlobals.deviceselector[y][1]) != 0:
+         pname = "P"+str(int(rpieGlobals.deviceselector[y][1])).rjust(3,"0")+" - "+ rpieGlobals.deviceselector[y][2]
+       except:
+        pass
+       addSelector_Item(pname,int(rpieGlobals.deviceselector[y][1]),(rpieGlobals.deviceselector[y][1]==tte),False,"")
       addSelector_Foot()
     else: # device selected
       createnewdevice = True
@@ -1259,11 +1346,11 @@ def handle_devices(self):
       addFormTextBox( "Name", "TDN", str(Settings.Tasks[taskIndex].gettaskname()), 40)
       addFormCheckBox("Enabled", "TDE", Settings.Tasks[taskIndex].enabled)
       # section: Sensor / Actuator
-      if (Settings.Tasks[taskIndex].ports>0) or (Settings.Tasks[taskIndex].dtype>=rpieGlobals.DEVICE_TYPE_SINGLE and Settings.Tasks[taskIndex].dtype<= rpieGlobals.DEVICE_TYPE_QUAD):
+      if (Settings.Tasks[taskIndex].dtype>=rpieGlobals.DEVICE_TYPE_SINGLE and Settings.Tasks[taskIndex].dtype<= rpieGlobals.DEVICE_TYPE_QUAD):
         addFormSubHeader( "Sensor" if Settings.Tasks[taskIndex].senddataoption else "Actuator" )
 
-        if (Settings.Tasks[taskIndex].ports != 0):
-          addFormNumericBox("Port", "TDP", Settings.Tasks[taskIndex].taskdeviceport)
+#        if (Settings.Tasks[taskIndex].ports != 0):
+#          addFormNumericBox("Port", "TDP", Settings.Tasks[taskIndex].taskdeviceport)
 #        if (Settings.Tasks[taskIndex].pullupoption):
 #          addFormCheckBox("Internal PullUp", "TDPPU", Settings.Tasks[taskIndex].pullup)
         if (Settings.Tasks[taskIndex].inverselogicoption):
@@ -1340,7 +1427,7 @@ def handle_devices(self):
             TXBuffer += "<TD>"
             sid = "TDF"
             sid += str(varNr + 1)
-            addTextBox(sid, Settings.Tasks[taskIndex].formula[varNr], 40)
+            addTextBox(sid, Settings.Tasks[taskIndex].formula[varNr], 140)
 
           if (Settings.Tasks[taskIndex].formulaoption or Settings.Tasks[taskIndex].decimalsonly):
             TXBuffer += "<TD>"
@@ -1374,7 +1461,7 @@ def handle_notifications(self):
  navMenuIndex=6
  if (rpieGlobals.wifiSetup):
   return self.redirect('/setup')
- if (not isLoggedIn()):
+ if (not isLoggedIn(self.get,self.cookie)):
   return self.redirect('/login')
  sendHeadandTail("TmplStd",_HEAD); 
 
@@ -1390,7 +1477,7 @@ def handle_log(self):
  navMenuIndex=7
  if (rpieGlobals.wifiSetup):
   return self.redirect('/setup')
- if (not isLoggedIn()):
+ if (not isLoggedIn(self.get,self.cookie)):
   return self.redirect('/login')
  sendHeadandTail("TmplStd",_HEAD); 
 
@@ -1419,7 +1506,7 @@ def handle_tools(self):
  navMenuIndex=7
  if (rpieGlobals.wifiSetup):
   return self.redirect('/setup')
- if (not isLoggedIn()):
+ if (not isLoggedIn(self.get,self.cookie)):
   return self.redirect('/login')
  sendHeadandTail("TmplStd",_HEAD); 
 
@@ -1476,7 +1563,7 @@ def handle_tools(self):
  TXBuffer += '"'
  TXBuffer += " href='/?cmd=exit'>Exit</a>"
  TXBuffer += "<TD>"
- TXBuffer += "Exit from RPIEasy"
+ TXBuffer += "Exit from RPIEasy (or Restart if autostart script used)"
 
  html_TR_TD_height(30)
  addWideButton("log", "Log", "")
@@ -1502,6 +1589,15 @@ def handle_tools(self):
  addWideButton("sysvars", "System Variables", "")
  TXBuffer += "<TD>"
  TXBuffer += "Show all system variables"
+
+ html_TR_TD_height(30)
+ TXBuffer += "<a class='button link wide' onclick="
+ TXBuffer += '"'
+ TXBuffer += "return confirm('Do you really want to Update device?')"
+ TXBuffer += '"'
+ TXBuffer += " href='/?cmd=update'>Update</a>"
+ TXBuffer += "<TD>"
+ TXBuffer += "Pulls new version from Github then restart. (Manual backup is recommended, and restart will not work if you not use run.sh or autostart)"
 
  addFormSubHeader("Settings")
  html_TR_TD_height(30)
@@ -1542,7 +1638,7 @@ def handle_i2cscanner(self):
  navMenuIndex=3
  if (rpieGlobals.wifiSetup):
   return self.redirect('/setup')
- if (not isLoggedIn()):
+ if (not isLoggedIn(self.get,self.cookie)):
   return self.redirect('/login')
  sendHeadandTail("TmplStd",_HEAD)
  try:
@@ -1600,7 +1696,7 @@ def handle_wifiscanner(self):
  navMenuIndex=3
  if (rpieGlobals.wifiSetup):
   return self.redirect('/setup')
- if (not isLoggedIn()):
+ if (not isLoggedIn(self.get,self.cookie)):
   return self.redirect('/login')
  sendHeadandTail("TmplStd",_HEAD)
  wifidev = Settings.NetMan.getfirstwirelessdev()
@@ -1633,7 +1729,7 @@ def handle_blescanner(self):
  navMenuIndex=3
  if (rpieGlobals.wifiSetup):
   return self.redirect('/setup')
- if (not isLoggedIn()):
+ if (not isLoggedIn(self.get,self.cookie)):
   return self.redirect('/login')
  sendHeadandTail("TmplStd",_HEAD)
 
@@ -1678,16 +1774,42 @@ def handle_blescanner(self):
 
 @WebServer.route('/login')
 def handle_login(self):
- global TXBuffer
+ global TXBuffer, navMenuIndex
  TXBuffer=""
- addHtml('Login page')
+ navMenuIndex=0
+ if self.type == "GET":
+  responsearr = self.get
+ else:
+  responsearr = self.post
+ webrequest = str(arg("password",responsearr)).strip()
+ self.set_cookie("password","")
+ pwok = isLoggedIn(responsearr,[])
+ if webrequest != "":
+  if pwok:
+   self.set_cookie("password",hashlib.sha1(bytes(webrequest,'utf-8')).hexdigest())
+  else:
+   commands.rulesProcessing("Login#Failed",rpieGlobals.RULE_SYSTEM)
+ sendHeadandTail("TmplStd",_HEAD)
+
+ if pwok:
+  TXBuffer += "<p>Password accepted!"
+ else:
+  TXBuffer += "<form method='post'>"
+  TXBuffer += "<TR><TD>Password<TD>"
+  TXBuffer += "<input class='wide' type='password' name='password' value='"
+  TXBuffer += webrequest
+  TXBuffer += "'><TR><TD><TD>"
+  addSubmitButton();
+  TXBuffer += "<TR><TD></TABLE></FORM>"
+
+ sendHeadandTail("TmplStd",_TAIL);
  return TXBuffer
 
 @WebServer.route('/control')
 def handle_control(self):
  if (rpieGlobals.wifiSetup):
   return self.redirect('/setup')
- if (not isLoggedIn()):
+ if (not isLoggedIn(self.get,self.cookie)):
   return self.redirect('/login')
  if self.type == "GET":
   responsearr = self.get
@@ -1705,7 +1827,7 @@ def handle_advanced(self):
  navMenuIndex=7
  if (rpieGlobals.wifiSetup):
   return self.redirect('/setup')
- if (not isLoggedIn()):
+ if (not isLoggedIn(self.get,self.cookie)):
   return self.redirect('/login')
  sendHeadandTail("TmplStd",_HEAD)
  
@@ -1725,6 +1847,13 @@ def handle_advanced(self):
   except:
    Settings.AdvSettings["consoleloglevel"]  = 0
   try:
+   Settings.AdvSettings["sysloglevel"]  = int(arg("sysloglevel",responsearr))
+   Settings.AdvSettings["syslogip"]  = str(arg("syslogip",responsearr))
+  except Exception as e:
+   print(e,arg("sysloglevel",responsearr))
+   Settings.AdvSettings["sysloglevel"]  = 0
+   Settings.AdvSettings["syslogip"]  = ""
+  try:
    Settings.AdvSettings["battery"]["enabled"] = (arg("battery_mon",responsearr)=="on")
    Settings.AdvSettings["battery"]["tasknum"] = int(arg("battery_task",responsearr))
    Settings.AdvSettings["battery"]["taskvaluenum"] = int(arg("battery_valuenum",responsearr))
@@ -1736,8 +1865,15 @@ def handle_advanced(self):
  addFormHeader("Advanced Settings")
  addFormSubHeader("Log Settings")
 
- addFormLogLevelSelect("Console log Level","consoleloglevel", Settings.AdvSettings["consoleloglevel"]);
- addFormLogLevelSelect("Web log Level",    "webloglevel",     Settings.AdvSettings["webloglevel"]);
+ addFormLogLevelSelect("Console log Level","consoleloglevel", Settings.AdvSettings["consoleloglevel"])
+ addFormLogLevelSelect("Web log Level",    "webloglevel",     Settings.AdvSettings["webloglevel"])
+ addFormLogLevelSelect("Syslog Level",    "sysloglevel",     Settings.AdvSettings["sysloglevel"])
+ try:
+  val = Settings.AdvSettings["syslogip"]
+ except:
+  val = ""
+  Settings.AdvSettings["syslogip"] = val
+ addFormTextBox("Syslog IP", "syslogip", val,64)
 
  addFormSubHeader("Battery reporting source")
  try:
@@ -1751,6 +1887,7 @@ def handle_advanced(self):
  addFormCheckBox("Enable watching battery monitoring task","battery_mon",bmon)
  addFormNumericBox("Task Number", "battery_task", btask, 0, rpieGlobals.TASKS_MAX)
  addFormNumericBox("Task Value Number", "battery_valuenum", btval, 0, rpieGlobals.VARS_PER_TASK)
+ addFormNote("These values are currently zero based! (WIP)")
  if bmon:
   bval = 0
   try:
@@ -1782,7 +1919,7 @@ def handle_json(self):
  TXBuffer=""
  if (rpieGlobals.wifiSetup):
   return self.redirect('/setup')
- if (not isLoggedIn()):
+ if (not isLoggedIn(self.get,self.cookie)):
   return self.redirect('/login')
 
  if self.type == "GET":
@@ -1819,17 +1956,30 @@ def handle_json(self):
    TXBuffer += ',"Local time":"'+ datetime.now().strftime('%Y-%m-%d %H:%M:%S')
    TXBuffer += '","Unit":'+str(Settings.Settings["Unit"])
    TXBuffer += ',"Name":"'+str(Settings.Settings["Name"])
-   TXBuffer += '","Uptime":'+str(rpieTime.getuptime(0))
+   try:
+    TXBuffer += '","Uptime":'+str(float(rpieTime.getuptime(2)))
+   except:
+    TXBuffer += '","Uptime":0'
    TXBuffer += ',"Load":'+str(OS.read_cpu_usage())
-   TXBuffer += ',"Free RAM":'+str(OS.FreeMem())
+   try:
+    TXBuffer += ',"Free RAM":'+str(float(OS.FreeMem())*1024)
+   except:
+    TXBuffer += ',"Free RAM":0'
    TXBuffer += "},"
   if showwifi:
    TXBuffer += '"WiFi":{'
    defaultdev = -1
    try:
     defaultdev = Settings.NetMan.getprimarydevice()
+    if Settings.NetworkDevices[defaultdev].ip=="":
+     defaultdev = -1
    except: 
     defaultdev = -1
+   if defaultdev==-1:
+    try:
+     defaultdev = Settings.NetMan.getsecondarydevice()
+    except: 
+     defaultdev = -1
    if defaultdev != -1:
     if Settings.NetworkDevices[defaultdev].dhcp:
      nam = "DHCP"
@@ -1908,7 +2058,7 @@ def handle_rules(self):
  navMenuIndex=5
  if (rpieGlobals.wifiSetup):
   return self.redirect('/setup')
- if (not isLoggedIn()):
+ if (not isLoggedIn(self.get,self.cookie)):
   return self.redirect('/login')
  sendHeadandTail("TmplStd",_HEAD); 
 
@@ -1951,7 +2101,7 @@ def handle_rules(self):
  navMenuIndex=7
  if (rpieGlobals.wifiSetup):
   return self.redirect('/setup')
- if (not isLoggedIn()):
+ if (not isLoggedIn(self.get,self.cookie)):
   return self.redirect('/login')
  sendHeadandTail("TmplStd",_HEAD); 
  TXBuffer += "<table class='normal'><TR><TH align='left'>System Variables<TH align='left'>Normal"
@@ -1971,7 +2121,7 @@ def handle_sysinfo(self):
  navMenuIndex=7
  if (rpieGlobals.wifiSetup):
   return self.redirect('/setup')
- if (not isLoggedIn()):
+ if (not isLoggedIn(self.get,self.cookie)):
   return self.redirect('/login')
  sendHeadandTail("TmplStd",_HEAD); 
  TXBuffer += "<table class='normal'><TR><TH style='width:150px;' align='left'>System Info<TH align='left'>"
@@ -1983,7 +2133,15 @@ def handle_sysinfo(self):
  TXBuffer += "<TR><TD>Load:<TD>" +str( OS.read_cpu_usage() ) + " %"
  TXBuffer += "<TR><TD>Free Mem:<TD>" + str( OS.FreeMem() ) + " kB"
  addTableSeparator("Network", 2, 3)
- TXBuffer += "<TR><TD>Wifi RSSI:<TD>" + str( OS.get_rssi() ) + " dB"
+ try:
+  rssi = OS.get_rssi()
+  if str(rssi)=="-49.20051":
+   rssi = "Wired connection"
+  else:
+   rssi = str(rssi)+" dB"
+ except:
+   rssi = "?"
+ TXBuffer += "<TR><TD>Wifi RSSI:<TD>" + str(rssi)
  wdev = False
  try:
     wdev = Settings.NetMan.getfirstwirelessdev()
@@ -1992,10 +2150,19 @@ def handle_sysinfo(self):
  if wdev:
     TXBuffer += '<tr><td>SSID<td>'+str(Network.get_ssid(wdev))
  defaultdev = -1
+
  try:
     defaultdev = Settings.NetMan.getprimarydevice()
+    if Settings.NetworkDevices[defaultdev].ip=="":
+     defaultdev = -1
  except: 
     defaultdev = -1
+ if defaultdev==-1:
+    try:
+     defaultdev = Settings.NetMan.getsecondarydevice()
+    except: 
+     defaultdev = -1
+
  if defaultdev != -1:
   if Settings.NetworkDevices[defaultdev].dhcp:
      nam = "DHCP"
@@ -2051,7 +2218,7 @@ def handle_filelist(self):
  navMenuIndex=7
  if (rpieGlobals.wifiSetup):
   return self.redirect('/setup')
- if (not isLoggedIn()):
+ if (not isLoggedIn(self.get,self.cookie)):
   return self.redirect('/login')
 
  if self.type == "GET":
@@ -2088,6 +2255,8 @@ def handle_filelist(self):
 
  dirasked = arg("chgto",responsearr).replace("..","")
  if dirasked:
+  if dirasked[len(dirasked)-1]!="/":
+   dirasked += "/"
   if dirasked.startswith(current_dir):
    current_dir = dirasked
   else:
@@ -2178,7 +2347,7 @@ def handle_favicon(self,imagename):
 def handle_download(self):
  if (rpieGlobals.wifiSetup):
   return self.redirect('/setup')
- if (not isLoggedIn()):
+ if (not isLoggedIn(self.get,self.cookie)):
   return self.redirect('/login')
  if self.type == "GET":
   responsearr = self.get
@@ -2215,7 +2384,7 @@ def handle_upload(self):
  navMenuIndex=7
  if (rpieGlobals.wifiSetup):
   return self.redirect('/setup')
- if (not isLoggedIn()):
+ if (not isLoggedIn(self.get,self.cookie)):
   return self.redirect('/login')
  sendHeadandTail("TmplStd",_HEAD)
  current_dir = "files/"
@@ -2240,6 +2409,7 @@ def handle_upload(self):
 @WebServer.post('/upload')
 def handle_upload_post(self):
  if self.post:
+  misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG, "File upload started...")
   current_dir = 'files/'
   upath = arg("path",self.post).strip()
   if upath:
@@ -2265,14 +2435,137 @@ def handle_upload_post(self):
    upath += '/'
   fname = ""
   try:
+   logstr = "Upload destination path:"+str(fname)+" Filename:"+str(self.post['datafile']['filename'])+" Filesize:"+str(len(self.post['datafile']['file']))
+  except Exception as e:
+   logstr = str(e)
+  misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG, logstr)
+  try:
    if self.post['datafile']['filename']:
     fname = upath + self.post['datafile']['filename'].strip()
     fout = open(fname,"wb")
     fout.write(self.post['datafile']['file'])
     fout.close()
   except Exception as e:
+   misc.addLog(rpieGlobals.LOG_LEVEL_ERROR, "Exception while uploading "+str(e))
+ return self.redirect("filelist?chgto="+str(upath))
+
+@WebServer.route('/dashboard.esp') # still experimental!
+def handle_custom(self):
+ global TXBuffer, navMenuIndex
+ TXBuffer=""
+ navMenuIndex=0
+ if (rpieGlobals.wifiSetup):
+  return self.redirect('/setup')
+ if (not isLoggedIn(self.get,self.cookie)):
+  return self.redirect('/login')
+ if self.type == "GET":
+  responsearr = self.get
+ else:
+  responsearr = self.post
+
+ webrequest = arg("cmd",responsearr)
+ if len(webrequest)>0:
+  responsestr = str(commands.doExecuteCommand(webrequest))
+ 
+ unit = arg("unit",responsearr).strip()
+ btnunit = arg("btnunit",responsearr).strip()
+ if unit == "":
+  unit = btnunit
+
+ if str(unit) != "":
+   if str(unit) != str(Settings.Settings["Unit"]):
+    ipa = ""
+    if len(Settings.nodelist)>0:
+     for n in Settings.nodelist:
+      if str(n["unitno"]) == str(unit):
+       ipa = str(n["ip"])
+       break
+    if ipa != "":
+     if str(n["port"]) != "" and str(n["port"]) != "0" and str(n["port"]) != "80":
+      ipa += ":" + str(n["port"])
+     return self.redirect("http://"+str(ipa)+"/dashboard.esp")
+#    sendHeadandTail("TmplDsh",_HEAD)
+#    TXBuffer += "<meta http-equiv=\"refresh\" content=\"0; URL=http://"
+#    TXBuffer += ipa
+#    TXBuffer += "/dashboard.esp\">"
+#    sendHeadandTail("TmplDsh",_TAIL)
+#    return TXBuffer
+
+ if len(Settings.nodelist)>0:
+  prevn = 0
+  nextn = 0
+  nlen = len(Settings.nodelist)
+  for n in range(0,nlen):
+      if str(Settings.nodelist[n]["unitno"]) == str(Settings.Settings["Unit"]):
+       if n>0:
+        prevn=n-1
+       else:
+        prevn=n
+       if n<(nlen-1):
+        nextn=n+1
+       else:
+        nextn=n
+       break
+
+  sendHeadandTail("TmplDsh",_HEAD)
+  TXBuffer += "<script><!--\nfunction dept_onchange(frmselect) {frmselect.submit();}\n//--></script>"
+  TXBuffer += "<form name='frmselect' method='post'>"
+  addSelector_Head("unit",True)
+  choice = int(Settings.Settings["Unit"])
+  for n in range(nlen):
+    addSelector_Item((str(Settings.nodelist[n]["unitno"])+" - "+ str(Settings.nodelist[n]["name"])),int(Settings.nodelist[n]["unitno"]),(int(Settings.nodelist[n]["unitno"])==int(choice)),False)
+  addSelector_Foot()
+  TXBuffer += "<a class='button link' href='http://"
+  ipa = str(Settings.nodelist[prevn]["ip"])
+  iport = str(Settings.nodelist[prevn]["port"])
+  if str(iport) != "" and str(iport) != "0" and str(iport) != "80":
+    ipa += ":" + str(iport)
+  TXBuffer += ipa + "/dashboard.esp"
+  TXBuffer += "?btnunit="+str(Settings.nodelist[prevn]["unitno"])
+  TXBuffer += "'>&lt;</a>"
+
+  TXBuffer += "<a class='button link' href='http://"
+  ipa = str(Settings.nodelist[nextn]["ip"])
+  iport = str(Settings.nodelist[nextn]["port"])
+  if str(iport) != "" and str(iport) != "0" and str(iport) != "80":
+    ipa += ":" + str(iport)
+  TXBuffer += ipa + "/dashboard.esp"
+  TXBuffer += "?btnunit="+str(Settings.nodelist[nextn]["unitno"])
+  TXBuffer += "'>&gt;</a>"
+
+ try:
+  customcont = OS.getfilecontent("dashboard.esp")
+ except Exception as e:
+  print(e)
+ if len(customcont)>0:
+  for l in customcont:
+   try:
+    cl, st = commands.parseruleline(str(l))
+    if st=="CMD":
+     TXBuffer += str(cl)
+    else:
+     TXBuffer += str(l)
+   except Exception as e:
+    print(e)
+ else: # if template not found
+  sendHeadandTail("TmplDsh",_HEAD); 
+  TXBuffer += "<table class='normal'>"
+  try:
+   for sc in range(0,len(Settings.Tasks)):
+    if Settings.Tasks[sc] != False:
+     TXBuffer += "<TR><TD>"+Settings.Tasks[sc].gettaskname()
+     fl = False
+     for tv in range(0,Settings.Tasks[sc].valuecount):
+      if str(Settings.Tasks[sc].valuenames[tv])!="":
+       if fl:
+        TXBuffer += "<TR><TD>"
+       TXBuffer += '<TD>' + str(Settings.Tasks[sc].valuenames[tv]) + "<td>" + str(Settings.Tasks[sc].uservar[tv]) + "</TR>"
+       fl = True
+  except Exception as e:
    print(e)
- self.redirect("filelist?chgto="+str(upath))
+  TXBuffer += "</table><BR>"
+  sendHeadandTail("TmplDsh",_TAIL);
+ return TXBuffer
 
 # -----------------------------
 

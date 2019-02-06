@@ -83,7 +83,7 @@ class PerverHandler:
 		
 		# Terminator shortcut:
 		killer = PerverException
-		
+		request_max = 65535
 		# Handling:
 		try:
 		
@@ -99,7 +99,7 @@ class PerverHandler:
 					if len(header) == 0:
 						if line.startswith(b'POST'):
 							request_type = b'POST'
-							request_max = self.server.post_max	
+							request_max = self.server.post_max
 						else:
 							request_type = b'GET'
 							request_max = self.server.get_max
@@ -339,7 +339,7 @@ class PerverHandler:
 				field_rows = field.split(b'\r\n\r\n')
 				if len(field_rows) == 2:
 					header, value = field_rows
-					value = value[:-2]
+					value = value[:-4]
 					
 					# Decoding key:
 					key = re.findall(b';[ ]*name="([^;]+)"', header)[0]
@@ -431,7 +431,7 @@ class PerverHandler:
 			client.id = self.get_id(client)
 			
 			# POST boundary:
-			boundary = re.findall('boundary=(-*[0-9]*)', client.content_type)
+			boundary = re.findall('boundary=(-*[0-9,a-z,A-Z]*)', client.content_type)
 			if len(boundary) > 0:
 				boundary = boundary[0].encode(self.server.encoding)
 			else:

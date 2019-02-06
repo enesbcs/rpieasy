@@ -34,6 +34,7 @@ AdvSettings = {
 "consoleloglevel":2,
 "fileloglevel":0,
 "sysloglevel":0,
+"syslogip":"",
 "battery": { "enabled":0,"tasknum":0,"taskvaluenum":0}
 }
 
@@ -83,10 +84,13 @@ def callback_from_controllers(controllerindex,idx,values,taskname="",valuename="
 def get_i2c_pins():                    # get list of enabled i2c pin numbers
   global Pinout
   gplist = []
-  for p in range(len(Pinout)):
-   if int(Pinout[p]["altfunc"])==1:
-    if "I2C" in Pinout[p]["name"][1]:
-     gplist.append(Pinout[p]["name"][0]+"/"+Pinout[p]["name"][1])
+  try:
+   for p in range(len(Pinout)):
+    if int(Pinout[p]["altfunc"])==1:
+     if "I2C" in Pinout[p]["name"][1]:
+      gplist.append(Pinout[p]["name"][0]+"/"+Pinout[p]["name"][1])
+  except:
+   pass
   return gplist
 
 def savesettings():
@@ -144,7 +148,7 @@ def savecontrollers():
  success = 1
  try:
   f = open(controllersfile,'w')
-  settingjson = jsonpickle.encode(Controllers)
+  settingjson = jsonpickle.encode(Controllers,max_depth=2) # Restrict Jsonpickle to encode vars at first object
   f.write(settingjson)
  except:
   success = 0
@@ -157,7 +161,8 @@ def loadcontrollers():
   f = open(controllersfile)
   settingjson = f.read()
   Controllers = jsonpickle.decode(settingjson)
- except:
+ except Exception as e:
+#  print("Critical Jsonpickle error:",str(e))
   success = 0
  return success
 

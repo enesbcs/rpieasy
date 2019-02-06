@@ -39,6 +39,7 @@ class Plugin(plugin.PluginProto):
 
  def plugin_init(self,enableplugin=None):
   plugin.PluginProto.plugin_init(self,enableplugin)
+  self.decimals[0] = 0
   if Settings.SoundSystem["usable"]==False:
    self.initialized = False
    self.enabled = False
@@ -114,10 +115,13 @@ class Plugin(plugin.PluginProto):
      return False
     elif level>9:
      sfx = round(level / 10)
+     try:
+      pygame.mixer.init()
+     except:
+      return False
      Settings.SoundSystem["inuse"] = True
      Settings.SoundSystem["usingplugintaskindex"] = self.taskindex
      Settings.SoundSystem["askplugintorelease"] = self.stop
-     pygame.mixer.init()
      fname = ""
      try:
       fname = self.taskdevicepluginconfig[sfx]

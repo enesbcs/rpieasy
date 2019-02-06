@@ -30,9 +30,15 @@ class Plugin(plugin.PluginProto):
   self.timeroptional = True
   self.formulaoption = True
   self.adc = None
+  self._nextdataservetime = 0
+  self.lastread = 0
+  self.samples = 3
+  self.preread = self.samples*1000 # 3 * 1 sec
+  self.TARR = []
 
  def plugin_init(self,enableplugin=None):
   plugin.PluginProto.plugin_init(self,enableplugin)
+  self.TARR = []
   if self.enabled:
    i2cport = -1
    try:
@@ -43,6 +49,12 @@ class Plugin(plugin.PluginProto):
    except:
     i2cport = -1
    if i2cport>-1:
+    if self.interval>2:
+      nextr = self.interval-2
+    else:
+      nextr = self.interval
+    self._lastdataservetime = rpieTime.millis()-(nextr*1000)
+    self.preread = self.samples*1000
     if int(self.taskdevicepluginconfig[0]) in [10,11]:
      try:
       if int(self.taskdevicepluginconfig[0])==10:
@@ -73,6 +85,7 @@ class Plugin(plugin.PluginProto):
   options = ["A0","A1","A2","A3"]
   optionvalues = [0,1,2,3]
   webserver.addFormSelector("Analog pin","plugin_025_apin",4,options,optionvalues,None,int(choice4))
+  webserver.addFormCheckBox("Oversampling","plugin_025_over",self.timer1s)
   return True
 
  def webform_save(self,params): # process settings post reply
@@ -95,29 +108,39 @@ class Plugin(plugin.PluginProto):
    if par == "":
     par = 0
    self.taskdevicepluginconfig[3] = int(par)
+   if (webserver.arg("plugin_025_over",params)=="on"):
+    self.timer1s = True
+   else:
+    self.timer1s = False
    self.plugin_init()
    return True
 
  def plugin_read(self): # deal with data processing at specified time interval
   result = False
-  if self.initialized and self.readinprogress==0 and self.enabled:
-   self.readinprogress = 1
-   value = self.p025_get_value()
-   if value != -1:
-    self.set_value(1,value,False)
+  if self.initialized and self.enabled:
+   self.p025_get_value()
+   if len(self.TARR)>0:
+    self.set_value(1,(sum(self.TARR) / float(len(self.TARR))),False)
     self.plugin_senddata()
    else:
     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"ADS1x15 read failed!")
-   self._lastdataservetime = rpieTime.millis()
    result = True
-   self.readinprogress = 0
+   self.TARR = []
+   self._lastdataservetime = rpieTime.millis()
+   self._nextdataservetime = self._lastdataservetime + (self.interval*1000)
   return result
+
+ def timer_once_per_second(self):
+  if self.initialized and self.enabled:
+   if self._nextdataservetime-rpieTime.millis()<=self.preread:
+    self.p025_get_value()
+  return self.timer1s
 
  def p025_get_value(self):
   val = -1
   try:
-   print(self.taskdevicepluginconfig[2])
    val = self.adc.read_adc(self.taskdevicepluginconfig[3],gain=self.taskdevicepluginconfig[2])
   except Exception as e:
    val = -1
-  return val
+  if val != -1:
+   self.TARR.append(val)

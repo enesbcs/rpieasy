@@ -163,8 +163,17 @@ class USBRelay(object):
               message = [0xFD, relay]
          self.send_feature_report(message)
 
+def vusb_force_refresh():
+ global usbrelay
+ usbrelay = None
+ try:
+  usbrelay = USBRelay()
+ except:
+  pass
+
 try:
  if usbrelay is None:
   usbrelay = USBRelay()
 except:
  usbrelay = USBRelay()
+

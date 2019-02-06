@@ -21,15 +21,14 @@ try:
  import gpios
 except Exception as e:
  pass
-# sudo apt install python3-pip screen alsa-utils wireless-tools wpasupplicant net-tools
+# sudo apt install python3-pip screen alsa-utils wireless-tools wpasupplicant net-tools zip unzip
 # sudo pip3 install jsonpickle
 
 def signal_handler(signal, frame):
   global init_ok
   init_ok = False
+  commands.rulesProcessing("System#Shutdown",rpieGlobals.RULE_SYSTEM)
   Settings.savetasks()
-  webserver.WebServer.stop()
-  gpios.HWPorts.cleanup()
   procarr = []
   for x in range(0,len(Settings.Tasks)):
    if (Settings.Tasks[x]) and type(Settings.Tasks[x]) is not bool: # device exists
@@ -41,6 +40,8 @@ def signal_handler(signal, frame):
   if len(procarr)>0:
    for process in procarr:
      process.join(1)
+  webserver.WebServer.stop()
+  gpios.HWPorts.cleanup()
 
   for y in range(0,len(Settings.Controllers)):
    if (Settings.Controllers[y]):
@@ -161,13 +162,17 @@ def CPluginInit():
           Settings.Tasks[x].controllercb[y] = Settings.Controllers[y].senddata # assign controller callback to plugins that sends data
    except Exception as e:
     Settings.Tasks[x] = False
-    misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Task" +str(x+1)+ " is malformed, deleted!")
+    misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Task" +str(x+1)+ " is malformed, deleted! "+str(e))
 
  for y in range(0,len(Settings.Controllers)):
    if (Settings.Controllers[y]):
     if (Settings.Controllers[y].enabled): 
+     try:
       Settings.Controllers[y].controller_init(None) # init controller at startup
       Settings.Controllers[y].setonmsgcallback(Settings.callback_from_controllers) # set global msg callback for 2way comm
+     except Exception as e:
+      Settings.Controllers[y] = False
+      misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Controller" +str(y+1)+ " is malformed, deleted! "+str(e))
 
  return 0
 

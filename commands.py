@@ -40,7 +40,7 @@ def doExecuteCommand(cmdline,Parse=True):
     cmdarr = [c2[0]] + cmdarr
  cmdarr[0] = cmdarr[0].strip().lower()
  commandfound = False
- misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"CMD: "+cmdline)
+ misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"CMD: "+cmdline.replace("==","="))
 
  if cmdarr[0] == "delay":
   try:
@@ -59,7 +59,7 @@ def doExecuteCommand(cmdline,Parse=True):
    s = int(cmdarr[1])
   except:
    s = -1
-  if s >0 and (s<len(Settings.Tasks)):
+  if s >0 and (s<=len(Settings.Tasks)):
    s = s-1 # array is 0 based, tasks is 1 based
    if (type(Settings.Tasks[s])!=bool) and (Settings.Tasks[s]):
     if (Settings.Tasks[s].enabled):
@@ -102,7 +102,7 @@ def doExecuteCommand(cmdline,Parse=True):
   except:
    v = 1
   #v=v-1
-  if s >0 and (s<len(Settings.Tasks)):
+  if s >0 and (s<=len(Settings.Tasks)):
    s = s-1 # array is 0 based, tasks is 1 based
    if (type(Settings.Tasks[s])!=bool) and (Settings.Tasks[s]):
     if v>(Settings.Tasks[s].valuecount):
@@ -174,7 +174,7 @@ def doExecuteCommand(cmdline,Parse=True):
   if len(cmdarr)>2:
    sepp = ( len(cmdarr[0]) + len(cmdarr[1]) + 1 )
    sepp = cmdline.find(',',sepp)
-   data = cmdline[sepp+1:]
+   data = cmdline[sepp+1:].replace("==","=")
   else:
    unitno = -1
   if unitno>=0 and unitno<=255:
@@ -196,7 +196,7 @@ def doExecuteCommand(cmdline,Parse=True):
   if len(cmdarr)>2:
    sepp = ( len(cmdarr[0]) + len(cmdarr[1]) + 1 )
    sepp = cmdline.find(',',sepp)
-   data = cmdline[sepp+1:]
+   data = cmdline[sepp+1:].replace("==","=")
   else:
    topic = ""
   commandfound = False
@@ -210,8 +210,8 @@ def doExecuteCommand(cmdline,Parse=True):
          Settings.Controllers[y].mqttclient.publish(topic,data)
          commandfound = True
          cfound = True
-       except Exception as e:
-        pass
+       except:
+        cfound = False
      if cfound==False:
       misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"MQTT capable controller not found!")
   return commandfound
@@ -226,7 +226,7 @@ def doExecuteCommand(cmdline,Parse=True):
   if len(cmdarr)>3:
    sepp = ( len(cmdarr[0]) + len(cmdarr[1])+ len(cmdarr[2]) + 2 )
    sepp = cmdline.find(',',sepp)
-   data = cmdline[sepp+1:]
+   data = cmdline[sepp+1:].replace("==","=")
   else:
    destport = -1
   if destport > 0:
@@ -249,7 +249,7 @@ def doExecuteCommand(cmdline,Parse=True):
   if len(cmdarr)>3:
    sepp = ( len(cmdarr[0]) + len(cmdarr[1])+ len(cmdarr[2]) + 2 )
    sepp = cmdline.find(',',sepp)
-   data = cmdline[sepp+1:]
+   data = cmdline[sepp+1:].replace("==","=")
   else:
    destport = -1
   if destport > 0:
@@ -273,6 +273,7 @@ def doExecuteCommand(cmdline,Parse=True):
   return commandfound
  elif cmdarr[0] == "reboot":
   os.popen("sudo reboot")
+#  os.kill(os.getpid(), signal.SIGINT)
   commandfound = True
   return commandfound
  elif cmdarr[0] == "reset":
@@ -287,6 +288,20 @@ def doExecuteCommand(cmdline,Parse=True):
   return commandfound
  elif cmdarr[0] == "halt":
   os.popen("sudo shutdown -h now")
+#  os.kill(os.getpid(), signal.SIGINT)
+  commandfound = True
+  return commandfound
+ elif cmdarr[0] == "update":
+  misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"Starting git clone")
+  os.popen("cp -rf run.sh run.sh.bak && rm -rf update && git clone https://github.com/enesbcs/rpieasy.git update").read()
+  time.sleep(2)
+  if os.path.isdir("update"):
+   misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"Download successful, starting to overwrite files")
+   os.popen("rm -rf .git && rm -rf update/data update/files && mv -f update/.git .git && cp -rf update/lib/* lib/ && cp -rf update/img/* img/ && rm -rf update/lib update/img && mv -f update/* . && rm -rf update && cp -rf run.sh.bak run.sh").read()
+   time.sleep(0.5)
+   os.kill(os.getpid(), signal.SIGINT)
+  else:
+   misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Update failed")
   commandfound = True
   return commandfound
  elif cmdarr[0] == "exit":
@@ -302,8 +317,8 @@ def doExecuteCommand(cmdline,Parse=True):
 def urlget(url):
   try:
    urllib.request.urlopen(url,None,1)
-  except:
-   pass
+  except Exception as e:
+   misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,str(e))
 
 def TimerCallback(tid):
   rulesProcessing("Rules#Timer="+str(tid),rpieGlobals.RULE_TIMER)
@@ -325,7 +340,7 @@ def doExecutePluginCommand(cmdline):
 def decodeeventname(eventname):
  ten = eventname.strip().lower()
  ec = -1
- if ("system#boot" in ten) or ("mqtt#connected" in ten) or ("mqtt#disconnected" in ten):
+ if ("system#" in ten) or ("mqtt#connected" in ten) or ("mqtt#disconnected" in ten):
    ec = rpieGlobals.RULE_SYSTEM
  elif ("clock#time" in ten):
    ec = rpieGlobals.RULE_CLOCK
@@ -384,10 +399,14 @@ def getequchars(cstr):
  return res
 
 def gettaskvaluefromname(taskname): # taskname#valuename->value
- taskprop = taskname.split("#")
- taskprop[0] = taskprop[0].strip().lower()
- taskprop[1] = taskprop[1].strip().lower() 
- res = None
+ res = -1
+ try:
+  taskprop = taskname.split("#")
+  taskprop[0] = taskprop[0].strip().lower()
+  taskprop[1] = taskprop[1].strip().lower() 
+ except:
+  res = -1
+  return res
  try:
   for s in range(len(Settings.Tasks)):
    if type(Settings.Tasks[s]) is not bool:
@@ -397,7 +416,7 @@ def gettaskvaluefromname(taskname): # taskname#valuename->value
        res = Settings.Tasks[s].uservar[v]
        break
  except:
-   res=None
+   res=-1
  return res
 
 def getglobalvar(varname):
@@ -432,7 +451,7 @@ def getglobalvar(varname):
    elif svname==SysVars[12]: #%unixtime% 	1521731277 	Unix time (seconds since epoch, 1970-01-01 00:00:00)
     return str(int(time.time()))
    elif svname==SysVars[13]: #%uptime% 	3244 	Uptime in minutes
-    return str(rpieTime.getuptime(0))
+    return str(rpieTime.getuptime(2))
    elif svname==SysVars[14]: #%rssi% 	-45 	WiFi signal strength (dBm)
     return str(OS.get_rssi())
    elif svname==SysVars[15]: #%ip% 	192.168.0.123 	Current IP address
@@ -485,7 +504,7 @@ def getglobalvar(varname):
 def parsevalue(pvalue):
    retval = pvalue
    if ('%' in pvalue) or ('[' in pvalue):
-    retval, state = parseruleline(pvalue) # replace variables    
+    retval, state = parseruleline(pvalue) # replace variables
    oparr = "+-*/%&|^~<>"
    op = False
    for o in oparr:
@@ -495,6 +514,54 @@ def parsevalue(pvalue):
    if op:
     retval = eval(retval)  # evaluate expressions
    return retval
+
+def parseconversions(cvalue):
+ retval = cvalue
+ if ("%c_" in retval):
+  cf = retval.find("%c_m2day%")
+  if cf>=0:
+   ps = retval.find("(",cf)
+   pe = -1
+   if ps >=0:
+    pe = retval.find(")",ps)
+   if pe >= 0:
+    param = retval[ps+1:pe].strip()
+   try:
+    param = float(param)
+   except:
+    param = 0
+   retval = retval[:cf]+str(misc.formatnum((param/1440),2))+retval[pe+1:]
+  cf = retval.find("%c_m2dh%")
+  if cf>=0:
+   ps = retval.find("(",cf)
+   pe = -1
+   if ps >=0:
+    pe = retval.find(")",ps)
+   if pe >= 0:
+    param = retval[ps+1:pe].strip()
+   try:
+    param = float(param)
+   except:
+    param = 0
+   days, remainder = divmod(param, 1440)
+   hours, minutes = divmod(remainder, 60)
+   retval = retval[:cf]+str(int(days))+"d "+str(int(hours))+"h"+retval[pe+1:]
+  cf = retval.find("%c_m2dhm%")
+  if cf>=0:
+   ps = retval.find("(",cf)
+   pe = -1
+   if ps >=0:
+    pe = retval.find(")",ps)
+   if pe >= 0:
+    param = retval[ps+1:pe].strip()
+   try:
+    param = float(param)
+   except:
+    param = 0
+   days, remainder = divmod(param, 1440)
+   hours, minutes = divmod(remainder, 60)
+   retval = retval[:cf]+str(int(days))+"d "+str(int(hours))+"h "+str(int(minutes))+"m"+retval[pe+1:]
+ return retval
 
 def parseruleline(linestr,rulenum=-1):
  global GlobalRules
@@ -514,7 +581,9 @@ def parseruleline(linestr,rulenum=-1):
   m = re.findall(r"\%([A-Za-z0-9_#]+)\%", cline)
   if len(m)>0: # replace with values
    for r in range(len(m)):
-    cline = cline.replace("%"+m[r]+"%",str(getglobalvar(m[r])))
+    if m[r] in SysVars:
+     cline = cline.replace("%"+m[r]+"%",str(getglobalvar(m[r])))
+ cline = parseconversions(cline)
  if "=" == getequchars(cline):
   cline = cline.replace("=","==") # prep for python interpreter
  equ = getfirstequpos(cline)
@@ -630,3 +699,4 @@ def comparetime(tstr):
  except:
   result = False
  return result
+

@@ -129,7 +129,10 @@ class Plugin(plugin.PluginProto):
   if len(csfn)>0:
    if dirname[len(dirname)-1] != "/":
     dirname += "/"
-   pygame.mixer.init()
+   try:
+    pygame.mixer.init()
+   except:
+    return False
    for fn in range(len(csfn)):
     if csfn[fn].strip()!="":
      try:

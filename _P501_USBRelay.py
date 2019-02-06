@@ -39,6 +39,12 @@ class Plugin(plugin.PluginProto):
   self.timeroptional = True
 
  def plugin_init(self,enableplugin=None):
+  self.decimals[0]=0
+  try:
+   if (enableplugin==True and self.enabled==False) or (len(vusb.usbrelay.getcompatibledevlist())<1):
+    vusb.vusb_force_refresh()
+  except:
+   pass
   plugin.PluginProto.plugin_init(self,enableplugin)
   success = False
   try:
@@ -46,8 +52,9 @@ class Plugin(plugin.PluginProto):
   except Exception as e:
    success = False
   if success==False:
-#   self.initialized = False
-   self.enabled = False
+   self.initialized = False
+   misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Unable to init USB relay!")
+#   self.enabled = False
    self.set_value(1,0,True)
 
  def webform_load(self):
@@ -90,11 +97,11 @@ class Plugin(plugin.PluginProto):
   
  def plugin_read(self):                   # Doing periodic status reporting
   res = False
-  if self.initialized:
+  if self.initialized and self.enabled:
    try:
-    res = True
     vusb.usbrelay.initdevifneeded(self.taskdevicepluginconfig[0])
     swval = vusb.usbrelay.state(int(self.taskdevicepluginconfig[1]))
+    res = True
    except:
     swval = 0
     res = False
@@ -109,12 +116,13 @@ class Plugin(plugin.PluginProto):
     swval = True
    else:
     swval = False
-   self.set_value(1,int(swval),False)
-   vusb.usbrelay.initdevifneeded(self.taskdevicepluginconfig[0])
-   vusb.usbrelay.state(int(self.taskdevicepluginconfig[1]),on=swval)
+   if self.initialized and self.enabled:
+    self.set_value(1,int(swval),False)
+    vusb.usbrelay.initdevifneeded(self.taskdevicepluginconfig[0])
+    vusb.usbrelay.state(int(self.taskdevicepluginconfig[1]),on=swval)
 
  def set_value(self,valuenum,value,publish=True,suserssi=-1,susebattery=-1): # Also reacting and handling Taskvalueset
-  if self.initialized:
+  if self.initialized and self.enabled:
    try:
     vusb.usbrelay.initdevifneeded(self.taskdevicepluginconfig[0])
     vusb.usbrelay.state(int(self.taskdevicepluginconfig[1]),on=(str(value)==str(1)))

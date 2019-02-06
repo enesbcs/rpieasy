@@ -1,5 +1,13 @@
+| PayPal |
+|-------|
+|  [![donate](https://img.shields.io/badge/donate-PayPal-blue.svg)](https://www.paypal.me/rpieasy) |
+If you like this project, or you wants to support the development, you can do that the links above or by doing pull requests, if you knew Python language.
+
 # RPIEasy
+
 Easy MultiSensor device based on Raspberry PI
+
+![RPIEasy](https://m.blog.hu/bi/bitekmindenhol/image/rpi_devs.png)
 
 Based on Python 3.x and Raspberry PI (Raspbian Linux) this project tries to mimic the magnificent [ESPEasy](https://www.letscontrolit.com/wiki/index.php/ESPEasy) project functions.
 Main goal is to create a multisensor device, that can be install and setup quickly. 
@@ -8,7 +16,7 @@ Main goal is to create a multisensor device, that can be install and setup quick
 
 Expect major changes in later versions that may cause incompatibility with earlier versions!
 
-Currently feedbacks and test results needed to fix core functions. New plugins and controllers will not be added until serious bugs fixed.
+Currently feedbacks and test results needed to fix core functions. New plugins and controllers may be added to expose hidden bugs. :)
 
 # Requirements
 - Debian/Ubuntu/Raspbian Linux
@@ -20,7 +28,8 @@ For obvious reasons GPIO based devices needs GPIO support, which only works with
 # Installation
 
     git clone https://github.com/enesbcs/rpieasy.git
-    sudo apt install python3-pip screen alsa-utils wireless-tools wpasupplicant
+    cd rpieasy
+    sudo apt install python3-pip screen alsa-utils wireless-tools wpasupplicant zip unzip
     sudo pip3 install jsonpickle
 
 In case of Debian Stretch or other linux that misses "ifconfig" command:
@@ -31,8 +40,6 @@ Other dependencies can be reached and installed through the webGUI after startin
 
 `sudo ./RPIEasy.py`
 
-
-| PayPal |
-|-------|
-|  [![donate](https://img.shields.io/badge/donate-PayPal-blue.svg)](https://www.paypal.me/rpieasy) |
-If you like this project, or you wants to support the development, you can do that the links above or by doing pull requests, if you knew Python language.
+# Update
+There are an external update script at:
+https://github.com/haraldtux/rpieasy-update

@@ -172,7 +172,9 @@ def get_rssi():
     try:
      resstr = os.popen("/bin/cat /proc/net/wireless | awk 'NR==3 {print $4}' | sed 's/\.//'").readline().strip()
     except:
-     resstr = "0"
+     resstr = ""
+    if resstr=="":
+     resstr = "-49.20051" # no wireless interface?
     return resstr
 
 def check_permission():
@@ -529,4 +531,58 @@ def runasfirstuser(subprocess_options): # some applications, such as VLC will no
      except:
       result = False
    return result
+
+def checkboot_ro():
+     err = False
+     try:
+      output = os.popen('cat /proc/mounts | grep /boot')
+      for l in output:
+       if ("ro," in l) or ("tmpfs" in l):
+        err = True
+        break
+     except:
+      err = False
+     return err
+
+def getfilecontent(fname):
+     resbuf = []
+     cfname = str(fname)
+     if fname.startswith("files/") == False:
+      cfname = "files/"+cfname
+     try:
+      if os.path.exists(cfname):
+       with open(cfname) as f:
+        for line in f:
+         line = line.strip()
+         resbuf.append(line)
+     except:
+      resbuf = []
+     return resbuf
+
+def get_bootparams(): # RPI only
+     fname = "/boot/cmdline.txt"
+     tstr = ""
+     try:
+      if os.path.exists(fname):
+       tstr = os.popen('/bin/cat '+fname).read()
+     except:
+      tstr = ""
+     return tstr
+
+def disable_serialsyslog():
+    fname = "/boot/cmdline.txt"
+    content = get_bootparams().strip()
+    if len(content)>0:
+     pcontent = content.split(" ")
+     content2 = ""
+     sf = False
+     for i in range(len(pcontent)):
+      if ("ttyAMA" not in pcontent[i] and "ttyS" not in pcontent[i] and "serial" not in pcontent[i]):
+       content2 += pcontent[i].strip() + " "
+      else:
+       sf = True
+     if sf:
+       os.popen('/bin/cp '+fname+" "+fname+".bak").read()
+       with open(fname,"w") as f:
+        f.write(content2.strip()+"\n")
 

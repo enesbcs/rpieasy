@@ -68,11 +68,14 @@ class Plugin(plugin.PluginProto):
 
  def plugin_init(self,enableplugin=None):
   plugin.PluginProto.plugin_init(self,enableplugin)
-  if self.enabled: 
-   self.set_value(1,0,False)
-   self.conninprogress = False
+  self.decimals[0]=0
+  self.decimals[1]=0
+  if self.enabled:
    if (self.connected): # check status at startup
     self.isconnected()
+   if (self.connected):
+    self.conninprogress = False
+   self.set_value(1,0,False)
    self.set_value(2,self.connected,True)       # advertise status at startup
    if (self.connected == False and self.enabled): # connect if not connected
     self.handshake = False
@@ -81,6 +84,8 @@ class Plugin(plugin.PluginProto):
      self.cproc = threading.Thread(target=self.connectproc)
      self.cproc.daemon = True
      self.cproc.start()
+  else:
+   self.__del__()
 
  def connectproc(self):
    prevstate = self.connected
@@ -90,10 +95,10 @@ class Plugin(plugin.PluginProto):
     self.BLEPeripheral = btle.Peripheral(str(self.taskdevicepluginconfig[0]))
     self.connected = True
     self.afterconnection()
-   except Exception as e:
+   except:
     self.setdisconnectstate()   # disconnected!
-#    print(e) # DEBUG
    self.conninprogress = False
+   self.isconnected()
    publishchange = (self.connected != prevstate)
    if self.connected:
     self.set_value(2,self.connected,publishchange)
@@ -101,6 +106,7 @@ class Plugin(plugin.PluginProto):
     self.set_value(1,0,False)
     self.set_value(2,0,publishchange,suserssi=-100,susebattery=0)
     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"BLE connection failed "+str(self.taskdevicepluginconfig[0]))
+    return False
    if self.connected and self.handshake:
     misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"BLE connected to "+str(self.taskdevicepluginconfig[0]))
     self.waitnotifications = True
@@ -113,8 +119,7 @@ class Plugin(plugin.PluginProto):
     self.setdisconnectstate(False)   # disconnected!
 
  def reconnect(self,tid):
-   if self.conninprogress==False:
-    if self.isconnected()==False:
+  if self.enabled and self.conninprogress==False and self.isconnected()==False:
 #     self.connected = False
      if len(self.taskdevicepluginconfig[0])>10:
       self.cproc = threading.Thread(target=self.connectproc)
@@ -126,12 +131,12 @@ class Plugin(plugin.PluginProto):
    try:
     namechar = self.BLEPeripheral.getServiceByUUID(self.ITAG_UUID_SVC_GENERIC).getCharacteristics(self.ITAG_UUID_NAME)[0]
     self.connected = True
-   except Exception as e:
+   except:
     self.connected = False
   return self.connected
 
  def afterconnection(self):
-   if self.connected:
+   if self.connected and self.enabled:
     if self.handshake==False:
      compat = False
      name = ""
@@ -165,25 +170,38 @@ class Plugin(plugin.PluginProto):
     self.connected = False
     self.set_value(1,0,False)
     self.set_value(2,0,True,suserssi=-100,susebattery=0)
-  if tryreconn:
+  if tryreconn and self.enabled:
    rpieTime.addsystemtimer(int(self.taskdevicepluginconfig[1]),self.reconnect,[-1])
 
  def callbackfunc(self,data="",data2=None):
-  battery = self.report_battery()
-  self.set_value(1,(1-int(self.uservar[0])),True,susebattery=battery)
+  if self.enabled:
+   battery = self.report_battery()
+   aval = self.uservar[0]
+   try:
+    aval = float(aval)
+   except:
+    aval = 0
+   if aval==0:
+    aval=1
+   else:
+    aval=0
+   if float(self.uservar[1])!=1:
+    self.set_value(2,1,False)
+   self.set_value(1,aval,True,susebattery=battery)
 
  def __del__(self):
   self.waitnotifications = False
   try:
-   if self.BLEPeripheral:
-    self.BLEPeripheral.disconnect()
-   if self.cproc:
-    self.cproc._stop() 
+   self.BLEPeripheral.disconnect()
+   self.cproc._stop()
   except:
    pass
 
  def plugin_exit(self):
-  self.__del__()
+  try:
+   self.__del__()
+  except:
+   pass
   return True
 
 # def __exit__(self,type,value,traceback):
@@ -201,7 +219,7 @@ class Plugin(plugin.PluginProto):
    except:
     battery = 255
     self.setdisconnectstate()
-  return int(battery)
+  return float(battery)
 
 class BLEEventHandler(btle.DefaultDelegate):
     def __init__(self,keypressed_callback,KPHANDLE):

@@ -17,7 +17,7 @@ import hashlib
 
 class Plugin(plugin.PluginProto):
  PLUGIN_ID = 8
- PLUGIN_NAME = "RFID - Wiegand"
+ PLUGIN_NAME = "RFID - Wiegand (TESTING)"
  PLUGIN_VALUENAME1 = "Tag"
 
  def __init__(self,taskindex): # general init
@@ -36,7 +36,7 @@ class Plugin(plugin.PluginProto):
   self.decimals[0] = -1
   if self.taskdevicepin[0]>=0 and self.taskdevicepin[1]>=0 and self.enabled:
    try:
-    wiegand_io.initreader(self.taskdevicepin[0],self.taskdevicepin[1])
+    wiegand_io.initreader(int(self.taskdevicepin[0]),int(self.taskdevicepin[1]))
    except Exception as e:
     print("Wiegand IO ERROR:",e)
     self.initialized = False
@@ -104,7 +104,10 @@ class Plugin(plugin.PluginProto):
    if rname != "" and rname.lower() == self.gettaskname().lower():
     self.uservar[0] = "0"
     if self.bgreader is not None:
-     self.bgreader.clearbuffer()
+     try:
+      self.bgreader.clearbuffer()
+     except:
+      pass
     res = True
   return res
 
@@ -143,7 +146,7 @@ class BackgroundThread(object):
      if (wiegand_io.pendingbitcount() > 0):
       wstr,wbl = wiegand_io.wiegandread()
 #      print("Python res:",wstr,wbl)
-      if wbl>2 and wbl<5:
+      if wbl>3 and wbl<5:            # sometimes 2-3bit junk appear on powering up!
        self.analyzekey(wstr)
       elif wbl>6 and wbl<9:
        self.analyzekey(wstr[:4])

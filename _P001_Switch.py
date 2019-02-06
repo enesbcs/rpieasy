@@ -5,13 +5,15 @@
 #
 # Can only be used with devices that supports GPIO operations!
 #
-# Available commands:
-#  gpio,26,1          - set pin GPIO26 to 1 (HIGH)
+# Available commands: (It is evident, that you have to enable at least one P001 device if you want to use it's commands)
+#  gpio,26,1          - set pin GPIO26 to 1 (HIGH) 
 #  pwm,18,50,20000    - set pin GPIO18 to PWM mode with 20000Hz sample rate and 50% fill ratio
 #                       PWM is software based if not one of the dedicated H-PWM pins
 #                       H-PWM has to be set before use this command and may need root rights!
 #  pulse,26,1,500     - set pin GPIO26 to 1 for 500 msec than set back to 0 (blocking mode)
 #  longpulse,26,1,10  - set pin GPIO26 to 1 for 10 seconds than set back to 0 (non-blocking mode)
+#
+# Also be sure to set up pin using mode at Hardware->Pinout&Ports menu.
 #
 # Copyright (C) 2018-2019 by Alexander Nagy - https://bitekmindenhol.blog.hu/
 #
@@ -51,8 +53,9 @@ class Plugin(plugin.PluginProto):
 
  def plugin_init(self,enableplugin=None):
   plugin.PluginProto.plugin_init(self,enableplugin)
-  if self.taskdevicepin[0]>=0 and self.enabled:
-   self.set_value(1,gpios.HWPorts.input(self.taskdevicepin[0]),True) # Sync plugin value with real pin state
+  self.decimals[0]=0
+  if int(self.taskdevicepin[0])>=0 and self.enabled:
+   self.set_value(1,gpios.HWPorts.input(int(self.taskdevicepin[0])),True) # Sync plugin value with real pin state
    try:
     self.__del__()
     gpios.HWPorts.add_event_detect(self.taskdevicepin[0],gpios.BOTH,self.p001_handler,200)
@@ -64,22 +67,18 @@ class Plugin(plugin.PluginProto):
  def plugin_read(self):
   result = False
   if self.initialized:
-   self.set_value(1,gpios.HWPorts.input(self.taskdevicepin[0]),True)
+   self.set_value(1,gpios.HWPorts.input(int(self.taskdevicepin[0])),True)
    self._lastdataservetime = rpieTime.millis()
    result = True
   return result
  
  def p001_handler(self,channel):
-  if self.initialized and self.enabled:
-   val = gpios.HWPorts.input(self.taskdevicepin[0])
-   if val != self.uservar[0]:
-    self.set_value(1,val,True)
-    self._lastdataservetime = rpieTime.millis()
+  self.timer_ten_per_second()
 
  def timer_ten_per_second(self):
   if self.initialized and self.enabled:
-   val = gpios.HWPorts.input(self.taskdevicepin[0])
-   if val != self.uservar[0]:
+   val = gpios.HWPorts.input(int(self.taskdevicepin[0]))
+   if int(val) != int(float(self.uservar[0])):
     self.set_value(1,val,True)
     self._lastdataservetime = rpieTime.millis()
 

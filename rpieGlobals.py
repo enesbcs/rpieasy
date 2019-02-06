@@ -6,7 +6,7 @@
 # Copyright (C) 2018-2019 by Alexander Nagy - https://bitekmindenhol.blog.hu/
 # 
 PROGNAME = "RPIEasy"
-BUILD   = 18363
+BUILD   = 19035
 PROGVER = "0."+str(BUILD/1000)
 
 gpMenu = []
@@ -83,6 +83,8 @@ DEVICE_TYPE_DUMMY                =  99  # Dummy device, has no physical connecti
 DEVICE_TYPE_USB                  = 110  # USB connected device
 DEVICE_TYPE_BLE                  = 120  # BLE connected device
 DEVICE_TYPE_SND                  = 130  # Sound device/Alsa-PyGame-Vlc
+DEVICE_TYPE_W1                   = 140  # OneWire W1-GPIO
+DEVICE_TYPE_SER                  = 150  # Serial
 
 SENSOR_TYPE_NONE                 =  0
 SENSOR_TYPE_SINGLE               =  1

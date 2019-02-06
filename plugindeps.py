@@ -19,7 +19,7 @@ modulelist = [
 {"name": "Adafruit_ADS1x15",
  "apt": ["python3-pip"],
  "pip": ["adafruit-ads1x15"],
- "testcmd": "import Adafruit_ADS1x15\ntest=Adafruit_ADS1x15.ADS1x15_DEFAULT_ADDRESS",
+ "testcmd": "import Adafruit_ADS1x15",
  "installed":-1},
 {"name": "GPIO",
  "apt": ["python3-dev","python3-rpi.gpio"],
@@ -71,7 +71,22 @@ modulelist = [
  "installed":-1},
 {"name":"linux-kernel",
 "testcmd" : "if misc.getosname(0)!='linux':\n raise Exception('Linux kernel needed')",
-"installed":-1}
+"installed":-1},
+{"name":"pyserial",
+ "apt": ["python3-pip"],
+ "pip": ["pyserial"],
+ "testcmd": "import serial.tools.list_ports",
+ "installed":-1},
+{"name": "OLED",
+ "apt": ["python3-pip", "libfreetype6-dev", "libjpeg-dev", "build-essential","python3-dev","libtiff5","libopenjp2-7"],
+ "pip": ["luma.oled"],
+ "testcmd": "from luma.core.render import canvas",
+ "installed":-1},
+{"name": "MCP",
+ "apt": [],
+ "pip": [],
+ "testcmd": "import lib.MCP230XX.MCP230XX",
+ "installed":-1}
 
 ]
 
@@ -96,21 +111,30 @@ plugindependencies = [
 {"pluginid": "8", # Wiegand GPIO
  "supported_os_level": [10],
  "modules":["GPIO","wiegand_io"]},
+{"pluginid": "9", # MCP
+ "supported_os_level": [10],
+ "modules":["GPIO","i2c","MCP"]},
 {"pluginid": "10", # BH1750
+ "supported_os_level": [10],
+ "modules":["i2c"]},
+{"pluginid": "11", # PME
  "supported_os_level": [10],
  "modules":["i2c"]},
 {"pluginid": "14", # Si7021
  "supported_os_level": [10],
  "modules":["i2c"]},
+{"pluginid": "23", # OLED
+ "supported_os_level": [10],
+ "modules":["i2c","OLED"]},
 {"pluginid": "25", # ADS1x15
  "supported_os_level": [10],
- "modules":["i2c"]},
+ "modules":["i2c","Adafruit_ADS1x15"]},
 {"pluginid": "28", # BMP280
  "supported_os_level": [10],
  "modules":["i2c"]},
 {"pluginid": "29", # DomoOutput nem csak gpio??
  "supported_os_level": [10],
- "modules":["paho-mqtt","GPIO"]},
+ "modules":["GPIO"]},
 {"pluginid": "51", # AM2320
  "supported_os_level": [10],
  "modules":["i2c"]},
@@ -120,6 +144,9 @@ plugindependencies = [
 {"pluginid": "200", #Dual Switch
  "supported_os_level": [10],
  "modules":["GPIO"]},
+{"pluginid": "201", #Generic Serial
+ "supported_os_level": [1,2,10],
+ "modules":["pyserial"]},
 {"pluginid": "501", # USB relay
  "modules":["hidapi"]},
 {"pluginid": "502", # pygame play wav/mp3
@@ -131,6 +158,8 @@ plugindependencies = [
 {"pluginid": "505", # vlc radio play
  "supported_os_level": [1,2,10],
  "modules":["vlc"]},
+{"pluginid": "509", # EVDEV
+ "modules":["linux-kernel"]},
 {"pluginid": "510", # BLE iTag
  "modules":["bluepy"]}
 ]
