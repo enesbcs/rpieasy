@@ -53,7 +53,7 @@ def doExecuteCommand(cmdline,Parse=True):
   return commandfound
 
  elif cmdarr[0] == "taskrun":
-  if len(Settings.Tasks)<1 or type(Settings.Tasks[0])==bool:
+  if len(Settings.Tasks)<1:
    return False
   try:
    s = int(cmdarr[1])
@@ -68,7 +68,7 @@ def doExecuteCommand(cmdline,Parse=True):
   return commandfound
 
  elif cmdarr[0] == "taskvalueset":
-  if len(Settings.Tasks)<1 or type(Settings.Tasks[0])==bool:
+  if len(Settings.Tasks)<1:
    return False
   try:
    s = int(cmdarr[1])
@@ -91,7 +91,7 @@ def doExecuteCommand(cmdline,Parse=True):
   return commandfound
 
  elif cmdarr[0] == "taskvaluesetandrun":
-  if len(Settings.Tasks)<1 or type(Settings.Tasks[0])==bool:
+  if len(Settings.Tasks)<1:
    return False
   try:
    s = int(cmdarr[1])
@@ -325,7 +325,7 @@ def TimerCallback(tid):
 
 def doExecutePluginCommand(cmdline):
   retvalue = False
-  if len(Settings.Tasks)<1 or type(Settings.Tasks[0])==bool:
+  if len(Settings.Tasks)<1:
    return False
   for s in range(len(Settings.Tasks)):
     if (type(Settings.Tasks[s])!=bool) and (Settings.Tasks[s].enabled):
@@ -628,6 +628,11 @@ def rulesProcessing(eventstr,efilter=-1): # fire events
  for r in range(len(GlobalRules)):
   if efilter!=-1:
    if GlobalRules[r]["ecat"]==efilter:  # check event based on filter
+     if efilter == rpieGlobals.RULE_TIMER:
+        if GlobalRules[r]["ename"].lower() == estr.lower():
+         rfound = r
+         break
+     else:
        fe1 = getfirstequpos(estr)
        if fe1 ==-1:
         fe1 = len(estr)
@@ -656,6 +661,8 @@ def rulesProcessing(eventstr,efilter=-1): # fire events
      tval = comparetime(tes)
      if tval==False:
       return False
+    elif GlobalRules[rfound]["ecat"] == rpieGlobals.RULE_TIMER: # check timer
+      pass
     else:
      if "=" == getequchars(tes):
       tes = tes.replace("=","==") # prepare line for python interpreter

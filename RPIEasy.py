@@ -40,6 +40,13 @@ def signal_handler(signal, frame):
   if len(procarr)>0:
    for process in procarr:
      process.join(1)
+  try:
+   for t in range(0,rpieGlobals.RULES_TIMER_MAX):
+    Timers[t].pause()
+   for t in range(0,rpieGlobals.SYSTEM_TIMER_MAX):
+    SysTimers[t].pause()
+  except:
+   pass
   webserver.WebServer.stop()
   gpios.HWPorts.cleanup()
 
