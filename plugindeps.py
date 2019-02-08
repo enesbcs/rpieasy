@@ -135,6 +135,9 @@ plugindependencies = [
 {"pluginid": "29", # DomoOutput nem csak gpio??
  "supported_os_level": [10],
  "modules":["GPIO"]},
+{"pluginid": "36", # FramedOLED
+ "supported_os_level": [10],
+ "modules":["i2c","OLED"]},
 {"pluginid": "51", # AM2320
  "supported_os_level": [10],
  "modules":["i2c"]},
