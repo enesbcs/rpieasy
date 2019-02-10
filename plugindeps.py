@@ -123,6 +123,9 @@ plugindependencies = [
 {"pluginid": "14", # Si7021
  "supported_os_level": [10],
  "modules":["i2c"]},
+{"pluginid": "15", # tsl2561
+ "supported_os_level": [10],
+ "modules":["i2c"]},
 {"pluginid": "23", # OLED
  "supported_os_level": [10],
  "modules":["i2c","OLED"]},
