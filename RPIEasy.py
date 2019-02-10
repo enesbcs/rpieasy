@@ -88,6 +88,7 @@ def hardwareInit():
    rpv = OS.getRPIVer()
    if rpv:
      pinout = rpv["pins"]
+     misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,str(rpv["name"])+" "+str(rpv["pins"])+" pins")
 
  Settings.loadnetsettings()
  Settings.NetMan.networkinit()
@@ -108,8 +109,16 @@ def hardwareInit():
      for p in range(len(gpios.PINOUT26R2_DELTA)):
       pi = int(gpios.PINOUT26R2_DELTA[p]["ID"])
       Settings.Pinout[pi] = gpios.PINOUT26R2_DELTA[p]
-  gpios.HWPorts.readconfig()
-  gpios.HWPorts.initpinstates()
+  perror = False
+  try:
+   gpios.HWPorts.readconfig()
+  except:
+   perror = True
+  if perror or len(Settings.Pinout)<26:
+   misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Your GPIO can not be identified!")
+   Settings.Pinout = []
+  else:
+   gpios.HWPorts.initpinstates()
 
  else:
   Settings.Pinout = []
