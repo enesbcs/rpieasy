@@ -153,7 +153,7 @@ def doExecuteCommand(cmdline,Parse=True):
   if s >0 and (s<len(rpieTime.Timers)):
    s = s-1 # array is 0 based, timers is 1 based
    if v==0:
-    rpieTime.Timers[s].stop()
+    rpieTime.Timers[s].stop(False)
    else:
     rpieTime.Timers[s].addcallback(TimerCallback)
     rpieTime.Timers[s].start(v)
@@ -632,6 +632,14 @@ def rulesProcessing(eventstr,efilter=-1): # fire events
         if GlobalRules[r]["ename"].lower() == estr.lower():
          rfound = r
          break
+     elif efilter == rpieGlobals.RULE_CLOCK: # check time strings equality
+      fe1 = getfirstequpos(estr)
+      invalue = removeequchars(estr[fe1:].replace("=","").strip())
+      fe2 = getfirstequpos(GlobalRules[r]["ename"])
+      tes = invalue+GlobalRules[r]["ename"][fe2:]
+      if comparetime(tes):
+        rfound = r
+        break
      else:
        fe1 = getfirstequpos(estr)
        if fe1 ==-1:
@@ -653,17 +661,14 @@ def rulesProcessing(eventstr,efilter=-1): # fire events
   if fe2>-1: # is inequality check needed
    fe1 = getfirstequpos(estr)
    if fe1>-1: # value found
-    invalue = removeequchars(estr[fe1:].replace("=","").strip())
-    GlobalRules[rfound]["evalue"]=invalue                 # %eventvalue%
-    tes = invalue+GlobalRules[rfound]["ename"][fe2:]
-    tval = None
     if GlobalRules[rfound]["ecat"] == rpieGlobals.RULE_CLOCK: # check time strings equality
-     tval = comparetime(tes)
-     if tval==False:
-      return False
+      pass
     elif GlobalRules[rfound]["ecat"] == rpieGlobals.RULE_TIMER: # check timer
       pass
     else:
+     invalue = removeequchars(estr[fe1:].replace("=","").strip())
+     GlobalRules[rfound]["evalue"]=invalue                 # %eventvalue%
+     tes = invalue+GlobalRules[rfound]["ename"][fe2:]
      if "=" == getequchars(tes):
       tes = tes.replace("=","==") # prepare line for python interpreter
      if eval(tes)==False:         # ask the python interpreter to eval conditions

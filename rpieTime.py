@@ -71,7 +71,7 @@ class timer:
   except Exception as e:
    print(e)
 
- def stop(self):
+ def stop(self,call=True):
 #  print("Timer",self.timerid,"stopped")
   self.state = 0
   self.starttime = 0
@@ -82,7 +82,7 @@ class timer:
   except:
    pass
   try:
-   if self.callback:
+   if call and self.callback:
     if self.retvalue[0] > -1:
      self.callback(self.timerid,self.retvalue) # callbacks with saved return value
     else:
