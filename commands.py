@@ -389,14 +389,19 @@ def removeequchars(cstr):
   res = res.replace(remc[c],"")
  return res
 
-def getequchars(cstr):
+def getequchars(cstr,arr=False):
  res = ""
+ res2 = []
  equs = "<>=!"
  for c in range(len(equs)):
   if equs[c] in cstr:
    if equs[c] not in res:
     res += equs[c]
- return res
+    res2.append(equs[c])
+ if arr:
+  return res2
+ else:
+  return res
 
 def gettaskvaluefromname(taskname): # taskname#valuename->value
  res = -1
@@ -584,8 +589,11 @@ def parseruleline(linestr,rulenum=-1):
     if m[r] in SysVars:
      cline = cline.replace("%"+m[r]+"%",str(getglobalvar(m[r])))
  cline = parseconversions(cline)
- if "=" == getequchars(cline):
+ if "=" in getequchars(cline,True):
   cline = cline.replace("=","==") # prep for python interpreter
+  cline = cline.replace("!==","!=") # revert invalid operators
+  cline = cline.replace(">==",">=")
+  cline = cline.replace("<==","<=")
  equ = getfirstequpos(cline)
  if equ!=-1:
   if cline[:3].lower() == "if ":
