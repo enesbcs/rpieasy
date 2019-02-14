@@ -589,14 +589,14 @@ def parseruleline(linestr,rulenum=-1):
     if m[r] in SysVars:
      cline = cline.replace("%"+m[r]+"%",str(getglobalvar(m[r])))
  cline = parseconversions(cline)
- if "=" in getequchars(cline,True):
-  cline = cline.replace("=","==") # prep for python interpreter
-  cline = cline.replace("!==","!=") # revert invalid operators
-  cline = cline.replace(">==",">=")
-  cline = cline.replace("<==","<=")
  equ = getfirstequpos(cline)
  if equ!=-1:
   if cline[:3].lower() == "if ":
+   if "=" in getequchars(cline,True):
+    cline = cline.replace("=","==") # prep for python interpreter
+    cline = cline.replace("!==","!=") # revert invalid operators
+    cline = cline.replace(">==",">=")
+    cline = cline.replace("<==","<=")
    tline = cline
    state = "IFST"
    try:
