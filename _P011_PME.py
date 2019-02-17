@@ -26,7 +26,7 @@ import rpieTime
 import misc
 import gpios
 import time
-import rpiwire
+import lib.lib_twowire as rpiwire
 
 class Plugin(plugin.PluginProto):
  PLUGIN_ID = 11

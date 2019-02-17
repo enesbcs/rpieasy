@@ -8,7 +8,7 @@
 import Settings
 import os
 import time
-import syspwm
+import lib.lib_syspwm as syspwm
 try:
  import linux_os as OS
 except:

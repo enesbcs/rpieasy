@@ -49,7 +49,7 @@ modulelist = [
  "testcmd":"import subprocess\nsubprocess.Popen(['/usr/bin/cvlc', '--version'])",
  "installed":-1},
 {"name":"wiegand_io",
- "apt": ["wiringpi","python3-distutils","build-essential"],
+ "apt": ["wiringpi","build-essential"],
  "pip": ["setuptools"],
  "testcmd": "import wiegand_io",
  "installcmd" : "cd lib/wiegand_io && sudo python3 wiegand_setup.py install && cd ../..",
@@ -86,7 +86,14 @@ modulelist = [
  "apt": [],
  "pip": [],
  "testcmd": "import lib.MCP230XX.MCP230XX",
- "installed":-1}
+ "installed":-1},
+{"name":"rcswitch",
+ "apt": ["wiringpi","python3-pip","build-essential"],
+ "pip": ["setuptools"],
+ "testcmd": "import py_rcswitch",
+ "installcmd" : "cd lib/py_rcswitch && sudo python3 py_rcswitch_setup.py install && cd ../..",
+ "installed":-1},
+
 
 ]
 
@@ -147,6 +154,12 @@ plugindependencies = [
 {"pluginid": "64", # APDS9960
  "supported_os_level": [10],
  "modules":["i2c","apds"]},
+{"pluginid": "111", #RF433 receiver
+ "supported_os_level": [10],
+ "modules":["GPIO","rcswitch"]},
+{"pluginid": "112", #RF433 sender
+ "supported_os_level": [10],
+ "modules":["GPIO","rcswitch"]},
 {"pluginid": "200", #Dual Switch
  "supported_os_level": [10],
  "modules":["GPIO"]},

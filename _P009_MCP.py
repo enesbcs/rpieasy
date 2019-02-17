@@ -3,6 +3,7 @@
 ################ MCP23017 port extender plugin for RPIEasy ##################
 #############################################################################
 #
+#
 # Available commands:
 #  MCPGPIO,<pin>,<state>		 - digital GPIO output, state can be: 0/1
 #  MCPPULSE,<pin>,<state>,<duration>	 - state can be 0/1, set gpio to <state> then after <duration> milliseconds reverses it's state
@@ -17,7 +18,7 @@ import rpieTime
 import misc
 import gpios
 import time
-import lib_mcprouter
+import lib.lib_mcprouter as lib_mcprouter
 
 class Plugin(plugin.PluginProto):
  PLUGIN_ID = 9

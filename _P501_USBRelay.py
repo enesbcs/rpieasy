@@ -21,7 +21,7 @@ import webserver
 import rpieGlobals
 import rpieTime
 import misc
-import vusb
+import lib.lib_vusb as vusb
 
 class Plugin(plugin.PluginProto):
  PLUGIN_ID = 501

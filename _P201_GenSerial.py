@@ -23,7 +23,7 @@ import misc
 import threading
 import serial
 import time
-import rpiSerial
+import lib.lib_serial as rpiSerial
 
 class Plugin(plugin.PluginProto):
  PLUGIN_ID = 201
