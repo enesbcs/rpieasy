@@ -31,7 +31,7 @@ from PIL import ImageFont, ImageDraw, Image
 
 class Plugin(plugin.PluginProto):
  PLUGIN_ID = 36
- PLUGIN_NAME = "Display - Framed OLED (TESTING)"
+ PLUGIN_NAME = "Display - Framed OLED"
  PLUGIN_VALUENAME1 = "OLED"
  P36_Nlines = 12
  P36_CONTRAST_LOW  = 64

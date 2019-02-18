@@ -22,7 +22,7 @@ import lib.lib_mcprouter as lib_mcprouter
 
 class Plugin(plugin.PluginProto):
  PLUGIN_ID = 9
- PLUGIN_NAME = "Extra IO - MCP23017 (TESTING)"
+ PLUGIN_NAME = "Extra IO - MCP23017"
  PLUGIN_VALUENAME1 = "State"
 
  def __init__(self,taskindex): # general init

@@ -30,7 +30,7 @@ import lib.lib_twowire as rpiwire
 
 class Plugin(plugin.PluginProto):
  PLUGIN_ID = 11
- PLUGIN_NAME = "Extra IO - ProMini Extender (TESTING)"
+ PLUGIN_NAME = "Extra IO - ProMini Extender"
  PLUGIN_VALUENAME1 = "Value"
  CMD_DIGITAL_WRITE = 1
  CMD_DIGITAL_READ  = 2

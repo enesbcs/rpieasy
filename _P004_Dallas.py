@@ -44,7 +44,7 @@ class Plugin(plugin.PluginProto):
    webserver.addHtml("<tr><td>Device Address:<td>")
    webserver.addSelector_Head("p004_addr",True)
    for o in range(len(options)):
-    webserver.addSelector_Item(options[o],options[o],(str(options[0])==str(choice1)),False)
+    webserver.addSelector_Item(options[o],options[o],(str(options[o])==str(choice1)),False)
    webserver.addSelector_Foot()
   webserver.addFormNote("You have to setup one pin (at least) for <b>1WIRE</b> type at <a href='pinout'>pinout settings page</a> before use!")
   return True

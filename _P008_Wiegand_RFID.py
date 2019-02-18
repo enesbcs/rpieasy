@@ -17,7 +17,7 @@ import hashlib
 
 class Plugin(plugin.PluginProto):
  PLUGIN_ID = 8
- PLUGIN_NAME = "RFID - Wiegand (TESTING)"
+ PLUGIN_NAME = "Input - RFID/Wiegand (TESTING)"
  PLUGIN_VALUENAME1 = "Tag"
 
  def __init__(self,taskindex): # general init
