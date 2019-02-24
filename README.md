@@ -42,4 +42,5 @@ Other dependencies can be reached and installed through the webGUI after startin
 
 # Update
 There are an external updater and command line manager script by [haraldtux](/haraldtux):
+
 https://github.com/haraldtux/rpieasy-cli-tools
