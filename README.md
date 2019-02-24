@@ -41,5 +41,5 @@ Other dependencies can be reached and installed through the webGUI after startin
 `sudo ./RPIEasy.py`
 
 # Update
-There are an external update script at:
-https://github.com/haraldtux/rpieasy-update
+There are an external updater and command line manager script by [haraldtux](/haraldtux):
+https://github.com/haraldtux/rpieasy-cli-tools
