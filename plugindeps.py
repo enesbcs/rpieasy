@@ -9,6 +9,10 @@ import subprocess
 import os
 import rpieGlobals
 import misc
+try:
+ import linux_os as OS
+except:
+ print("Linux OS import error!")
 
 modulelist = [
 {"name":"paho-mqtt",
@@ -93,6 +97,11 @@ modulelist = [
  "testcmd": "import py_rcswitch",
  "installcmd" : "cd lib/py_rcswitch && sudo python3 py_rcswitch_setup.py install && cd ../..",
  "installed":-1},
+{"name":"ws2812",
+ "apt": ["python3-pip"],
+ "pip": ["rpi_ws281x"],
+ "testcmd": "from rpi_ws281x import *",
+ "installed":-1},
 
 
 ]
@@ -148,6 +157,9 @@ plugindependencies = [
 {"pluginid": "36", # FramedOLED
  "supported_os_level": [10],
  "modules":["i2c","OLED"]},
+{"pluginid": "38", # Neopixel
+ "supported_os_level": [10],
+ "modules":["GPIO","ws2812"]},
 {"pluginid": "51", # AM2320
  "supported_os_level": [10],
  "modules":["i2c"]},
@@ -218,9 +230,9 @@ def installdeps(modulename):
      for j in range(len(modulelist[i]["apt"])):
       installprog += modulelist[i]["apt"][j] + " "
      if rpieGlobals.ossubtype in [1,10]:
-      installprog = "sudo apt-get update && sudo apt-get install -y "+ installprog.strip()
+      installprog = OS.cmdline_rootcorrect("sudo apt-get update && sudo apt-get install -y "+ installprog.strip())
      elif rpieGlobals.ossubtype==2:
-      installprog = "yes | sudo pacman -S "+ installprog.strip()
+      installprog = OS.cmdline_rootcorrect("yes | sudo pacman -S "+ installprog.strip())
      misc.addLog(rpieGlobals.LOG_LEVEL_INFO,installprog)
      proc = subprocess.Popen(installprog, shell=True, stdin=None, stdout=open(os.devnull,"wb"), executable="/bin/bash")
      proc.wait()
@@ -231,7 +243,7 @@ def installdeps(modulename):
      installprog = " "
      for j in range(len(modulelist[i]["pip"])):
       installprog += modulelist[i]["pip"][j] + " "
-     installprog = "sudo -H pip3 install "+ installprog.strip()
+     installprog = OS.cmdline_rootcorrect("sudo -H pip3 install "+ installprog.strip())
      misc.addLog(rpieGlobals.LOG_LEVEL_INFO,installprog)
      proc = subprocess.Popen(installprog, shell=True, stdin=None, stdout=open(os.devnull,"wb"), executable="/bin/bash")
      proc.wait()
@@ -239,7 +251,7 @@ def installdeps(modulename):
      misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,str(e))
    try:
     if modulelist[i]["installcmd"]:
-     installprog = modulelist[i]["installcmd"].strip()
+     installprog = OS.cmdline_rootcorrect(modulelist[i]["installcmd"].strip())
      misc.addLog(rpieGlobals.LOG_LEVEL_INFO,installprog)
      proc = subprocess.Popen(installprog, shell=True, stdin=None, stdout=open(os.devnull,"wb"), executable="/bin/bash")
      proc.wait()
@@ -247,4 +259,3 @@ def installdeps(modulename):
      if e!='installcmd':
       misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,str(e))
    break
-

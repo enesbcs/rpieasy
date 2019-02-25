@@ -594,3 +594,10 @@ def disable_serialsyslog():
        with open(fname,"w") as f:
         f.write(content2.strip()+"\n")
 
+def cmdline_rootcorrect(cmdline):
+  res = cmdline
+  if "sudo " in cmdline:
+   if check_permission(): # only needed if we have root access
+    res = cmdline.replace("sudo -H ","")
+    res = res.replace("sudo ","")
+  return res.strip()
