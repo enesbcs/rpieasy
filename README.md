@@ -1,7 +1,7 @@
 | PayPal |
 |-------|
 |  [![donate](https://img.shields.io/badge/donate-PayPal-blue.svg)](https://www.paypal.me/rpieasy) |
-If you like this project, or you wants to support the development, you can do that the links above or by doing pull requests, if you knew Python language.
+If you like this project, or you wants to support the development, you can do that with the paypal link above or by doing pull requests, if you knew Python language.
 
 # RPIEasy
 
