@@ -1263,3 +1263,5 @@ def geti2cdevname(devaddr):
     
 #Init Hardware GLOBAL ports
 HWPorts = hwports()
+if os.path.exists("/DietPi/config.txt"): # DietPi FIX!
+ HWPorts.config_file_name = "/DietPi/config.txt"

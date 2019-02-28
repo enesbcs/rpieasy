@@ -192,6 +192,9 @@ plugindependencies = [
 {"pluginid": "505", # vlc radio play
  "supported_os_level": [1,2,10],
  "modules":["vlc"]},
+{"pluginid": "508", #Temper
+ "supported_os_level": [1,2,10],
+ "modules":["pyserial","linux-kernel"]},
 {"pluginid": "509", # EVDEV
  "modules":["linux-kernel"]},
 {"pluginid": "510", # BLE iTag
