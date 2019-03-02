@@ -121,6 +121,9 @@ plugindependencies = [
 {"pluginid": "1", #Switch
  "supported_os_level": [10],
  "modules":["GPIO"]},
+{"pluginid": "4", #DS18b20
+ "supported_os_level": [1,2,10],
+ "modules":["linux-kernel"]},
 {"pluginid": "5", # DHT
  "supported_os_level": [10],
  "modules":["Adafruit_DHT"]},
@@ -148,6 +151,9 @@ plugindependencies = [
 {"pluginid": "25", # ADS1x15
  "supported_os_level": [10],
  "modules":["i2c","Adafruit_ADS1x15"]},
+{"pluginid": "26", #SysInfo
+ "supported_os_level": [1,2,10],
+ "modules":["linux-kernel"]},
 {"pluginid": "28", # BMP280
  "supported_os_level": [10],
  "modules":["i2c"]},
@@ -231,6 +237,9 @@ def installdeps(modulename):
     if modulelist[i]["apt"]:
      installprog = " "
      for j in range(len(modulelist[i]["apt"])):
+      if rpieGlobals.ossubtype==2: # arch exceptions
+       if "python3-pip" in modulelist[i]["apt"][j]:
+        modulelist[i]["apt"][j].replace("python3-pip","python-pip")
       installprog += modulelist[i]["apt"][j] + " "
      if rpieGlobals.ossubtype in [1,10]:
       installprog = OS.cmdline_rootcorrect("sudo apt-get update && sudo apt-get install -y "+ installprog.strip())

@@ -30,8 +30,6 @@ class Plugin(plugin.PluginProto):
   self.timeroption = True
   self.timeroptional = True
   self.formulaoption = True
-  self.targetbus = -1
-  self.targetdev = -1
 
  def plugin_init(self,enableplugin=None):
   plugin.PluginProto.plugin_init(self,enableplugin)
@@ -42,29 +40,26 @@ class Plugin(plugin.PluginProto):
    except Exception as e:
     misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"Temper error: "+str(e))
   if str(self.taskdevicepluginconfig[0])=="0" or str(self.taskdevicepluginconfig[0]).strip()=="":
-   self.targetbus = -1
-   self.targetdev = -1
+   return False
   elif len(utemper.get_temper_list())>0:
    if self.enabled or enableplugin:
     self.initialized = True
-    self.targetbus = int(int(self.taskdevicepluginconfig[0]) / 10000)
-    self.targetdev = int(self.taskdevicepluginconfig[0]) % 10000
 
  def webform_load(self):
   choice1 = self.taskdevicepluginconfig[0]
   options = utemper.get_select_list()
   if len(options)>0:
-   webserver.addHtml("<tr><td>Device Address:<td>")
+   webserver.addHtml("<tr><td>Device:<td>")
    webserver.addSelector_Head("p508_addr",True)
    for o in range(len(options)):
-    webserver.addSelector_Item(str(options[o][1])+" "+str(options[o][2]),int(options[o][1]),(str(options[o][1])==str(choice1)),False)
+    webserver.addSelector_Item(str(options[o][1])+" "+str(options[o][2]),int(o+1),(str(o+1)==str(choice1)),False)
    webserver.addSelector_Foot()
   webserver.addFormNote("Without root rights you will not see any Temper device!")
   return True
 
  def webform_save(self,params):
   par = webserver.arg("p508_addr",params)
-  self.taskdevicepluginconfig[0] = str(par)
+  self.taskdevicepluginconfig[0] = int(par)
   self.plugin_init()
   return True
 
@@ -76,18 +71,19 @@ class Plugin(plugin.PluginProto):
     suc = False
     rd = utemper.get_temper_list()
     if len(rd)>0:
-     for t in range(len(rd)):
-      if self.targetbus==int(rd[t]["busnum"]) and self.targetdev==int(rd[t]["devnum"]):
-       temp = float(rd[t]['internal temperature'])
-       self.set_value(1,temp,True)
-       suc = True
-       break
+     da = int(self.taskdevicepluginconfig[0])
+     if da>0:
+      da = da-1
+     if da>=len(rd):
+      da = len(rd)-1
+     temp = float(rd[da]['internal temperature'])
+     self.set_value(1,temp,True)
+     self._lastdataservetime = rpieTime.millis()
+     suc = True
     if suc==False:
      misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Temper read error!")
    except Exception as e:
-    misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Temper read error! "+str(e))
-    self.enabled = False
-   self._lastdataservetime = rpieTime.millis()
+    misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Temper read error! Trying to reread. ("+str(e)+")")
    result = True
    self.readinprogress = 0
   return result
