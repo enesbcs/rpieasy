@@ -8,11 +8,14 @@
 import lib.temper.temper as temper
 
 def get_temper_list():
- global usbtemper, temperlist
- try:
-  temperlist = usbtemper.read()
- except:
-  temperlist = []
+ global usbtemper, temperlist, tinprogress
+ if tinprogress == 0:
+  tinprogress = 1
+  try:
+   temperlist = usbtemper.read()
+  except:
+   temperlist = []
+  tinprogress = 0
  return temperlist
 
 def get_select_list():
@@ -36,6 +39,7 @@ def force_temper_detect():
  except:
    usbtemper = temper.Temper()
 
+tinprogress = 0
 usbtemper = None
 temperlist = []
 force_temper_detect()

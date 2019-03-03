@@ -19,13 +19,14 @@ class Plugin(plugin.PluginProto):
  PLUGIN_ID = 508
  PLUGIN_NAME = "Environment - USB Temper"
  PLUGIN_VALUENAME1 = "Temperature"
+ PLUGIN_VALUENAME2 = "Humidity"
 
  def __init__(self,taskindex): # general init
   plugin.PluginProto.__init__(self,taskindex)
   self.dtype = rpieGlobals.DEVICE_TYPE_USB
-  self.vtype = rpieGlobals.SENSOR_TYPE_SINGLE
+  self.vtype = rpieGlobals.SENSOR_TYPE_TEMP_HUM
   self.readinprogress = 0
-  self.valuecount = 1
+  self.valuecount = 2
   self.senddataoption = True
   self.timeroption = True
   self.timeroptional = True
@@ -44,6 +45,13 @@ class Plugin(plugin.PluginProto):
   elif len(utemper.get_temper_list())>0:
    if self.enabled or enableplugin:
     self.initialized = True
+    self.set_value(2,0,False)
+    if self.taskdevicepluginconfig[1] in [0,1]:
+     self.vtype = rpieGlobals.SENSOR_TYPE_SINGLE
+     self.valuecount = 1
+    elif self.taskdevicepluginconfig[1] in [2,3]:
+     self.vtype = rpieGlobals.SENSOR_TYPE_TEMP_HUM
+     self.valuecount = 2
 
  def webform_load(self):
   choice1 = self.taskdevicepluginconfig[0]
@@ -54,37 +62,75 @@ class Plugin(plugin.PluginProto):
    for o in range(len(options)):
     webserver.addSelector_Item(str(options[o][1])+" "+str(options[o][2]),int(o+1),(str(o+1)==str(choice1)),False)
    webserver.addSelector_Foot()
+   choice2 = self.taskdevicepluginconfig[1]
+   options = ["Internal temp","External temp", "Internal temp+humidity", "External temp+humidity"]
+   optionvalues = [0,1,2,3]
+   webserver.addFormSelector("Sensor type","p508_type",len(optionvalues),options,optionvalues,None,choice2)
   webserver.addFormNote("Without root rights you will not see any Temper device!")
   return True
 
  def webform_save(self,params):
   par = webserver.arg("p508_addr",params)
   self.taskdevicepluginconfig[0] = int(par)
+  par = webserver.arg("p508_type",params)
+  self.taskdevicepluginconfig[1] = int(par)
   self.plugin_init()
   return True
 
  def plugin_read(self): # deal with data processing at specified time interval
   result = False
   if self.initialized and self.readinprogress==0 and self.enabled:
-   self.readinprogress = 1
-   try:
+    self.readinprogress = 1
     suc = False
-    rd = utemper.get_temper_list()
+    try:
+     rd = utemper.get_temper_list()
+    except Exception as e:
+     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Temper read error! Trying to reread. ("+str(e)+")")
+     rd = []
     if len(rd)>0:
      da = int(self.taskdevicepluginconfig[0])
      if da>0:
       da = da-1
      if da>=len(rd):
       da = len(rd)-1
-     temp = float(rd[da]['internal temperature'])
-     self.set_value(1,temp,True)
-     self._lastdataservetime = rpieTime.millis()
-     suc = True
+     tval = self.get_value(rd[da])
+     if tval[2]>0:
+      self.set_value(1,tval[0],False)
+      self._lastdataservetime = rpieTime.millis()
+      suc = True
+     if tval[2]>1:
+      self.set_value(2,tval[1],False)
+     self.plugin_senddata()
     if suc==False:
      misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Temper read error!")
-   except Exception as e:
-    misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Temper read error! Trying to reread. ("+str(e)+")")
-   result = True
-   self.readinprogress = 0
+    result = True
+    self.readinprogress = 0
   return result
 
+ def get_value(self,datarr):
+  resarr = [0,0,0]
+  if self.taskdevicepluginconfig[1] in [0,2]:
+   try:
+    resarr[0]=float(datarr["internal temperature"])
+    resarr[2]=1
+   except:
+    resarr[0]=0
+  elif self.taskdevicepluginconfig[1] in [1,3]:
+   try:
+    resarr[0]=float(datarr["external temperature"])
+    resarr[2]=1
+   except:
+    resarr[0]=0
+  if self.taskdevicepluginconfig[1]==2:
+   try:
+    resarr[1]=float(datarr["internal humidity"])
+    resarr[2]=2
+   except:
+    resarr[1]=0
+  elif self.taskdevicepluginconfig[1]==3:
+   try:
+    resarr[1]=float(datarr["external humidity"])
+    resarr[2]=2
+   except:
+    resarr[1]=0
+  return resarr
