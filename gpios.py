@@ -368,6 +368,8 @@ I2CDevices = [
   "addr": [0x48,0x49,0x4A,0x4B]},
  {"name": "LM75A; PCF8591; MCP3221",
   "addr": [0x48,0x49,0x4A,0x4B,0x4C,0x4D,0x4E,0x4F]},
+ {"name": "MAX44009 ambient light sensor",
+  "addr": [0x4A]},
  {"name": "BH1750",
   "addr": [0x23,0x5C]},
  {"name": "DHT12/AM2320",
