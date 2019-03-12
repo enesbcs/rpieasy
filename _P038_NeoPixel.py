@@ -26,7 +26,7 @@ from rpi_ws281x import *
 
 class Plugin(plugin.PluginProto):
  PLUGIN_ID = 38
- PLUGIN_NAME = "Output - NeoPixel Basic (TESTING)"
+ PLUGIN_NAME = "Output - NeoPixel Basic"
  PLUGIN_VALUENAME1 = ""
 
  def __init__(self,taskindex): # general init

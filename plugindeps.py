@@ -181,6 +181,12 @@ plugindependencies = [
 {"pluginid": "112", #RF433 sender
  "supported_os_level": [10],
  "modules":["GPIO","rcswitch"]},
+{"pluginid": "133", # VL53L0X
+ "supported_os_level": [10],
+ "modules":["i2c"]},
+{"pluginid": "153", # MAX44009
+ "supported_os_level": [10],
+ "modules":["i2c"]},
 {"pluginid": "200", #Dual Switch
  "supported_os_level": [10],
  "modules":["GPIO"]},
