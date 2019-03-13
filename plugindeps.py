@@ -148,6 +148,9 @@ plugindependencies = [
 {"pluginid": "23", # OLED
  "supported_os_level": [10],
  "modules":["i2c","OLED"]},
+{"pluginid": "24", # mlx90614
+ "supported_os_level": [10],
+ "modules":["i2c"]},
 {"pluginid": "25", # ADS1x15
  "supported_os_level": [10],
  "modules":["i2c","Adafruit_ADS1x15"]},
