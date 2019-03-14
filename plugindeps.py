@@ -169,6 +169,9 @@ plugindependencies = [
 {"pluginid": "38", # Neopixel
  "supported_os_level": [10],
  "modules":["GPIO","ws2812"]},
+{"pluginid": "49", #MH-Z19
+ "supported_os_level": [1,2,10],
+ "modules":["pyserial"]},
 {"pluginid": "51", # AM2320
  "supported_os_level": [10],
  "modules":["i2c"]},
