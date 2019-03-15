@@ -18,7 +18,7 @@ import lib.lib_mlxrouter as mlxrouter
 
 class Plugin(plugin.PluginProto):
  PLUGIN_ID = 24
- PLUGIN_NAME = "Environment - MLX90614 sensor (TESTING)"
+ PLUGIN_NAME = "Environment - MLX90614 sensor"
  PLUGIN_VALUENAME1 = "Temperature"
 
  def __init__(self,taskindex): # general init
