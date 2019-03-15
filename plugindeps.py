@@ -139,6 +139,9 @@ plugindependencies = [
 {"pluginid": "11", # PME
  "supported_os_level": [10],
  "modules":["i2c"]},
+{"pluginid": "13", #SR04
+ "supported_os_level": [10],
+ "modules":["GPIO"]},
 {"pluginid": "14", # Si7021
  "supported_os_level": [10],
  "modules":["i2c"]},
