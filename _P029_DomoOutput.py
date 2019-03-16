@@ -13,6 +13,7 @@ import rpieGlobals
 import rpieTime
 import misc
 import gpios
+import lib.lib_gpiohelper as gpiohelper
 
 class Plugin(plugin.PluginProto):
  PLUGIN_ID = 29
@@ -36,9 +37,14 @@ class Plugin(plugin.PluginProto):
 
  def webform_load(self):
   webserver.addFormNote("Please make sure to select <a href='pinout'>pin configured for Output!</a>")
+  webserver.addFormCheckBox("Preserve state at startup","p029_preserve",self.taskdevicepluginconfig[0])
   return True
 
  def webform_save(self,params):
+  if (webserver.arg("p029_preserve",params)=="on"):
+   self.taskdevicepluginconfig[0] = True
+  else:
+   self.taskdevicepluginconfig[0] = False
   self.sync()
   return True
 
@@ -47,7 +53,10 @@ class Plugin(plugin.PluginProto):
    if self.taskdevicepin[0]>=0:
     v1 = gpios.HWPorts.input(self.taskdevicepin[0])
     if v1 != self.uservar[0]:
-     self.uservar[0] = v1
+     if self.taskdevicepluginconfig[0]==True:
+      self.set_value(1,self.uservar[0],True)   # restore previous state from uservar
+     else:
+      self.uservar[0] = v1                      # store actual pin state into uservar
 
  def set_value(self,valuenum,value,publish=True,suserssi=-1,susebattery=-1): # Also reacting and handling Taskvalueset
   if self.initialized:
@@ -70,3 +79,11 @@ class Plugin(plugin.PluginProto):
     val = 0
    self.set_value(1,val,False)
 #  print("Data received:",data) # DEBUG
+
+ def plugin_write(self,cmd):
+  res = False
+  cmdarr = cmd.split(",")
+  cmdarr[0] = cmdarr[0].strip().lower()
+  if cmdarr[0].strip().lower() in ["gpio","pwm","pulse","longpulse"]:
+   res = gpiohelper.gpio_commands(cmd)
+  return res
