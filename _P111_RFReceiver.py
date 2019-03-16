@@ -38,10 +38,9 @@ class Plugin(plugin.PluginProto):
 
  def __del__(self):
   try:
-   self.initialized = False
    self.timer100ms = False
-   if self.rfdevice is not None:
-    self.rfdevice.disableReceive()
+   self.initialized = False
+   self.rfdevice = None
   except:
    pass
 
@@ -50,6 +49,7 @@ class Plugin(plugin.PluginProto):
 
  def plugin_init(self,enableplugin=None):
   plugin.PluginProto.plugin_init(self,enableplugin)
+  self.initialized = False
   self.decimals[0]=0
   self.set_value(1,"0",False)
   self.rfconnect()
@@ -58,6 +58,7 @@ class Plugin(plugin.PluginProto):
 
  def rfconnect(self):
    if int(self.taskdevicepin[0])>=0 and self.enabled:
+    misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"RF433: Start listener")
     try:
       self.rfdevice = getRFDev(True)
       pval = self.rfdevice.initpin()

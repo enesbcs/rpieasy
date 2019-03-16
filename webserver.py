@@ -1052,19 +1052,22 @@ def handle_devices(self):
  taskIndexNotSet = (taskIndex == 0) or (taskIndex == '')
  if taskIndex!="":
   taskIndex = int(taskIndex) - 1
-
  if arg('del',responsearr) != '':
   taskdevicenumber=0
   ttid = -1
   try:
     ttid = Settings.Tasks[taskIndex].pluginid
   except:
-    pass
+    ttid = -1
   if ttid != -1:
-   Settings.Tasks[taskIndex].plugin_exit()
-   taskIndexNotSet = True
-   Settings.Tasks[taskIndex] = False
-   Settings.savetasks() # savetasksettings!!!
+   try:
+    Settings.Tasks[taskIndex].plugin_exit()
+    taskIndexNotSet = True
+    Settings.Tasks[taskIndex] = False
+    Settings.savetasks() # savetasksettings!!!
+   except Exception as e:
+    misc.addLog(rpieGlobals.LOG_LEVEL_ERROR, "Deleting failed: "+str(e))
+
  if taskIndexNotSet: # show all tasks as table
     if True:
      TXBuffer += "<script> (function(){ var max_tasknumber = "+ str(rpieGlobals.TASKS_MAX) +"; var max_taskvalues = "+ str(rpieGlobals.VARS_PER_TASK) +"; var timeForNext = 2000; var c; var k; var err = ''; var i = setInterval(function(){ var url = '/json?view=sensorupdate';"
@@ -1077,7 +1080,6 @@ def handle_devices(self):
      TXBuffer += "window.onblur = function() { window.blurred = true; }; window.onfocus = function() { window.blurred = false; }; </script>"
 
     TXBuffer += "<table class='multirow' border=1px frame='box' rules='all'><TR><TH style='width:70px;'>"
-
     if (rpieGlobals.TASKS_MAX != TASKS_PER_PAGE):
       TXBuffer += "<a class='button link' href='devices?setpage="
       if (page > 1):
@@ -1103,7 +1105,7 @@ def handle_devices(self):
        TXBuffer += "<TD>"
        TXBuffer += str(x + 1)
        TXBuffer += "<TD>"
-       
+
        if (len(Settings.Tasks)>x) and (Settings.Tasks[x]):
         addEnabled(Settings.Tasks[x].enabled)
 
@@ -1123,7 +1125,8 @@ def handle_devices(self):
          pass
         TXBuffer += "<TD>"
 
-        if (Settings.Tasks[x].senddataoption):
+        try:
+         if (Settings.Tasks[x].senddataoption):
           doBR = False
           maxcon = len(Settings.Controllers)
           if maxcon>rpieGlobals.CONTROLLER_MAX:
@@ -1143,7 +1146,9 @@ def handle_devices(self):
               doBR = True
           except Exception as e:
             pass
-        TXBuffer += "<TD>"
+         TXBuffer += "<TD>"
+        except Exception as e:
+         print(e)
 
         if (Settings.Tasks[x].dtype == rpieGlobals.DEVICE_TYPE_I2C):
             try:
@@ -1161,6 +1166,7 @@ def handle_devices(self):
 #        customValues = PluginCall(PLUGIN_WEBFORM_SHOW_VALUES, &TempEvent,TXBuffer.buf);
         if not(customValues):
           if (Settings.Tasks[x].vtype == rpieGlobals.SENSOR_TYPE_LONG):
+           try:
             TXBuffer  += "<div class='div_l' "
             TXBuffer  += "id='valuename_"
             TXBuffer  += str(x)
@@ -1174,10 +1180,14 @@ def handle_devices(self):
             TXBuffer  += "_"
             TXBuffer  += '0'
             TXBuffer  += "'>"
-            TXBuffer  += str(Settings.Tasks[x].uservar[0] + (Settings.Tasks[x].uservar[1] << 16))
+            numtodisp = str(float(Settings.Tasks[x].uservar[0]) + float(Settings.Tasks[x].uservar[1] << 16))
+            TXBuffer += str(misc.formatnum(numtodisp,0))
             TXBuffer  += "</div>"
+           except Exception as e:
+            print(e)
           else:
-            for varNr in range(0,rpieGlobals.VARS_PER_TASK):
+            try:
+             for varNr in range(0,rpieGlobals.VARS_PER_TASK):
               if ((Settings.Tasks[x].enabled) and (varNr < Settings.Tasks[x].valuecount)):
                 if (varNr > 0):
                   TXBuffer += "<div class='div_br'></div>"
@@ -1210,7 +1220,8 @@ def handle_devices(self):
 #                 except:
 #                  TXBuffer += numtodisp 
                 TXBuffer += "</div>"
-
+            except Exception as e:
+             print(e)
        else:
         TXBuffer += "<TD><TD><TD><TD><TD><TD>"
       TXBuffer += "</table></form>"

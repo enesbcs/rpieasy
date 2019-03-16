@@ -11,6 +11,7 @@ import time
 import Settings
 import misc
 import gpios
+import commands
 
 def syncvalue(bcmpin,value):
  for x in range(0,len(Settings.Tasks)):
@@ -18,6 +19,8 @@ def syncvalue(bcmpin,value):
    if (Settings.Tasks[x].enabled):
      if (Settings.Tasks[x].pluginid==29) and (Settings.Tasks[x].taskdevicepin[0]==bcmpin): # output on specific pin
       Settings.Tasks[x].uservar[0] = value
+      if Settings.Tasks[x].valuenames[0]!= "":
+       commands.rulesProcessing(Settings.Tasks[x].taskname+"#"+Settings.Tasks[x].valuenames[0]+"="+str(value),rpieGlobals.RULE_USER)
       Settings.Tasks[x].plugin_senddata()
       break
 

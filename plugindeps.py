@@ -102,6 +102,11 @@ modulelist = [
  "pip": ["rpi_ws281x"],
  "testcmd": "from rpi_ws281x import *",
  "installed":-1},
+{"name": "LCD",
+ "apt": ["python3-pip", "python3-dev"],
+ "pip": ["RPLCD"],
+ "testcmd": "from RPLCD.i2c import CharLCD",
+ "installed":-1},
 
 
 ]
@@ -139,6 +144,9 @@ plugindependencies = [
 {"pluginid": "11", # PME
  "supported_os_level": [10],
  "modules":["i2c"]},
+{"pluginid": "12", # LCD
+ "supported_os_level": [10],
+ "modules":["i2c","LCD"]},
 {"pluginid": "13", #SR04
  "supported_os_level": [10],
  "modules":["GPIO"]},

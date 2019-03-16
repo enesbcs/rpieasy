@@ -54,9 +54,11 @@ class Plugin(plugin.PluginProto):
     v1 = gpios.HWPorts.input(self.taskdevicepin[0])
     if v1 != self.uservar[0]:
      if self.taskdevicepluginconfig[0]==True:
-      self.set_value(1,self.uservar[0],True)   # restore previous state from uservar
+      self.set_value(1,int(self.uservar[0]),True)   # restore previous state from uservar
+      misc.addLog(rpieGlobals.LOG_LEVEL_INFO,self.taskname+": Restoring previous GPIO value "+str(self.uservar[0]))
      else:
       self.uservar[0] = v1                      # store actual pin state into uservar
+      misc.addLog(rpieGlobals.LOG_LEVEL_INFO,self.taskname+": Syncing actual GPIO value "+str(v1))
 
  def set_value(self,valuenum,value,publish=True,suserssi=-1,susebattery=-1): # Also reacting and handling Taskvalueset
   if self.initialized:

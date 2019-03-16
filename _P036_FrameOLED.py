@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #############################################################################
-##################### Framed OLED plugin for RPIEasy ########################
+########################## OLED plugin for RPIEasy ##########################
 #############################################################################
 #
 # Available commands:
@@ -93,9 +93,9 @@ class Plugin(plugin.PluginProto):
     self.device = None
     try:
      if "x" in str(self.taskdevicepluginconfig[3]):
-      resstr = str(self.taskdevicepluginconfig[3]).split()
+      resstr = str(self.taskdevicepluginconfig[3]).split('x')
       self.width = int(resstr[0])
-      self.width = int(resstr[1])
+      self.height = int(resstr[1])
      else:
       self.width  = None
       self.height = None
@@ -306,6 +306,9 @@ class Plugin(plugin.PluginProto):
     self.device.hide()
   except:
    pass
+
+ def plugin_exit(self):
+  self.__del__()
 
  def webform_save(self,params): # process settings post reply
    par = webserver.arg("p036_type",params)
