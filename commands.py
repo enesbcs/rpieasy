@@ -23,7 +23,7 @@ import threading
 
 GlobalRules = []
 SysVars = ["systime","system_hm","lcltime","syshour","sysmin","syssec","sysday","sysmonth",
-"sysyear","sysyears","sysweekday","sysweekday_s","unixtime","uptime","rssi","ip","ip4","sysname","unit","ssid","mac","mac_int"]
+"sysyear","sysyears","sysweekday","sysweekday_s","unixtime","uptime","rssi","ip","ip4","sysname","unit","ssid","mac","mac_int","build"]
 
 def doExecuteCommand(cmdline,Parse=True):
  if Parse:
@@ -504,6 +504,10 @@ def getglobalvar(varname):
        res = str(int("0x"+resarr[3]+resarr[4]+resarr[5],16))
      except:
       res = ""
+    return res
+   elif svname==SysVars[22]: #%build%
+    bstr = str(rpieGlobals.BUILD)
+    return bstr[:2]+"."+bstr[2:]
  return res
 
 def parsevalue(pvalue):
