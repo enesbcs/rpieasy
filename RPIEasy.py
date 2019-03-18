@@ -27,40 +27,9 @@ except Exception as e:
 def signal_handler(signal, frame):
   global init_ok
   init_ok = False
-  commands.rulesProcessing("System#Shutdown",rpieGlobals.RULE_SYSTEM)
-  Settings.savetasks()
-  procarr = []
-  for x in range(0,len(Settings.Tasks)):
-   if (Settings.Tasks[x]) and type(Settings.Tasks[x]) is not bool: # device exists
-    if (Settings.Tasks[x].enabled): # device enabled
-      t = threading.Thread(target=Settings.Tasks[x].plugin_exit)
-      t.daemon = True
-      procarr.append(t)
-      t.start()
-  if len(procarr)>0:
-   for process in procarr:
-     process.join(1)
-  try:
-   for t in range(0,rpieGlobals.RULES_TIMER_MAX):
-    Timers[t].pause()
-   for t in range(0,rpieGlobals.SYSTEM_TIMER_MAX):
-    SysTimers[t].pause()
-  except:
-   pass
+  commands.doCleanup()
   webserver.WebServer.stop()
   gpios.HWPorts.cleanup()
-
-  for y in range(0,len(Settings.Controllers)):
-   if (Settings.Controllers[y]):
-    if (Settings.Controllers[y].enabled):
-      t = threading.Thread(target=Settings.Controllers[y].controller_exit)
-      t.daemon = True
-      procarr.append(t)
-      t.start()
-  if len(procarr)>0:
-   for process in procarr:
-     process.join()
-
   time.sleep(1)
   print("\nProgram exiting gracefully")
   sys.exit(0)

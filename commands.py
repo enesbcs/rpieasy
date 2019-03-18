@@ -25,6 +25,39 @@ GlobalRules = []
 SysVars = ["systime","system_hm","lcltime","syshour","sysmin","syssec","sysday","sysmonth",
 "sysyear","sysyears","sysweekday","sysweekday_s","unixtime","uptime","rssi","ip","ip4","sysname","unit","ssid","mac","mac_int","build"]
 
+def doCleanup():
+  rulesProcessing("System#Shutdown",rpieGlobals.RULE_SYSTEM)
+  Settings.savetasks()
+  procarr = []
+  for x in range(0,len(Settings.Tasks)):
+   if (Settings.Tasks[x]) and type(Settings.Tasks[x]) is not bool: # device exists
+    if (Settings.Tasks[x].enabled): # device enabled
+      t = threading.Thread(target=Settings.Tasks[x].plugin_exit)
+      t.daemon = True
+      procarr.append(t)
+      t.start()
+  if len(procarr)>0:
+   for process in procarr:
+     process.join(1)
+  try:
+   for t in range(0,rpieGlobals.RULES_TIMER_MAX):
+    rpieTime.Timers[t].pause()
+   for t in range(0,rpieGlobals.SYSTEM_TIMER_MAX):
+    rpieTime.SysTimers[t].pause()
+  except:
+   pass
+
+  for y in range(0,len(Settings.Controllers)):
+   if (Settings.Controllers[y]):
+    if (Settings.Controllers[y].enabled):
+      t = threading.Thread(target=Settings.Controllers[y].controller_exit)
+      t.daemon = True
+      procarr.append(t)
+      t.start()
+  if len(procarr)>0:
+   for process in procarr:
+     process.join()
+
 def doExecuteCommand(cmdline,Parse=True):
  if Parse:
   retval, state = parseruleline(cmdline)
@@ -272,6 +305,7 @@ def doExecuteCommand(cmdline,Parse=True):
   commandfound = False
   return commandfound
  elif cmdarr[0] == "reboot":
+  doCleanup()
   os.popen(OS.cmdline_rootcorrect("sudo reboot"))
 #  os.kill(os.getpid(), signal.SIGINT)
   commandfound = True
@@ -287,6 +321,7 @@ def doExecuteCommand(cmdline,Parse=True):
   commandfound = True
   return commandfound
  elif cmdarr[0] == "halt":
+  doCleanup()
   os.popen(OS.cmdline_rootcorrect("sudo shutdown -h now"))
 #  os.kill(os.getpid(), signal.SIGINT)
   commandfound = True
