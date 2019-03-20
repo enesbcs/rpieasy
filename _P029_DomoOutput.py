@@ -14,6 +14,7 @@ import rpieTime
 import misc
 import gpios
 import lib.lib_gpiohelper as gpiohelper
+import Settings
 
 class Plugin(plugin.PluginProto):
  PLUGIN_ID = 29
@@ -52,6 +53,16 @@ class Plugin(plugin.PluginProto):
   if self.enabled:
    if self.taskdevicepin[0]>=0:
     v1 = gpios.HWPorts.input(self.taskdevicepin[0])
+    if self.taskdevicepluginconfig[0]==True:
+       ot = False
+       for p in range(len(Settings.Pinout)):
+        if str(Settings.Pinout[p]["BCM"])==str(self.taskdevicepin[0]):
+         if Settings.Pinout[p]["startupstate"]==4:
+          ot = True
+          break
+       if ot==False:
+        misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Pin is not an Output, State preserving disabled")
+        self.taskdevicepluginconfig[0] = False
     if v1 != self.uservar[0]:
      if self.taskdevicepluginconfig[0]==True:
       self.set_value(1,int(self.uservar[0]),True)   # restore previous state from uservar
@@ -59,6 +70,13 @@ class Plugin(plugin.PluginProto):
      else:
       self.uservar[0] = v1                      # store actual pin state into uservar
       misc.addLog(rpieGlobals.LOG_LEVEL_INFO,self.taskname+": Syncing actual GPIO value "+str(v1))
+   if self.initialized:
+    if self.taskdevicepluginconfig[0]==True:
+     sps = "en"
+    else:
+     sps = "dis"
+    misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"State preserving is "+sps+"abled")
+
 
  def set_value(self,valuenum,value,publish=True,suserssi=-1,susebattery=-1): # Also reacting and handling Taskvalueset
   if self.initialized:

@@ -922,6 +922,8 @@ def handle_plugins(self):
  if OS.check_permission()==False:
    TXBuffer += "Installation WILL NOT WORK without root permission!<p>"
 
+ TXBuffer += "<p><b>If you want to install a dependency, please click at the blue underlined text, where you see a red X!<b><p><br>"
+
  TXBuffer += "<table class='multirow' border=1px frame='box' rules='all'><TR><TH colspan=4>Controllers</TH></TR>"
  TXBuffer += "<TR><TH>#</TH><TH>Name</TH><TH>Dependencies</TH><TH>Usable</TH></TR>"
 
@@ -2247,7 +2249,7 @@ def handle_filelist(self):
  if retobj:
   sendHeadandTail("TmplDsh",_HEAD); 
   sfile="&o="+str(retobj)
-  TXBuffer += "<script type='text/javascript'>function reportbackfilename(objname,fname){var retval = window.opener.document.getElementById(objname); retval.value = fname; window.close();}</script>"
+  TXBuffer += "<script type='text/javascript'>function reportbackfilename(objname,fname){var retval = window.opener.document.getElementById(objname); retval.value = fname; window.close(); return fname;}</script>"
  else:
   sendHeadandTail("TmplStd",_HEAD); 
   sfile=""
@@ -2294,7 +2296,7 @@ def handle_filelist(self):
      TXBuffer += '"'
      TXBuffer += "reportbackfilename('"+str(retobj)+"','"+str(f[0])+"');"
      TXBuffer += '"'
-     TXBuffer += "'>SEL</a>"
+     TXBuffer += ">SEL</a>"
    else:
     if f[1]=="DIR":
      TXBuffer += "<a class='button link' onclick="

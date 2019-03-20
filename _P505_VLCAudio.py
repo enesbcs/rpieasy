@@ -63,7 +63,7 @@ class Plugin(plugin.PluginProto):
     maxlevel = 10
    for c in range(1,maxlevel+1):
     webserver.addFormTextBox("Level "+str(c*10),"p505_lvl_"+str(c*10),str(self.taskdevicepluginconfig[c]),180)
-    webserver.addBrowseButton("Browse","p503_lvl_"+str(c*10),startdir=str(self.taskdevicepluginconfig[c]))
+    webserver.addBrowseButton("Browse","p505_lvl_"+str(c*10),startdir=str(self.taskdevicepluginconfig[c]))
    webserver.addFormNote("Specify file names/network URI for every level, that is needed!")
   return True
 
@@ -148,8 +148,8 @@ class Plugin(plugin.PluginProto):
     if self.vlcprocess:
      os.kill(self.vlcprocess.pid, signal.SIGTERM)
     else:
-     os.system("killall vlc 2>/dev/null")
      OS.runasfirstuser(["killall","vlc"])
+     os.system("killall vlc 2>/dev/null")
    except:
     pass
    Settings.SoundSystem["inuse"] = False
