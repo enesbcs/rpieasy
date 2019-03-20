@@ -339,5 +339,6 @@ def initprogram():
   webserver.WebServer.start('', up) # starts webserver GUI
 
 # MAIN
+signal.signal(signal.SIGTERM, signal_handler)
 signal.signal(signal.SIGINT, signal_handler)
 initprogram()
