@@ -192,6 +192,9 @@ plugindependencies = [
 {"pluginid": "64", # APDS9960
  "supported_os_level": [10],
  "modules":["i2c","apds"]},
+{"pluginid": "69", # LM75
+ "supported_os_level": [10],
+ "modules":["i2c"]},
 {"pluginid": "111", #RF433 receiver
  "supported_os_level": [10],
  "modules":["GPIO","rcswitch"]},
