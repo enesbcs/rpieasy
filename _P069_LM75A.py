@@ -58,7 +58,7 @@ class Plugin(plugin.PluginProto):
   choice1 = self.taskdevicepluginconfig[0]
   options = ["0x48", "0x49", "0x4a", "0x4b", "0x4c","0x4d", "0x4e", "0x4f"]
   optionvalues = [0x48, 0x49, 0x4a, 0x4b, 0x4c,0x4d, 0x4e, 0x4f]
-  webserver.addFormSelector("Address","plugin_069_addr",2,options,optionvalues,None,int(choice1))
+  webserver.addFormSelector("Address","plugin_069_addr",len(options),options,optionvalues,None,int(choice1))
   webserver.addFormNote("Enable <a href='pinout'>I2C bus</a> first, than <a href='i2cscanner'>search for the used address</a>!")
   return True
 
