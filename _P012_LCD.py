@@ -47,6 +47,19 @@ class Plugin(plugin.PluginProto):
    self.__del__()
    return False
   if self.enabled:
+   if int(self.taskdevicepin[0])>=0:
+    try:
+     gpios.HWPorts.remove_event_detect(int(self.taskdevicepin[0]))
+    except:
+     pass
+    try:
+     gpios.HWPorts.add_event_detect(int(self.taskdevicepin[0]),gpios.BOTH,self.p012_handler)
+     self.timer100ms = False
+    except Exception as e:
+     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Event can not be added, register backup timer "+str(e))
+     self.timer100ms = True
+   else:
+     self.timer100ms = False
    i2cport = -1
    try:
     for i in range(0,2):
@@ -78,6 +91,7 @@ class Plugin(plugin.PluginProto):
      try:
        self.device = CharLCD(i2c_expander=str(self.taskdevicepluginconfig[0]), address=int(self.taskdevicepluginconfig[1]), port=i2cport,
               cols=self.width, rows=self.height, auto_linebreaks=(str(self.taskdevicepluginconfig[3])=="1"), backlight_enabled=(str(self.taskdevicepluginconfig[4])=="1"))
+       self.uservar[0] = 1
        self.initialized = True
      except Exception as e:
       misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"LCD can not be initialized! "+str(e))
@@ -139,7 +153,7 @@ class Plugin(plugin.PluginProto):
    except:
     linestr = ""
    webserver.addFormTextBox("Line"+str(l+1),"p012_template"+str(l),linestr,128)
-
+  webserver.addFormPinSelect("Display button","taskdevicepin0",self.taskdevicepin[0])
   return True
 
  def __del__(self):
@@ -149,6 +163,11 @@ class Plugin(plugin.PluginProto):
     self.device._set_backlight_enabled(False)
   except:
    pass
+  if self.enabled and self.timer100ms==False and (self.taskdevicepin[0]>-1):
+   try:
+    gpios.HWPorts.remove_event_detect(int(self.taskdevicepin[0]))
+   except:
+    pass
 
  def plugin_exit(self):
   self.__del__()
@@ -179,6 +198,10 @@ class Plugin(plugin.PluginProto):
       self.lines[l]=linestr
     except:
       self.lines.append(linestr)
+   try:
+    self.taskdevicepin[0]=int(webserver.arg("taskdevicepin0",params))
+   except:
+    self.taskdevicepin[0]=-1
    self.plugin_init()
    return True
 
@@ -274,3 +297,17 @@ class Plugin(plugin.PluginProto):
       else:
           resstr=str(linestr)
       return resstr
+
+ def p012_handler(self,channel):
+  self.timer_ten_per_second()
+
+ def timer_ten_per_second(self):
+  if self.initialized and self.enabled:
+   val = gpios.HWPorts.input(int(self.taskdevicepin[0]))
+   if int(val) != int(float(self.uservar[0])):
+    self.uservar[0] = int(val)
+    if int(val)==0:
+     if self.device._get_backlight_enabled():
+       self.device._set_backlight_enabled(False)
+     else:
+      self.device._set_backlight_enabled(True)
