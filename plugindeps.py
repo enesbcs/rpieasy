@@ -107,7 +107,11 @@ modulelist = [
  "pip": ["RPLCD"],
  "testcmd": "from RPLCD.i2c import CharLCD",
  "installed":-1},
-
+{"name": "pca9685",
+ "apt": ["python3-pip", "python3-dev"],
+ "pip": ["PCA9685-driver"],
+ "testcmd": "from pca9685_driver import Device",
+ "installed":-1},
 
 ]
 
@@ -156,6 +160,9 @@ plugindependencies = [
 {"pluginid": "15", # tsl2561
  "supported_os_level": [10],
  "modules":["i2c"]},
+{"pluginid": "22", # PCA9685
+ "supported_os_level": [10],
+ "modules":["GPIO","i2c","pca9685"]},
 {"pluginid": "23", # OLED
  "supported_os_level": [10],
  "modules":["i2c","OLED"]},
