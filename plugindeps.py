@@ -160,6 +160,9 @@ plugindependencies = [
 {"pluginid": "15", # tsl2561
  "supported_os_level": [10],
  "modules":["i2c"]},
+{"pluginid": "19", # PCF8574
+ "supported_os_level": [10],
+ "modules":["GPIO","i2c"]},
 {"pluginid": "22", # PCA9685
  "supported_os_level": [10],
  "modules":["GPIO","i2c","pca9685"]},
