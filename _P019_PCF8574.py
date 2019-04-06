@@ -22,7 +22,7 @@ import lib.lib_pcfrouter as lib_pcfrouter
 
 class Plugin(plugin.PluginProto):
  PLUGIN_ID = 19
- PLUGIN_NAME = "Extra IO - PCF8574 (TESTING)"
+ PLUGIN_NAME = "Extra IO - PCF8574"
  PLUGIN_VALUENAME1 = "State"
 
  def __init__(self,taskindex): # general init
@@ -143,10 +143,13 @@ class Plugin(plugin.PluginProto):
 
  def timer_ten_per_second(self):
   if self.initialized and self.enabled:
-   val = self.pcf.readpin(self.rpin)
-   if int(val) != int(float(self.uservar[0])):
+   try:
+    val = self.pcf.readpin(self.rpin)
+    if int(val) != int(float(self.uservar[0])):
      self.set_value(1,val,True)
      self._lastdataservetime = rpieTime.millis()
+   except:
+    pass
   return self.timer100ms
 
  def plugin_read(self): # deal with data processing at specified time interval

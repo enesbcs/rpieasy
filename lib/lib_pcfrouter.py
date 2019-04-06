@@ -52,7 +52,10 @@ class PCFEntity():
 
  def readpin(self,pinnum): # 0-7
   self.getallpinvalues()
-  return isbitset(self.lastportvalue,pinnum)
+  pv = self.lastportvalue
+  if pv is None:
+   return None
+  return isbitset(pv,pinnum)
 
  def writepin(self,pinnum,value): # pinnum 0-7, value 0-1
   result = False

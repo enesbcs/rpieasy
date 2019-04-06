@@ -342,6 +342,8 @@ PINOUT26R1_DELTA = [
 ]
 
 I2CDevices = [
+ {"name": "MCP9808 Temp sensor",
+  "addr": [0x18,0x19,0x1A,0x1B,0x1C,0x1D,0x1E,0x1F]},
  {"name": "Chirp! Water sensor",
   "addr": [0x20]},
  {"name": "MCP23008/MCP23017 I2C GPIO expander; LCD1602; PCF8574",
