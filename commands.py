@@ -620,7 +620,7 @@ def parseruleline(linestr,rulenum=-1):
      state = "INV"
     cline = cline.replace("["+m[r]+"]",tval)
  if ("%eventvalue%" in linestr) and (rulenum!=-1):
-  cline = cline.replace("%eventvalue%",GlobalRules[rulenum]["evalue"])
+  cline = cline.replace("%eventvalue%",str(GlobalRules[rulenum]["evalue"]))
  if "%" in cline:
   m = re.findall(r"\%([A-Za-z0-9_#]+)\%", cline)
   if len(m)>0: # replace with values
@@ -704,22 +704,20 @@ def rulesProcessing(eventstr,efilter=-1): # fire events
        rfound = r
        break
  if rfound>-1: # if event found, analyze that
-  fe2 = getfirstequpos(GlobalRules[rfound]["ename"])
-  if fe2>-1: # is inequality check needed
-   fe1 = getfirstequpos(estr)
-   if fe1>-1: # value found
+  fe1 = getfirstequpos(estr)
+  if fe1>-1: # value found
     if GlobalRules[rfound]["ecat"] == rpieGlobals.RULE_CLOCK: # check time strings equality
       pass
     elif GlobalRules[rfound]["ecat"] == rpieGlobals.RULE_TIMER: # check timer
       pass
     else:
-     invalue = removeequchars(estr[fe1:].replace("=","").strip())
-     GlobalRules[rfound]["evalue"]=invalue                 # %eventvalue%
-     tes = invalue+GlobalRules[rfound]["ename"][fe2:]
-     if "=" == getequchars(tes):
-      tes = tes.replace("=","==") # prepare line for python interpreter
-     if eval(tes)==False:         # ask the python interpreter to eval conditions
-      return False                # if False, than exit - it looks like a good idea, will see...
+      invalue = removeequchars(estr[fe1:].replace("=","").strip())
+      GlobalRules[rfound]["evalue"]=invalue                 # %eventvalue%
+      tes = str(invalue)+str(GlobalRules[rfound]["ename"][fe1:])
+      if "=" == getequchars(tes):
+       tes = tes.replace("=","==") # prepare line for python interpreter
+      if eval(tes)==False:         # ask the python interpreter to eval conditions
+       return False                # if False, than exit - it looks like a good idea, will see...
   if len(GlobalRules[rfound]["ecode"])>0:
    ifbool = True
    for rl in range(len(GlobalRules[rfound]["ecode"])):
