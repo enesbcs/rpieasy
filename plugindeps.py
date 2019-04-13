@@ -44,7 +44,7 @@ modulelist = [
  "testcmd": "from apds9960.const import *\ntest=APDS9960_I2C_ADDR",
  "installed":-1},
 {"name":"pygame",
- "apt": ["python3-pip"],
+ "apt": ["python3-pip","libsdl-image1.2-dev","libsdl-mixer1.2-dev","libsdl-ttf2.0-dev","libsdl1.2-dev","ffmpeg","libfreetype6-dev","python3-dev","libportmidi-dev","libportmidi0"],
  "pip": ["pygame"],
  "testcmd": "import pygame\ntest=pygame.mixer.get_init()",
  "installed":-1},
