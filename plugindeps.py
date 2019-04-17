@@ -112,6 +112,11 @@ modulelist = [
  "pip": ["PCA9685-driver"],
  "testcmd": "from pca9685_driver import Device",
  "installed":-1},
+{"name": "tm1637",
+ "apt": ["python3-pip", "python3-dev", "wiringpi"],
+ "pip": ["raspberrypi-python-tm1637","wiringpi"],
+ "testcmd": "import tm1637",
+ "installed":-1},
 
 ]
 
@@ -205,6 +210,9 @@ plugindependencies = [
 {"pluginid": "69", # LM75
  "supported_os_level": [10],
  "modules":["i2c"]},
+{"pluginid": "73", # 7DGT
+ "supported_os_level": [10],
+ "modules":["tm1637"]},
 {"pluginid": "111", #RF433 receiver
  "supported_os_level": [10],
  "modules":["GPIO","rcswitch"]},

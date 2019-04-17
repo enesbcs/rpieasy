@@ -232,11 +232,14 @@ class Controller(controller.ControllerProto):
    self.udpsender(255,dp.buffer,1)
    #clear old nodes
    for n in range(len(Settings.nodelist)):
-    if Settings.nodelist[n]["age"] >= 10:
-     misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"P2P unit disappeared: "+str(Settings.nodelist[n]["unitno"]))
-     del Settings.nodelist[n]
-    else:
-     Settings.nodelist[n]["age"] += 1
+    try:
+     if Settings.nodelist[n]["age"] >= 10:
+      misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"P2P unit disappeared: "+str(Settings.nodelist[n]["unitno"]))
+      del Settings.nodelist[n]
+     else:
+      Settings.nodelist[n]["age"] += 1
+    except:
+     pass
   return True
 
 class data_packet:
