@@ -6,18 +6,18 @@
 # Copyright (C) 2018-2019 by Alexander Nagy - https://bitekmindenhol.blog.hu/
 # 
 PROGNAME = "RPIEasy"
-BUILD   = 19107
+BUILD   = 19112
 PROGVER = "0."+str(BUILD/1000)
 
 gpMenu = []
-gpMenu.append(['Main','.'])
-gpMenu.append(['Config','config'])
-gpMenu.append(['Controllers','controllers'])
-gpMenu.append(['Hardware','hardware'])
-gpMenu.append(['Devices','devices'])
-gpMenu.append(['Rules','rules'])
-gpMenu.append(['Notifications','notifications'])
-gpMenu.append(['Tools','tools'])
+gpMenu.append(['\u2302 Main','.'])
+gpMenu.append(['\u2699 Config','config'])
+gpMenu.append(['\U0001f4ac Controllers','controllers'])
+gpMenu.append(['\U0001f4cc Hardware','hardware'])
+gpMenu.append(['\U0001f50c Devices','devices'])
+gpMenu.append(['\u29f4 Rules','rules'])
+gpMenu.append(['\u2709 Notifications','notifications'])
+gpMenu.append(['\U0001f527 Tools','tools'])
 
 webLoggedIn = False
 osinuse = ""
