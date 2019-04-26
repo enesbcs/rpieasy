@@ -1109,7 +1109,10 @@ def handle_devices(self):
        TXBuffer += "<TD>"
 
        if (len(Settings.Tasks)>x) and (Settings.Tasks[x]):
-        addEnabled(Settings.Tasks[x].enabled)
+        try:
+         addEnabled(Settings.Tasks[x].enabled)
+        except:
+         break
 
         TXBuffer += "<TD>"
         TXBuffer += Settings.Tasks[x].getdevicename()
@@ -2437,7 +2440,9 @@ def handle_upload_post(self):
     except:
      fname = ""
     if fname.lower().endswith(".zip"):
+     misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG, "Unzipping...")
      OS.extractzip(fname,"data/")
+     Settings.loadtasks()
     return self.redirect("/tools")
   if upath:
    if upath.startswith(current_dir)==False:

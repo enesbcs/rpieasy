@@ -151,13 +151,13 @@ def CPluginInit():
 
  for y in range(0,len(Settings.Controllers)):
    if (Settings.Controllers[y]):
-    if (Settings.Controllers[y].enabled): 
-     try:
-      Settings.Controllers[y].controller_init(None) # init controller at startup
-      Settings.Controllers[y].setonmsgcallback(Settings.callback_from_controllers) # set global msg callback for 2way comm
-     except Exception as e:
-      Settings.Controllers[y] = False
-      misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Controller" +str(y+1)+ " is malformed, deleted! "+str(e))
+    try:
+     if (Settings.Controllers[y].enabled): 
+       Settings.Controllers[y].controller_init(None) # init controller at startup
+       Settings.Controllers[y].setonmsgcallback(Settings.callback_from_controllers) # set global msg callback for 2way comm
+    except Exception as e:
+       Settings.Controllers[y] = False
+       misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Controller" +str(y+1)+ " is malformed, deleted! "+str(e))
 
  return 0
 
@@ -185,27 +185,33 @@ def run50timespersecond():
  procarr = []
  for x in range(0,len(Settings.Tasks)):
   if (Settings.Tasks[x]) and type(Settings.Tasks[x]) is not bool: # device exists
-   if (Settings.Tasks[x].enabled): # device enabled
-    if (Settings.Tasks[x].timer20ms): # scheduling needed
-     t = threading.Thread(target=Settings.Tasks[x].timer_fifty_per_second)
-     t.daemon = True
-     procarr.append(t)
-     t.start()
+   try:
+    if (Settings.Tasks[x].enabled): # device enabled
+     if (Settings.Tasks[x].timer20ms): # scheduling needed
+      t = threading.Thread(target=Settings.Tasks[x].timer_fifty_per_second)
+      t.daemon = True
+      procarr.append(t)
+      t.start()
+   except:
+    pass
  if len(procarr)>0:
   for process in procarr:
-    process.join(1)
+   process.join(1)
  return 0
 
 def run10timespersecond():
  procarr = []
  for x in range(0,len(Settings.Tasks)):
   if (Settings.Tasks[x]) and type(Settings.Tasks[x]) is not bool: # device exists
-   if (Settings.Tasks[x].enabled): # device enabled
-    if (Settings.Tasks[x].timer100ms): # scheduling needed
-     t = threading.Thread(target=Settings.Tasks[x].timer_ten_per_second)
-     t.daemon = True
-     procarr.append(t)
-     t.start()
+   try:
+    if (Settings.Tasks[x].enabled): # device enabled
+     if (Settings.Tasks[x].timer100ms): # scheduling needed
+      t = threading.Thread(target=Settings.Tasks[x].timer_ten_per_second)
+      t.daemon = True
+      procarr.append(t)
+      t.start()
+   except:
+    pass
  if len(procarr)>0:
   for process in procarr:
     process.join(1)
@@ -215,12 +221,15 @@ def runoncepersecond():
  procarr = []
  for x in range(0,len(Settings.Tasks)):
   if (Settings.Tasks[x]) and type(Settings.Tasks[x]) is not bool: # device exists
-   if (Settings.Tasks[x].enabled): # device enabled
-    if (Settings.Tasks[x].timer1s): # scheduling needed
-     t = threading.Thread(target=Settings.Tasks[x].timer_once_per_second)
-     t.daemon = True
-     procarr.append(t)
-     t.start()
+   try:
+    if (Settings.Tasks[x].enabled): # device enabled
+     if (Settings.Tasks[x].timer1s): # scheduling needed
+      t = threading.Thread(target=Settings.Tasks[x].timer_once_per_second)
+      t.daemon = True
+      procarr.append(t)
+      t.start()
+   except:
+    pass
  checkSensors()
  if len(procarr)>0:
   for process in procarr:
@@ -231,12 +240,15 @@ def runon2seconds():
  procarr = []
  for x in range(0,len(Settings.Tasks)):
   if (Settings.Tasks[x]) and type(Settings.Tasks[x]) is not bool: # device exists
-   if (Settings.Tasks[x].enabled): # device enabled
-    if (Settings.Tasks[x].timer2s): # scheduling needed
-     t = threading.Thread(target=Settings.Tasks[x].timer_two_second)
-     t.daemon = True
-     procarr.append(t)
-     t.start()
+   try:
+    if (Settings.Tasks[x].enabled): # device enabled
+     if (Settings.Tasks[x].timer2s): # scheduling needed
+      t = threading.Thread(target=Settings.Tasks[x].timer_two_second)
+      t.daemon = True
+      procarr.append(t)
+      t.start()
+   except:
+    pass
  if len(procarr)>0:
   for process in procarr:
     process.join()
@@ -261,13 +273,16 @@ def checkSensors():
  procarr2 = []
  for x in range(0,len(Settings.Tasks)):
   if (Settings.Tasks[x]) and type(Settings.Tasks[x]) is not bool: # device exists
-   if (Settings.Tasks[x].enabled): # device enabled
-    if (Settings.Tasks[x].is_read_timely()): # check if device update needed
+   try:
+    if (Settings.Tasks[x].enabled): # device enabled
+     if (Settings.Tasks[x].is_read_timely()): # check if device update needed
 #     print("pluginread task"+str(x)+" "+str(Settings.Tasks[x]._lastdataservetime)) # DEBUG ONLY!
-     t2 = threading.Thread(target=Settings.Tasks[x].plugin_read)
-     t2.daemon = True
-     procarr2.append(t2)
-     t2.start()
+      t2 = threading.Thread(target=Settings.Tasks[x].plugin_read)
+      t2.daemon = True
+      procarr2.append(t2)
+      t2.start()
+   except:
+    pass
  if len(procarr2)>0:
   for process2 in procarr2:
     process2.join()

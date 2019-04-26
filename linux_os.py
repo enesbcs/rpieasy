@@ -495,9 +495,9 @@ def extractzip(zipname,destdir=""):
        cmdline += ' -d '+str(destdir)
       output = os.popen(cmdline)
       for l in output:
-       pass
-     except:
-      pass
+       misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,str(l)) #       pass
+     except Exception as e:
+      misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,str(e)) #       pass
 
 def getfirstusername():
     cmdline = "awk -F: '{ print $3"

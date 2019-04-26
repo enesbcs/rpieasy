@@ -31,11 +31,14 @@ def doCleanup():
   procarr = []
   for x in range(0,len(Settings.Tasks)):
    if (Settings.Tasks[x]) and type(Settings.Tasks[x]) is not bool: # device exists
-    if (Settings.Tasks[x].enabled): # device enabled
+    try:
+     if (Settings.Tasks[x].enabled): # device enabled
       t = threading.Thread(target=Settings.Tasks[x].plugin_exit)
       t.daemon = True
       procarr.append(t)
       t.start()
+    except:
+     pass
   if len(procarr)>0:
    for process in procarr:
      process.join(1)
