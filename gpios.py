@@ -376,6 +376,8 @@ I2CDevices = [
   "addr": [0x4A]},
  {"name": "BH1750",
   "addr": [0x23,0x5C]},
+ {"name": "MPR121 touch sensor",
+  "addr": [0x5a,0x5b,0x5c,0x5d]},
  {"name": "DHT12/AM2320",
   "addr": [0x5C]},
  {"name": "DS1307/DS3231/PCF8523 RTC",

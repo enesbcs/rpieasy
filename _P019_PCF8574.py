@@ -117,8 +117,8 @@ class Plugin(plugin.PluginProto):
   return True
 
  def webform_save(self,params): # process settings post reply
-   p2 = self.taskdevicepin[0]
-   p1 = self.taskdevicepluginconfig[0]
+   p1 = self.taskdevicepin[0]
+   p2 = self.taskdevicepluginconfig[0]
    par = webserver.arg("p019_pnum",params)
    try:
     self.taskdevicepluginconfig[0] = int(par)

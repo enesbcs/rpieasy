@@ -205,6 +205,9 @@ plugindependencies = [
 {"pluginid": "59", #Rotary
  "supported_os_level": [10],
  "modules":["GPIO"]},
+{"pluginid": "62", # MPR121
+ "supported_os_level": [10],
+ "modules":["GPIO","i2c"]},
 {"pluginid": "64", # APDS9960
  "supported_os_level": [10],
  "modules":["i2c","apds"]},
