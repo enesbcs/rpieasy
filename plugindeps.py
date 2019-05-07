@@ -238,6 +238,9 @@ plugindependencies = [
 {"pluginid": "202", # MCP9808
  "supported_os_level": [10],
  "modules":["i2c"]},
+{"pluginid": "203", # MCP4725
+ "supported_os_level": [10],
+ "modules":["i2c"]},
 {"pluginid": "501", # USB relay
  "modules":["hidapi"]},
 {"pluginid": "502", # pygame play wav/mp3

@@ -380,6 +380,8 @@ I2CDevices = [
   "addr": [0x5a,0x5b,0x5c,0x5d]},
  {"name": "DHT12/AM2320",
   "addr": [0x5C]},
+ {"name": "MCP4725 DAC",
+  "addr": [0x60,0x61]},
  {"name": "DS1307/DS3231/PCF8523 RTC",
   "addr": [0x68]},
  {"name": "PCA9685 'All Call'",
