@@ -6,7 +6,7 @@
 # Copyright (C) 2018-2019 by Alexander Nagy - https://bitekmindenhol.blog.hu/
 # 
 PROGNAME = "RPIEasy"
-BUILD   = 19127
+BUILD   = 19139
 PROGVER = "0."+str(BUILD/1000)
 
 gpMenu = []
@@ -75,7 +75,7 @@ RULE_TIMER    = 65533 # Rules#Timer=
 DEVICE_TYPE_SINGLE               =   1  # connected through 1 datapin
 DEVICE_TYPE_DUAL                 =   2  # connected through 2 datapins
 DEVICE_TYPE_TRIPLE               =   3  # connected through 3 datapins
-DEVICE_TYPE_QUAD                 =   4  # connected through 3 datapins
+DEVICE_TYPE_QUAD                 =   4  # connected through 4 datapins
 DEVICE_TYPE_ANALOG               =  10  # AIN/tout pin
 DEVICE_TYPE_I2C                  =  20  # connected through I2C
 DEVICE_TYPE_SPI                  =  30  # connected through SPI

@@ -416,7 +416,7 @@ def getfirstequpos(cstr):
  res = -1
  for c in range(len(cstr)):
   if cstr[c] in "<>=!":
-   res = c
+   return c
    break
  return res
 
@@ -643,8 +643,9 @@ def parseruleline(linestr,rulenum=-1):
    state = "IFST"
    try:
     cline = eval(cline[3:])
-   except:
+   except Exception as e:
     cline = False                 # error checking?
+    print("IF eval exception",e)
    misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"Parsed condition: "+str(tline)+" "+str(cline))
  elif "endif" in cline:
   cline = True
@@ -715,12 +716,13 @@ def rulesProcessing(eventstr,efilter=-1): # fire events
       pass
     else:
       invalue = removeequchars(estr[fe1:].replace("=","").strip())
-      GlobalRules[rfound]["evalue"]=invalue                 # %eventvalue%
-      tes = str(invalue)+str(GlobalRules[rfound]["ename"][fe1:])
-      if "=" == getequchars(tes):
-       tes = tes.replace("=","==") # prepare line for python interpreter
-      if eval(tes)==False:         # ask the python interpreter to eval conditions
-       return False                # if False, than exit - it looks like a good idea, will see...
+      if getfirstequpos(GlobalRules[rfound]["ename"])>-1: # search for further options
+       GlobalRules[rfound]["evalue"]=invalue                 # %eventvalue%
+       tes = str(invalue)+str(GlobalRules[rfound]["ename"][fe1:])
+       if "=" == getequchars(tes):
+        tes = tes.replace("=","==") # prepare line for python interpreter
+       if eval(tes)==False:         # ask the python interpreter to eval conditions
+        return False                # if False, than exit - it looks like a good idea, will see...
   if len(GlobalRules[rfound]["ecode"])>0:
    ifbool = True
    for rl in range(len(GlobalRules[rfound]["ecode"])):
