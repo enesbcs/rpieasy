@@ -2022,7 +2022,7 @@ def handle_json(self):
   senstop  = len(Settings.Tasks)
  else:
   senstart = showspectask
-  senstop = senstart
+  senstop = senstart+1
  TXBuffer += '"Sensors":['
  ttl = 120
  for sc in range(senstart,senstop):
@@ -2442,7 +2442,7 @@ def handle_upload_post(self):
     if fname.lower().endswith(".zip"):
      misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG, "Unzipping...")
      OS.extractzip(fname,"data/")
-     Settings.loadtasks()
+    Settings.loadtasks()
     return self.redirect("/tools")
   if upath:
    if upath.startswith(current_dir)==False:
