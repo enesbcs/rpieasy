@@ -118,6 +118,11 @@ modulelist = [
  "pip": ["raspberrypi-python-tm1637","wiringpi"],
  "testcmd": "import tm1637",
  "installed":-1},
+{"name":"ina219",
+ "apt": ["python3-pip"],
+ "pip": ["pi-ina219"],
+ "testcmd": "from ina219 import INA219",
+ "installed":-1},
 
 ]
 
@@ -184,6 +189,9 @@ plugindependencies = [
 {"pluginid": "26", #SysInfo
  "supported_os_level": [1,2,10],
  "modules":["linux-kernel"]},
+{"pluginid": "27", # INA219
+ "supported_os_level": [10],
+ "modules":["i2c","ina219"]},
 {"pluginid": "28", # BMP280
  "supported_os_level": [10],
  "modules":["i2c"]},
