@@ -150,6 +150,9 @@ plugindependencies = [
 {"pluginid": "8", # Wiegand GPIO
  "supported_os_level": [10],
  "modules":["GPIO","wiegand_io"]},
+{"pluginid": "7", # PCF8591
+ "supported_os_level": [10],
+ "modules":["i2c"]},
 {"pluginid": "9", # MCP
  "supported_os_level": [10],
  "modules":["GPIO","i2c","MCP"]},

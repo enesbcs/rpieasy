@@ -151,10 +151,13 @@ class Plugin(plugin.PluginProto):
  def stop(self,Optional=False):
   self.playing = False
   if Settings.SoundSystem["inuse"] and Settings.SoundSystem["usingplugintaskindex"] == self.taskindex:
-   if pygame.mixer.get_init():
-    if pygame.mixer.music.get_busy():
-     pygame.mixer.music.stop()
-    pygame.mixer.quit()
+   try:
+    if pygame.mixer.get_init():
+     if pygame.mixer.music.get_busy():
+      pygame.mixer.music.stop()
+     pygame.mixer.quit()
+   except:
+    pass
    Settings.SoundSystem["inuse"] = False
    Settings.SoundSystem["usingplugintaskindex"] = -1
    Settings.SoundSystem["askplugintorelease"] = None

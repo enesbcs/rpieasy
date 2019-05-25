@@ -664,7 +664,7 @@ def isformula(line):
 def parseformula(line,value):
  fv = False
  if "%value%" in line.lower():
-  l2 = line.replace("%value%",str(value))
+  l2 = line.replace("%value%",str(float(value)))
   fv = parsevalue(l2)
  return fv
 

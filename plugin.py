@@ -101,12 +101,12 @@ class PluginProto: # Skeleton for every plugin! Override necessary functions and
       self.valuecount = 4
 
  def set_value(self,valuenum,value,publish=True,suserssi=-1,susebattery=-1): # implement if GPIO used!!
-  if int(valuenum)<=self.valuecount and int(valuenum)>0:
+  if float(valuenum)<=self.valuecount and float(valuenum)>0:
    rval = value
    if self.formulaoption: # handle formulas
     tval = False
     if len(self.formula[valuenum-1])>0 and commands.isformula(self.formula[valuenum-1]):
-     tval = commands.parseformula(self.formula[valuenum-1],value)
+     tval = commands.parseformula(self.formula[valuenum-1],float(value))
      if tval!=False:
       rval = tval
    if self.pininversed:          # only binary sensors supported for inversion!
@@ -120,9 +120,9 @@ class PluginProto: # Skeleton for every plugin! Override necessary functions and
       rval = 1
      else:
       rval = 0
-   if int(self.decimals[valuenum-1])>=0: # handle decimals if needed
+   if int(float(self.decimals[valuenum-1]))>=0: # handle decimals if needed
     try:
-     rval = misc.formatnum(rval,int(self.decimals[valuenum-1]))
+     rval = misc.formatnum(rval,int(float(self.decimals[valuenum-1])))
     except:
      pass
    self.uservar[valuenum-1] = rval

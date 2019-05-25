@@ -37,7 +37,7 @@ import tm1637 # pip3 install raspberrypi-python-tm1637
 
 class Plugin(plugin.PluginProto):
  PLUGIN_ID = 73
- PLUGIN_NAME = "Display - TM1637 (TESTING)"
+ PLUGIN_NAME = "Display - TM1637"
  PLUGIN_VALUENAME1 = "TM1637"
  P073_TM1637_4DGTCOLON =  1
  P073_TM1637_4DGTDOTS  =  2
