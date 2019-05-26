@@ -141,6 +141,9 @@ plugindependencies = [
 {"pluginid": "1", #Switch
  "supported_os_level": [10],
  "modules":["GPIO"]},
+{"pluginid": "3", #Pulse
+ "supported_os_level": [10],
+ "modules":["GPIO"]},
 {"pluginid": "4", #DS18b20
  "supported_os_level": [1,2,10],
  "modules":["linux-kernel"]},
