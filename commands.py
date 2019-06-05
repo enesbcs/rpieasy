@@ -23,7 +23,7 @@ import threading
 
 GlobalRules = []
 SysVars = ["systime","system_hm","lcltime","syshour","sysmin","syssec","sysday","sysmonth",
-"sysyear","sysyears","sysweekday","sysweekday_s","unixtime","uptime","rssi","ip","ip4","sysname","unit","ssid","mac","mac_int","build"]
+"sysyear","sysyears","sysweekday","sysweekday_s","unixtime","uptime","rssi","ip","ip4","sysname","unit","ssid","mac","mac_int","build","sunrise","sunset"]
 
 def doCleanup():
   rulesProcessing("System#Shutdown",rpieGlobals.RULE_SYSTEM)
@@ -77,7 +77,7 @@ def doExecuteCommand(cmdline,Parse=True):
  cmdarr[0] = cmdarr[0].strip().lower()
  commandfound = False
  misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"CMD: "+cmdline.replace("==","="))
-
+ 
  if cmdarr[0] == "delay":
   try:
    s = float(cmdarr[1])
@@ -122,7 +122,11 @@ def doExecuteCommand(cmdline,Parse=True):
      v = Settings.Tasks[s].valuecount
     if v<1:
      v = 1
-    Settings.Tasks[s].set_value(v,parsevalue(str(cmdarr[3].strip())),False)
+    try:
+     Settings.Tasks[s].set_value(v,parsevalue(str(cmdarr[3].strip())),False)
+    except Exception as e:
+     pass
+#     print("Set value error: ",e)
     commandfound = True
   return commandfound
 
@@ -416,7 +420,7 @@ def getfirstequpos(cstr):
  res = -1
  for c in range(len(cstr)):
   if cstr[c] in "<>=!":
-   return c
+   res = c
    break
  return res
 
@@ -462,9 +466,46 @@ def gettaskvaluefromname(taskname): # taskname#valuename->value
    res=-1
  return res
 
+suntimesupported = -1
+
+def addtoTime(basetime, deltastr): # -1h +2h -10m +3m ...
+ sign = 1
+ multi = 1
+ deltastr = str(deltastr).lower()
+ if "-" in deltastr:
+  sign = -1
+  deltastr = deltastr.replace("-","")
+ else:
+  deltastr = deltastr.replace("+","")
+ if "h" in deltastr:
+  multi = 3600
+  deltastr = deltastr.replace("h","")
+ if "m" in deltastr:
+  multi = 60
+  deltastr = deltastr.replace("m","")
+ try:
+  from datetime import timedelta
+  td = int(deltastr)
+  if sign==1:
+   return basetime + timedelta(seconds=(td*multi))
+  else:
+   return basetime - timedelta(seconds=(td*multi))
+ except:
+  return basetime
+
+
 def getglobalvar(varname):
- global SysVars
+ global SysVars, suntimesupported
  svname = varname.strip().lower()
+ par = ""
+ if ("-" in svname):
+  resarr = svname.split("-")
+  svname = resarr[0]
+  par = "-"+resarr[1]
+ if ("+" in svname):
+  resarr = svname.split("+")
+  svname = resarr[0]
+  par = "+"+resarr[1]
  res = ""
  if svname in SysVars:
    if svname==SysVars[0]: #%systime%	01:23:54
@@ -546,6 +587,39 @@ def getglobalvar(varname):
    elif svname==SysVars[22]: #%build%
     bstr = str(rpieGlobals.BUILD)
     return bstr[:2]+"."+bstr[2:]
+   elif svname==SysVars[23]: #sunrise
+    try:
+      from suntime import Sun
+      suntimesupported = 1
+    except:
+      suntimesupported = 0
+    if suntimesupported==1:
+     try:
+      sun = Sun(Settings.AdvSettings["Latitude"],Settings.AdvSettings["Longitude"])
+      abd_sr = sun.get_local_sunrise_time(datetime.now())
+      if par!="":
+       abd_sr = addtoTime(abd_sr,par)
+      res = abd_sr.strftime('%H:%M')
+     except Exception as e:
+      res = "00:00"
+     return res
+   elif svname==SysVars[24]: #sunset
+    try:
+      from suntime import Sun
+      suntimesupported = 1
+    except:
+      suntimesupported = 0
+    if suntimesupported==1:
+     try:
+      sun = Sun(Settings.AdvSettings["Latitude"],Settings.AdvSettings["Longitude"])
+      abd_ss = sun.get_local_sunset_time(datetime.now())
+      if par!="":
+       abd_ss = addtoTime(abd_ss,par)
+      res = abd_ss.strftime('%H:%M')
+     except Exception as e:
+      res = "00:00"
+     return res
+
  return res
 
 def parsevalue(pvalue):
@@ -558,8 +632,11 @@ def parsevalue(pvalue):
     if o in retval:
      op = True
      break
-   if op:
-    retval = eval(retval)  # evaluate expressions
+   try:
+    if op:
+     retval = eval(retval)  # evaluate expressions
+   except:
+     retval = str(retval)
    return retval
 
 def parseconversions(cvalue):
@@ -625,11 +702,15 @@ def parseruleline(linestr,rulenum=-1):
  if ("%eventvalue%" in linestr) and (rulenum!=-1):
   cline = cline.replace("%eventvalue%",str(GlobalRules[rulenum]["evalue"]))
  if "%" in cline:
-  m = re.findall(r"\%([A-Za-z0-9_#]+)\%", cline)
+  m = re.findall(r"\%([A-Za-z0-9_#\+\-]+)\%", cline)
   if len(m)>0: # replace with values
    for r in range(len(m)):
     if m[r] in SysVars:
      cline = cline.replace("%"+m[r]+"%",str(getglobalvar(m[r])))
+    elif ("-" in m[r]) or ("+" in m[r]):
+     val = str(getglobalvar(m[r]))
+     if val != "":
+      cline = cline.replace("%"+m[r]+"%",val)
  cline = parseconversions(cline)
  equ = getfirstequpos(cline)
  if equ!=-1:
@@ -643,9 +724,8 @@ def parseruleline(linestr,rulenum=-1):
    state = "IFST"
    try:
     cline = eval(cline[3:])
-   except Exception as e:
+   except:
     cline = False                 # error checking?
-    print("IF eval exception",e)
    misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"Parsed condition: "+str(tline)+" "+str(cline))
  elif "endif" in cline:
   cline = True
@@ -664,7 +744,7 @@ def isformula(line):
 def parseformula(line,value):
  fv = False
  if "%value%" in line.lower():
-  l2 = line.replace("%value%",str(float(value)))
+  l2 = line.replace("%value%",str(value))
   fv = parsevalue(l2)
  return fv
 
@@ -709,20 +789,23 @@ def rulesProcessing(eventstr,efilter=-1): # fire events
        break
  if rfound>-1: # if event found, analyze that
   fe1 = getfirstequpos(estr)
-  if fe1>-1: # value found
+  if (fe1>-1): # value found
     if GlobalRules[rfound]["ecat"] == rpieGlobals.RULE_CLOCK: # check time strings equality
       pass
     elif GlobalRules[rfound]["ecat"] == rpieGlobals.RULE_TIMER: # check timer
       pass
     else:
-      invalue = removeequchars(estr[fe1:].replace("=","").strip())
-      if getfirstequpos(GlobalRules[rfound]["ename"])>-1: # search for further options
+      if getfirstequpos(str(GlobalRules[rfound]["ename"]))>-1:
+       invalue = removeequchars(estr[fe1:].replace("=","").strip())
        GlobalRules[rfound]["evalue"]=invalue                 # %eventvalue%
        tes = str(invalue)+str(GlobalRules[rfound]["ename"][fe1:])
-       if "=" == getequchars(tes):
-        tes = tes.replace("=","==") # prepare line for python interpreter
-       if eval(tes)==False:         # ask the python interpreter to eval conditions
-        return False                # if False, than exit - it looks like a good idea, will see...
+       try:
+        if "=" == getequchars(tes):
+         tes = tes.replace("=","==") # prepare line for python interpreter
+        if eval(tes)==False:         # ask the python interpreter to eval conditions
+         return False                # if False, than exit - it looks like a good idea, will see...
+       except:
+        return False
   if len(GlobalRules[rfound]["ecode"])>0:
    ifbool = True
    for rl in range(len(GlobalRules[rfound]["ecode"])):

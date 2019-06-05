@@ -74,7 +74,10 @@ class Plugin(plugin.PluginProto):
  def plugin_receivedata(self,data):       # Watching for incoming mqtt commands
   if (len(data)>0):
 #   print(data)
-   self.set_value(1,int(data[0]),False)
+   try:
+    self.set_value(1,int(data[0]),False)
+   except Exception as e:
+    print(str(e))
 
  def set_value(self,valuenum,value,publish=True,suserssi=-1,susebattery=-1): # Also reacting and handling Taskvalueset
   if self.initialized:

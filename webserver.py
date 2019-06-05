@@ -248,7 +248,7 @@ def handle_config(self):
  addSubmitButton()
 
  oslvl = misc.getsupportlevel(1)
- if oslvl in [1,2,10]: # maintain supported system list!!!
+ if oslvl in [1,2,3,10]: # maintain supported system list!!!
   addFormSeparator(2)
   if oslvl != 2:
    addFormCheckBox("I have root rights and i really want to manage network settings below","netman", netmanage)
@@ -560,13 +560,18 @@ def handle_hardware(self):
  TXBuffer += "<TR><TD>Type:<TD>"+suplvl
  if suplvl[0] != "N":
   TXBuffer += "<TR><TD>OS:<TD>"+str(rpieGlobals.osinuse)+" "+str(misc.getosname(1))
- if suplvl[0] == "L":
+ if "Linux" in suplvl:
   TXBuffer += "<TR><TD>OS full name:<TD>"+str(OS.getosfullname())
+ if suplvl[0] == "L":
   TXBuffer += "<TR><TD>Hardware:<TD>"+str(OS.gethardware())
- if suplvl[0] == "R":
+ if "RPI" in suplvl:
   rpv = OS.getRPIVer()
   if len(rpv)>1:
    TXBuffer += "<TR><TD>Hardware:<TD>"+rpv["name"]+" "+rpv["ram"]
+ if "OPI" in suplvl:
+  opv = OS.getarmbianinfo()
+  if len(opv)>0:
+   TXBuffer += "<TR><TD>Hardware:<TD>"+opv["name"]
  if suplvl[0] != "N":
   addFormSeparator(2)
   racc = OS.check_permission()
@@ -1548,9 +1553,12 @@ def handle_tools(self):
  if len(webrequest)>0:
   responsestr = str(commands.doExecuteCommand(webrequest))  # response ExecuteCommand(VALUE_SOURCE_WEB_FRONTEND, webrequest.c_str());
  if len(responsestr)>0:
-  TXBuffer += "<TR><TD colspan='2'>Command Output<BR><textarea readonly rows='10' wrap='on'>"
-  TXBuffer += str(responsestr)
-  TXBuffer += "</textarea>"
+  try:
+   TXBuffer += "<TR><TD colspan='2'>Command Output<BR><textarea readonly rows='10' wrap='on'>"
+   TXBuffer += str(responsestr)
+   TXBuffer += "</textarea>"
+  except Exception as e:
+   print(str(e))
 
  addFormSubHeader("System")
 
@@ -1875,6 +1883,13 @@ def handle_advanced(self):
    Settings.AdvSettings["battery"]["taskvaluenum"] = int(arg("battery_valuenum",responsearr))
   except:
    Settings.AdvSettings["battery"] = {"enabled":False,"tasknum":0,"taskvaluenum":0}
+
+  try:
+   Settings.AdvSettings["Latitude"]  = float(arg("latitude",responsearr))
+   Settings.AdvSettings["Longitude"] = float(arg("longitude",responsearr))
+  except:
+   Settings.AdvSettings["Latitude"]  = 0
+   Settings.AdvSettings["Longitude"] = 0
   Settings.saveadvsettings()
 
  TXBuffer += "<form  method='post'><table class='normal'>"
@@ -1890,6 +1905,27 @@ def handle_advanced(self):
   val = ""
   Settings.AdvSettings["syslogip"] = val
  addFormTextBox("Syslog IP", "syslogip", val,64)
+
+ addFormSubHeader("Location Settings")
+ suntimesupported = False
+ try:
+  from suntime import Sun
+  suntimesupported = True
+ except:
+  suntimesupported = False
+ if (suntimesupported):
+  try:
+   lat = Settings.AdvSettings["Latitude"]
+   lon = Settings.AdvSettings["Longitude"]
+  except:
+   lat = 0
+   lon = 0
+  addFormFloatNumberBox("Latitude", "latitude", lat , -90.0, 90.0)
+  addUnit("&deg;")
+  addFormFloatNumberBox("Longitude", "longitude", lon, -180.0, 180.0)
+  addUnit("&deg;")
+ else:
+    TXBuffer += "<tr><td colspan=2>SunTime supporting library not found! Please install <a href='plugins?installmodule=suntime'>suntime</a>"
 
  addFormSubHeader("Battery reporting source")
  try:
@@ -2820,7 +2856,7 @@ def addNumericBox(fid, value, minv=INT_MIN, maxv=INT_MAX):
   TXBuffer += ">"
 
 def addFormNumericBox(label, fid, value, minv=INT_MIN, maxv=INT_MAX):
-  addRowLabel(label);
+  addRowLabel(label)
   addNumericBox(fid, value, minv, maxv)
   
 def addTextBox(fid, value, maxlength):
@@ -2910,6 +2946,28 @@ def addEnabled(enabled):
     TXBuffer += "<span class='enabled on'>&#10004;</span>"
   else:
     TXBuffer += "<span class='enabled off'>&#10060;</span>"
+
+def addFloatNumberBox(fid, value, fmin, fmax):
+  global TXBuffer
+  TXBuffer += "<input type='number' name='"
+  TXBuffer += str(fid)
+  TXBuffer += '\''
+  TXBuffer += " min="
+  TXBuffer += str(fmin)
+  TXBuffer += " max="
+  TXBuffer += str(fmax)
+  TXBuffer += " step=0.01"
+  TXBuffer += " style='width:5em;' value="
+  TXBuffer += str(value)
+  TXBuffer += '>'
+
+def addFormFloatNumberBox(label, fid, value, fmin, fmax):
+  addRowLabel(label)
+  addFloatNumberBox(fid, value, fmin, fmax)
+
+def addFormNumericBox(label, fid, value, minv=INT_MIN, maxv=INT_MAX):
+  addRowLabel(label);
+  addNumericBox(fid, value, minv, maxv)
 
 def addNetType(wless):
   global TXBuffer

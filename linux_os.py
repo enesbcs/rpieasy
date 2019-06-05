@@ -601,3 +601,29 @@ def cmdline_rootcorrect(cmdline):
     res = cmdline.replace("sudo -H ","")
     res = res.replace("sudo ","")
   return res.strip()
+
+def checkOPI():
+  opv = getarmbianinfo()
+  if len(opv)>0:
+   try:
+    return ("orange" in opv["name"].lower())
+   except:
+    return False
+  else:
+   return False
+
+def getarmbianinfo():
+    hwarr = { 
+      "name": "Unknown model",
+      "pins": ""
+    }
+    try:
+     with open('/etc/armbian-release') as f:
+      for line in f:
+       line = line.strip()
+       if line.startswith('BOARD_NAME'):
+        pname = line.split('"')
+        hwarr["name"] = pname[1]
+    except:
+     pass
+    return hwarr
