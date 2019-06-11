@@ -6,7 +6,7 @@
 # Can only be used with devices that supports GPIO operations!
 #
 # Available commands: (It is evident, that you have to enable at least one P001 device if you want to use it's commands)
-#  gpio,26,1          - set pin GPIO26 to 1 (HIGH) 
+#  gpio,26,1          - set pin GPIO26 to 1 (HIGH)
 #  pwm,18,50,20000    - set pin GPIO18 to PWM mode with 20000Hz sample rate and 50% fill ratio
 #                       PWM is software based if not one of the dedicated H-PWM pins
 #                       H-PWM has to be set before use this command and may need root rights!
@@ -24,6 +24,7 @@ import time
 import misc
 import gpios
 import lib.lib_gpiohelper as gpiohelper
+import webserver
 
 class Plugin(plugin.PluginProto):
  PLUGIN_ID = 1
@@ -59,11 +60,28 @@ class Plugin(plugin.PluginProto):
    self.set_value(1,gpios.HWPorts.input(int(self.taskdevicepin[0])),True) # Sync plugin value with real pin state
    try:
     self.__del__()
+    if self.taskdevicepluginconfig[0]:
+     misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"Registering 10/sec timer as asked")
+     self.timer100ms = True
+     return True
     gpios.HWPorts.add_event_detect(int(self.taskdevicepin[0]),gpios.BOTH,self.p001_handler)
+    misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"Event registered to pin "+str(self.taskdevicepin[0]))
     self.timer100ms = False
    except:
     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Event can not be added, register backup timer")
     self.timer100ms = True
+
+ def webform_load(self):
+  webserver.addFormNote("Please make sure to select <a href='pinout'>pin configured for input!</a>")
+  webserver.addFormCheckBox("Force 10/sec periodic checking of pin","p001_per",self.taskdevicepluginconfig[0])
+  return True
+
+ def webform_save(self,params):
+  if (webserver.arg("p001_per",params)=="on"):
+   self.taskdevicepluginconfig[0] = True
+  else:
+   self.taskdevicepluginconfig[0] = False
+  return True
 
  def plugin_read(self):
   result = False
@@ -74,7 +92,13 @@ class Plugin(plugin.PluginProto):
   return result
 
  def p001_handler(self,channel):
-  self.timer_ten_per_second()
+  if self.initialized and self.enabled:
+   val = gpios.HWPorts.input(int(self.taskdevicepin[0]))
+#   print("GPIO",int(self.taskdevicepin[0]),"v:",val)
+   if int(val) != int(float(self.uservar[0])):
+    self.set_value(1,val,True)
+    self._lastdataservetime = rpieTime.millis()
+    rpieTime.addsystemtimer(1,self.postchecker,[int(self.taskdevicepin[0]),int(float(self.uservar[0]))]) # failsafe check
 
  def timer_ten_per_second(self):
   if self.initialized and self.enabled:
@@ -91,3 +115,7 @@ class Plugin(plugin.PluginProto):
   if cmdarr[0].strip().lower() in ["gpio","pwm","pulse","longpulse"]:
    res = gpiohelper.gpio_commands(cmd)
   return res
+
+ def postchecker(self,timerid,pararray):
+  if (pararray[0]==int(self.taskdevicepin[0])):
+   self.timer_ten_per_second()

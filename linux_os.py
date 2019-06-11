@@ -577,6 +577,30 @@ def get_bootparams(): # RPI only
       tstr = ""
      return tstr
 
+def get_i2c_state(m=0): # RPI only
+    if m==0:
+     tstr = "ERROR: I2C module not started"
+     try:
+      output = os.popen('lsmod | grep i2c')
+      for l in output:
+       if ("i2c_dev" in l):
+        tstr = ""
+        break
+     except:
+      pass
+    else:
+     fname = "/etc/modules"
+     tstr = "ERROR: i2c-dev is not found in "+fname
+     try:
+      if os.path.exists(fname):
+       with open(fname) as f:
+        for line in f:
+         if line.strip() == "i2c-dev":
+          tstr = ""
+     except:
+      pass
+    return tstr
+
 def disable_serialsyslog():
     fname = "/boot/cmdline.txt"
     content = get_bootparams().strip()

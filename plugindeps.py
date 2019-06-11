@@ -59,6 +59,11 @@ modulelist = [
  "testcmd": "import wiegand_io",
  "installcmd" : "cd lib/wiegand_io && sudo python3 wiegand_setup.py install && cd ../..",
  "installed":-1},
+{"name":"wiegand_io2",
+ "apt": ["wiringpi","build-essential","python3-pip","python3-setuptools"],
+ "testcmd": "import wiegand_io2",
+ "installcmd" : "cd lib/wiegand_io2 && sudo python3 wiegand_setup.py install && cd ../..",
+ "installed":-1},
 {"name":"bluepy",
  "apt": ["python3-pip","libglib2.0-dev","python3-setuptools"],
  "pip": ["bluepy"],
@@ -157,7 +162,7 @@ plugindependencies = [
  "modules":["Adafruit_DHT"]},
 {"pluginid": "8", # Wiegand GPIO
  "supported_os_level": [10],
- "modules":["GPIO","wiegand_io"]},
+ "modules":["GPIO","wiegand_io2"]},
 {"pluginid": "7", # PCF8591
  "supported_os_level": [10],
  "modules":["i2c"]},

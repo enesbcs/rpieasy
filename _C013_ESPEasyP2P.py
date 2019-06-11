@@ -155,7 +155,11 @@ class Controller(controller.ControllerProto):
     else:
      dsend = bytes(data)
     for r in range(retrynum):
-      s.sendto(dsend, (destip,int(self.controllerport)))
+      try:
+#       print(dsend," ",destip," ",self.controllerport) # DEBUG
+       s.sendto(dsend, (destip,int(self.controllerport)))
+      except:
+       pass
       if r<retrynum-1:
        time.sleep(0.1)
 

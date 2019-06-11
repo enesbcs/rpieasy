@@ -1671,6 +1671,16 @@ def handle_i2cscanner(self):
   TXBuffer += str(e)
   return TXBuffer
 
+ suplvl = misc.getsupportlevel()
+ if "RPI" in suplvl:
+  try:
+   estr = OS.get_i2c_state(0)
+   if estr != "":
+    TXBuffer += "<p>"+estr
+    TXBuffer += "<p>"+OS.get_i2c_state(1)
+  except:
+   pass
+
  TXBuffer += "<table class='multirow' border=1px frame='box' rules='all'><TH>I2C Addresses in use<TH>Supported devices</th></tr>"
  i2cenabled = 0
  i2cdevs = 0
