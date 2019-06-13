@@ -50,6 +50,10 @@ class Controller(controller.ControllerProto):
   self.certfile = ""
   self.laststatus = -1
   self.keepalive = 60
+  self.lwt_topic = "%sysname%/LWT"
+  self.lwt_t = ""
+  self.lwtconnmsg = "Online"
+  self.lwtdisconnmsg = "Offline"
 
  def controller_init(self,enablecontroller=None):
   if enablecontroller != None:
@@ -64,6 +68,11 @@ class Controller(controller.ControllerProto):
    ls = self.laststatus
   except:
    self.laststatus = -1
+
+  try:
+   self.lwt_t, state = commands.parseruleline(self.lwt_topic)
+  except:
+   self.lwt_topic = ""
   self.mqttclient = GMQTTClient()
   self.mqttclient.subscribechannel = self.outch
   self.mqttclient.controllercb = self.on_message
@@ -138,6 +147,10 @@ class Controller(controller.ControllerProto):
 
  def disconnect(self):
    try:
+         (mres,mid) = self.mqttclient.publish(self.lwt_t,self.lwtdisconnmsg)
+   except Exception as e:
+         print(e)
+   try:
     self.mqttclient.loop_stop(True)
    except:
     pass
@@ -172,6 +185,10 @@ class Controller(controller.ControllerProto):
     if res==0:
      commands.rulesProcessing("GenMQTT#Disconnected",rpieGlobals.RULE_SYSTEM)
     else:
+     try:
+         (mres,mid) = self.mqttclient.publish(self.lwt_t,self.lwtconnmsg)
+     except:
+         pass
      commands.rulesProcessing("GenMQTT#Connected",rpieGlobals.RULE_SYSTEM)
     self.laststatus = res
    if res == 1 and self.connectinprogress==1:
@@ -199,6 +216,17 @@ class Controller(controller.ControllerProto):
   webserver.addFormTextBox("Server certificate file","c014_cert",str(fname),120)
   webserver.addBrowseButton("Browse","c014_cert",startdir=str(fname))
   webserver.addFormNote("Upload certificate first at <a href='filelist'>filelist</a> then select here!")
+  try:
+   lwt = self.lwt_topic
+   lwt1 = self.lwtconnmsg
+   lwt2 = self.lwtdisconnmsg
+  except:
+   lwt = "%sysname%/LWT"
+   lwt1 = "Online"
+   lwt2 = "Offline"
+  webserver.addFormTextBox("Controller lwl topic","c014_lwt",lwt,255)
+  webserver.addFormTextBox("LWT Connect Message","c014_cmsg",lwt1,255)
+  webserver.addFormTextBox("LWT Disconnect Message","c014_dcmsg",lwt2,255)
   return True
 
  def webform_save(self,params): # process settings post reply
@@ -227,6 +255,19 @@ class Controller(controller.ControllerProto):
   except:
    self.keepalive = 60
   if pval != self.keepalive:
+   pchange = True
+  try:
+   lwt = self.lwt_topic
+   lwt1 = self.lwtconnmsg
+   lwt2 = self.lwtdisconnmsg
+   self.lwt_topic = webserver.arg("c014_lwt",params)
+   self.lwtconnmsg = webserver.arg("c014_cmsg",params)
+   self.lwtdisconnmsg = webserver.arg("c014_dcmsg",params)
+  except:
+   self.lwt_topic = "%sysname%/LWT"
+   self.lwtconnmsg = "Online"
+   self.lwtdisconnmsg = "Offline"
+  if lwt!=self.lwt_topic or lwt1!= self.lwtconnmsg or lwt2!=self.lwtdisconnmsg:
    pchange = True
   if pchange and self.enabled:
    self.disconnect()
