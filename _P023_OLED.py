@@ -391,7 +391,7 @@ class Plugin(plugin.PluginProto):
       if st=="CMD":
           resstr=str(cl)
       else:
-          resstr=str(linestr)
+          resstr=str(ostr)
       if "{" in resstr or "&" in resstr:
        resstr = resstr.replace("{D}","˚").replace("&deg;","˚")
        resstr = resstr.replace("{<<}","«").replace("&laquo;","«")

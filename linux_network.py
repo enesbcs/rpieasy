@@ -156,6 +156,8 @@ class NetworkDevice:
         break
     except:
      pass
+    if self.connected==False and conn:
+     self.iswireless()
     self.connected=conn
 #    try:
 #     output = os.popen("ethtool "+self.devicename+" 2>/dev/null | grep 'Link detected'") # check that ethtool exists?
@@ -172,7 +174,7 @@ class NetworkDevice:
   return self.connected
 
  def iswireless(self):
-  if self.connectiontype==0:
+  if self.connectiontype==0 or self.connected==False:
     wless = False
     try:
      with open('/proc/net/wireless') as f:

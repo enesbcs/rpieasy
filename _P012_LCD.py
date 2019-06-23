@@ -213,8 +213,9 @@ class Plugin(plugin.PluginProto):
         try:
          linestr=str(self.lines[l])
          resstr=self.lcdparse(linestr)
-        except:
+        except Exception as e:
          resstr=""
+         misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"LCD parse error: "+str(e))
         if resstr != "":
          if self.linelens[l]>len(resstr):
           clrstr = ""
@@ -295,7 +296,7 @@ class Plugin(plugin.PluginProto):
       if st=="CMD":
           resstr=str(cl)
       else:
-          resstr=str(linestr)
+          resstr=str(ostr)
       return resstr
 
  def p012_handler(self,channel):

@@ -6,7 +6,7 @@
 # Copyright (C) 2018-2019 by Alexander Nagy - https://bitekmindenhol.blog.hu/
 # 
 PROGNAME = "RPIEasy"
-BUILD   = 19164
+BUILD   = 19174
 PROGVER = "0."+str(BUILD/1000)
 
 gpMenu = []
@@ -26,6 +26,7 @@ wifiSetup = False
 
 deviceselector = [[0,0,"- None -"]]
 controllerselector = [[0,0,"- None -"]]
+notifierselector = [[0,0,"- None -"]]
 
 NODE_TYPE_ID_ESP_EASY_STD        =   1
 NODE_TYPE_ID_ESP_EASYM_STD       =  17
