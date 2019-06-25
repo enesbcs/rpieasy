@@ -67,7 +67,9 @@ def doExecuteCommand(cmdline,Parse=True):
  else:
   retval = cmdline
  cmdarr = retval.split(",")
- if (" " in retval) and ("," in retval): # workaround for possible space instead comma problem
+ if (" " in retval) and not("," in retval):
+  cmdarr = retval.split(" ")
+ elif (" " in retval) and ("," in retval): # workaround for possible space instead comma problem
    fsp = retval.find(" ")
    fco = retval.find(",")
    if fsp<fco:
@@ -350,6 +352,19 @@ def doExecuteCommand(cmdline,Parse=True):
   os.kill(os.getpid(), signal.SIGINT)
   commandfound = True
   return commandfound
+
+ elif cmdarr[0] == "notify":
+  try:
+   plugin = int(cmdarr[1])
+  except:
+   plugin = 0
+  data = ""
+  if len(cmdarr)>1 and plugin>0:
+   sepp = ( len(cmdarr[0]) + len(cmdarr[1])+ 2 )
+   data = cmdline[sepp:].replace("==","=")
+   commandfound = doExecuteNotification(plugin-1,data)
+  return commandfound
+
  if commandfound==False:
   commandfound = doExecutePluginCommand(retval)
  if commandfound==False:
@@ -377,6 +392,18 @@ def doExecutePluginCommand(cmdline):
       retvalue = str(e)
      if retvalue!=False:
       return retvalue
+  return retvalue
+
+def doExecuteNotification(num,cmdline):
+  retvalue = False
+  if len(Settings.Notifiers)<1:
+   return False
+  try:
+   num=int(num)
+   if num>=0 and num<len(Settings.Notifiers) and (Settings.Notifiers[num].enabled):
+    retvalue = Settings.Notifiers[num].notify(cmdline)
+  except Exception as e:
+   misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Notification error: "+str(e))
   return retvalue
 
 def decodeeventname(eventname):

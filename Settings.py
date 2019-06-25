@@ -16,6 +16,7 @@ except:
 settingsfile    = 'data/settings.json'
 tasksfile       = 'data/tasks.json'
 controllersfile = 'data/controllers.json'
+notifiersfile   = 'data/notifiers.json'
 pinoutfile      = 'data/pinout.json'
 netdevfile      = 'data/netdev.json'
 netmanfile      = 'data/netman.json'
@@ -44,6 +45,7 @@ PinStates = ["Default","Input","Input-Pulldown","Input-Pullup","Output","Output-
 
 Tasks = [False]
 Controllers = [False]
+Notifiers = [False]
 
 NetworkDevices = []
 NetMan = None
@@ -230,5 +232,28 @@ def saveadvsettings():
   settingjson = jsonpickle.encode(AdvSettings)
   f.write(settingjson)
  except:
+  success = 0
+ return success
+
+def savenotifiers():
+ global Notifiers, notifiersfile
+ success = 1
+ try:
+  f = open(notifiersfile,'w')
+  settingjson = jsonpickle.encode(Notifiers,max_depth=2) # Restrict Jsonpickle to encode vars at first object
+  f.write(settingjson)
+ except:
+  success = 0
+ return success
+
+def loadnotifiers():
+ global Notifiers, notifiersfile
+ success = 1
+ try:
+  f = open(notifiersfile)
+  settingjson = f.read()
+  Notifiers = jsonpickle.decode(settingjson)
+ except Exception as e:
+#  print("Critical Jsonpickle error:",str(e))
   success = 0
  return success

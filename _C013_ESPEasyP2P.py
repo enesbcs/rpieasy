@@ -277,10 +277,16 @@ class data_packet:
    tbuf = [255,1]
    ta = self.infopacket["mac"].split(":")
    for m in ta:
-    tbuf.append(int(m,16))
+    try:
+     tbuf.append(int(m,16))
+    except:
+     tbuf.append(0)
    ta = self.infopacket["ip"].split(".")
    for m in ta:
-    tbuf.append(int(m))
+    try:
+     tbuf.append(int(m))
+    except:
+     tbuf.append(255)
    tbuf.append(int(self.infopacket["unitno"]))
    tbuf.append(int(self.infopacket["build"]%256))
    tbuf.append(int(self.infopacket["build"]/256))

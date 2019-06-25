@@ -9,7 +9,6 @@
 #
 # Copyright (C) 2018-2019 by Alexander Nagy - https://bitekmindenhol.blog.hu/
 #
-# missing! complete it based on c014!
 import controller
 import paho.mqtt.client as mqtt
 import json
@@ -331,7 +330,7 @@ class Controller(controller.ControllerProto):
      misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"MQTT idx error, sending failed.")
    else:
     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"MQTT not connected, sending failed.")
-    if (time.time()-self.lastreconnect)>30:
+    if ((time.time()-self.lastreconnect)>30) and (self.connectinprogress==0):
      self.connect()
 
  def on_connect(self):

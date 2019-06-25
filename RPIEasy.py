@@ -162,6 +162,33 @@ def CPluginInit():
  return 0
 
 def NPluginInit():
+ tarr = []
+ filenames = glob.glob('_N*.py')
+ filenames.sort()
+ for fname in filenames:
+  tarr = [0,0,0]
+  tarr[0] = fname
+  with open(fname,"r") as fcont:
+   for line in fcont:
+    if "NPLUGIN_ID" in line:
+     tarr[1] = line[line.find("=")+1:].strip().replace('"',"")
+    if "NPLUGIN_NAME" in line:
+     tarr[2] = line[line.find("=")+1:].strip().replace('"',"")
+     break
+  tarr[0] = tarr[0].replace(".py","")
+  rpieGlobals.notifierselector.append(tarr) # create list for form select
+
+ #print("Load controllers from file")
+ Settings.loadnotifiers()
+
+ for x in range(0,len(Settings.Notifiers)):
+  if (Settings.Notifiers[x]) and type(Settings.Notifiers[x]) is not bool: # device exists
+   try:
+    if (Settings.Notifiers[x].enabled): # device enabled
+     Settings.Notifiers[x].plugin_init(None) # init plugin at startup
+   except:
+    pass
+
  return 0
 
 def RulesInit():

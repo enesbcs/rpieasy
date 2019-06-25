@@ -1486,8 +1486,128 @@ def handle_notifications(self):
   return self.redirect('/login')
  sendHeadandTail("TmplStd",_HEAD); 
 
- addHtml('Notifications page')
- TXBuffer+="<p>Work in progress!"
+ if self.type == "GET":
+  responsearr = self.get
+ else:
+  responsearr = self.post
+
+ edit = arg("edit",responsearr)
+
+ nindex = arg("index",responsearr)
+ nNotSet = (nindex == 0) or (nindex == '')
+ if nindex!="":
+  nindex = int(nindex) - 1
+ enabled = (arg("nenabled",responsearr)=="on")
+ protocol = arg("protocol",responsearr)
+ if protocol!="":
+  protocol=int(protocol)
+ else:
+  protocol=0
+
+ if ((protocol == 0) and (edit=='') and (nindex!='')) or (arg('del',responsearr) != ''):
+   try:
+    Settings.Notifiers[nindex].plugin_exit()
+   except:
+    pass
+   Settings.Notifiers[nindex] = False
+   nNotSet = True
+   Settings.savenotifiers()
+
+ if (nNotSet==False): # submitted
+  if (protocol > 0): # submitted
+   try:
+    if (Settings.Notifiers[nindex]):
+     Settings.Notifiers[nindex].enabled = enabled
+     Settings.Notifiers[nindex].webform_save(responsearr)
+     Settings.savenotifiers()
+   except:
+    pass
+  else:
+   try:
+    if (Settings.Notifiers[nindex]):
+     protocol = Settings.Notifiers[nindex].number
+   except:
+    pass
+ TXBuffer += "<form name='frmselect' method='post'>"
+ if (nNotSet): # show all in table
+    TXBuffer += "<table class='multirow' border=1px frame='box' rules='all'><TR><TH style='width:70px;'>"
+    TXBuffer += "<TH style='width:50px;'>Nr<TH style='width:100px;'>Enabled<TH>Service<TH>ID"
+    for x in range(rpieGlobals.NOTIFICATION_MAX):
+      TXBuffer += "<tr><td><a class='button link' href=\"notifications?index="
+      TXBuffer += str(x + 1)
+      TXBuffer += "&edit=1\">Edit</a><td>"
+      TXBuffer += str(x + 1)
+      TXBuffer += "</td><td>"
+      try:
+       if (Settings.Notifiers[x]):
+        addEnabled(Settings.Notifiers[x].enabled)
+        TXBuffer += "</td><td>"
+        TXBuffer += str(Settings.Notifiers[x].getdevicename())
+        TXBuffer += "</td><td>"
+        TXBuffer += str(Settings.Notifiers[x].getuniquename())
+       else:
+        TXBuffer += "<td><td>"
+      except:
+       TXBuffer += "<td><td>"
+    TXBuffer += "</table></form>"
+ else: # edit
+    TXBuffer += "<table class='normal'><TR><TH style='width:150px;' align='left'>Notification Settings<TH>"
+    TXBuffer += "<tr><td>Notification:<td>"
+    addSelector_Head("protocol", True)
+    for x in range(len(rpieGlobals.notifierselector)):
+      addSelector_Item(rpieGlobals.notifierselector[x][2],int(rpieGlobals.notifierselector[x][1]),(str(protocol) == str(rpieGlobals.notifierselector[x][1])),False,"")
+    addSelector_Foot()
+    if (int(protocol) > 0):
+      createnewn = True
+      try:
+       if (Settings.Notifiers[nindex].getnpluginid()==int(protocol)):
+        createnewn = False
+      except:
+       pass
+      exceptstr = ""
+      if createnewn:
+       for y in range(len(rpieGlobals.notifierselector)):
+        if int(rpieGlobals.notifierselector[y][1]) == int(protocol):
+         if len(Settings.Notifiers)<=nindex:
+          while len(Settings.Notifiers)<=nindex:
+           Settings.Notifiers.append(False)
+         try:
+           m = __import__(rpieGlobals.notifierselector[y][0])
+         except Exception as e:
+          Settings.Notifiers[nindex] = False
+          exceptstr += str(e)
+          m = False
+         if m:
+          try: 
+           Settings.Notifiers[nindex] = m.Plugin(nindex)
+          except Exception as e:
+           Settings.Notifiers.append(m.Plugin(nindex))
+           exceptstr += str(e)
+         break
+      if Settings.Notifiers[nindex] == False:
+       errormsg = "Importing failed, please double <a href='plugins'>check dependencies</a>! "+str(exceptstr)
+       TXBuffer += errormsg+"</td></tr></table>"
+       sendHeadandTail("TmplStd",_TAIL)
+       return TXBuffer
+      else:
+       try:
+        Settings.Notifiers[nindex].plugin_init() # call plugin init
+       except:
+        pass 
+    if nindex != '':
+     TXBuffer += "<input type='hidden' name='index' value='" + str(nindex+1) +"'>"
+     if int(protocol)>0:
+      addFormCheckBox("Enabled", "nenabled", Settings.Notifiers[nindex].enabled)
+      Settings.Notifiers[nindex].webform_load()
+
+    addFormSeparator(2)
+    TXBuffer += "<tr><td><td>"
+    TXBuffer += "<a class='button link' href=\"notifications\">Close</a>"
+    addSubmitButton()
+    if nindex != '':
+     addSubmitButton("Delete", "del")
+    TXBuffer += "</table></form>"
+
  sendHeadandTail("TmplStd",_TAIL);
  return TXBuffer
 
