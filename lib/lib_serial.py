@@ -46,7 +46,7 @@ class SerialPort:
 #   self.ser = serial.Serial(pportname,pbaud,timeout=ptimeout,bytesize=pbytesize,parity=pparity,stopbits=pstopbits)
    self.initialized = True
   except Exception as e:
-   print(e)
+   print("Serial init error:",e)
    self.initialized = False
   self.available=None
   try:
@@ -72,6 +72,8 @@ class SerialPort:
     self.isopened = self.isopenednew
    except Exception as e:
     self.isopened = None
+  if self.isopened is None:
+   self.isopened = self.isopenednew # do not leave it None
   if self.available is None or self.isopened is None:
    self.initialized = False
   self.name = pportname
@@ -87,7 +89,10 @@ class SerialPort:
   return res
 
  def isopenednew(self):
-  return (self.initialized and self.ser.is_open)
+  try:
+   return (self.initialized and self.ser.is_open)
+  except:
+   return False
 
  def getportname(self):
   return str(self.name)
