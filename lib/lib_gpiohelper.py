@@ -12,6 +12,8 @@ import Settings
 import misc
 import gpios
 import commands
+import lib.lib_rtttl as rtttllib
+import threading
 
 def syncvalue(bcmpin,value):
  for x in range(0,len(Settings.Tasks)):
@@ -137,4 +139,71 @@ def gpio_commands(cmd):
     rarr = [pin,(1-val)]
     rpieTime.addsystemtimer(dur,timercb,rarr)
    res = True
+  elif cmdarr[0]=="tone":
+   pin  = -1
+   freq = -1
+   dur  = 0
+   try:
+    pin  = int(cmdarr[1].strip())
+    freq = int(cmdarr[2].strip())
+    dur  = int(cmdarr[3].strip())
+   except:
+    pin = -1
+    freq = -1
+    dur = 0
+   if pin>-1 and freq>-1 and dur>0:
+    suc = False
+    try:
+     suc = True
+     misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"BCM"+str(pin)+" "+str(freq)+"Hz")
+     play_tone(pin,freq,dur)
+     gpios.HWPorts.output_pwm(pin,0,0) # stop sound
+    except Exception as e:
+     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"BCM"+str(pin)+" Tone "+str(e))
+     suc = False
+   res = True
+
+  elif cmdarr[0]=="rtttl":
+   cmdarr = cmd.replace(":",",").split(",")
+   pin  = -1
+   try:
+    pin  = int(cmdarr[1].strip())
+   except:
+    pin = -1
+   if pin>-1:
+    suc = False
+    try:
+     sp = cmd.find(":")
+     if sp > -1:
+#      play_rtttl(pin,"t"+cmd[sp:])
+      rtproc = threading.Thread(target=play_rtttl, args=(pin,"t"+cmd[sp:])) # play in background - no blocking
+      rtproc.daemon = True
+      rtproc.start()
+     suc = True
+    except Exception as e:
+     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,str(e))
+     suc = False
+   res = True
+
   return res
+
+def play_tone(pin,freq,delay):
+  gpios.HWPorts.output_pwm(pin,50,freq) # generate 'freq' sound
+  s = float(delay/1000)
+  time.sleep(s)
+
+def play_rtttl(pin,notestr):
+# print("DEBUG ",notestr)
+ notes = []
+ try:
+  notes = rtttllib.parse_rtttl(notestr)
+ except Exception as e:
+  misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"RTTTL parse failed: "+str(e))
+  return false
+ if 'notes' in notes:
+  for note in notes['notes']:
+   try:
+    play_tone(pin,int(note['frequency']),float(note['duration']))
+   except:
+    pass
+  gpios.HWPorts.output_pwm(pin,0,0) # stop sound

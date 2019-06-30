@@ -104,6 +104,6 @@ class Plugin(plugin.PluginProto):
   res = False
   cmdarr = cmd.split(",")
   cmdarr[0] = cmdarr[0].strip().lower()
-  if cmdarr[0].strip().lower() in ["gpio","pwm","pulse","longpulse"]:
+  if cmdarr[0].strip().lower() in ["gpio","pwm","pulse","longpulse","tone","rtttl"]:
    res = gpiohelper.gpio_commands(cmd)
   return res
