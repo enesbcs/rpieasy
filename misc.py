@@ -78,9 +78,12 @@ def udpsender(destip,data,dport=514,retrynum=1):
     else:
      dsend = bytes(data)
     for r in range(retrynum):
+     try:
       s.sendto(dsend, (destip,int(dport)))
       if r<retrynum-1:
        time.sleep(0.1)
+     except:
+      print("UDP send failed with network error.")
 
 def SysLog(lvl,logstamp,line):
    slip = ""
