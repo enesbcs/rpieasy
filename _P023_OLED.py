@@ -371,8 +371,9 @@ class Plugin(plugin.PluginProto):
    except Exception as e:
     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Parameter error: "+str(e))
     return False
-   if x>0 and y>0:
+   if x>0:
     x -= 1
+   if y>0:
     y -= 1
    try:
     if self.device is not None:
