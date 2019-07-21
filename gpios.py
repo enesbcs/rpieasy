@@ -390,6 +390,8 @@ I2CDevices = [
   "addr": [0x70]},
  {"name": "BMP085/BMP180 Temp/Barometric",
   "addr": [0x77]},
+ {"name": "HT16K33",
+  "addr": [0x70,0x71,0x72,0x73,0x74,0x75,0x76,0x77]},
  {"name": "BMP280 Temp/Barometric;BME180 Temp/Barometric/Humidity",
   "addr": [0x76,0x77]},
  {"name": "ProMini Extender (standard)",

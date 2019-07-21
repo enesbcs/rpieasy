@@ -88,7 +88,7 @@ modulelist = [
  "testcmd": "import serial.tools.list_ports",
  "installed":-1},
 {"name": "OLED",
- "apt": ["python3-pip", "libfreetype6-dev", "libjpeg-dev", "build-essential","python3-dev","libtiff5","libopenjp2-7","python3-setuptools"],
+ "apt": ["python3-pip", "libfreetype6-dev", "libjpeg-dev", "build-essential","python3-dev","libtiff5","libopenjp2-7","python3-setuptools","zlib1g-dev"],
  "pip": ["luma.oled"],
  "testcmd": "from luma.core.render import canvas",
  "installed":-1},
@@ -132,11 +132,6 @@ modulelist = [
  "apt": ["python3-pip","python3-setuptools"],
  "pip": ["suntime"],
  "testcmd": "from suntime import Sun",
- "installed":-1},
-{"name":"pydigitemp",
- "apt": ["python3-pip","python3-setuptools"],
- "pip": ["pydigitemp"],
- "testcmd": "from digitemp.device import AddressableDevice",
  "installed":-1},
 
 ]
@@ -231,6 +226,12 @@ plugindependencies = [
 {"pluginid": "51", # AM2320
  "supported_os_level": [10],
  "modules":["i2c"]},
+{"pluginid": "57", # HT16K33 LED
+ "supported_os_level": [10],
+ "modules":["i2c"]},
+{"pluginid": "58", # HT16K33 Key
+ "supported_os_level": [10],
+ "modules":["i2c"]},
 {"pluginid": "59", #Rotary
  "supported_os_level": [10],
  "modules":["GPIO"]},
@@ -290,11 +291,7 @@ plugindependencies = [
 {"pluginid": "509", # EVDEV
  "modules":["linux-kernel"]},
 {"pluginid": "510", # BLE iTag
- "modules":["bluepy"]},
-{"pluginid": "514", # USB-Dallas
- "supported_os_level": [1,2,10],
- "modules":["pyserial","pydigitemp"]}
-
+ "modules":["bluepy"]}
 ]
 
 def ismoduleusable(modulename):
