@@ -88,7 +88,7 @@ modulelist = [
  "testcmd": "import serial.tools.list_ports",
  "installed":-1},
 {"name": "OLED",
- "apt": ["python3-pip", "libfreetype6-dev", "libjpeg-dev", "build-essential","python3-dev","libtiff5","libopenjp2-7","python3-setuptools","zlib1g-dev"],
+ "apt": ["python3-pip", "libfreetype6-dev", "libjpeg-dev", "build-essential","python3-dev","libtiff5","libopenjp2-7","python3-setuptools"],
  "pip": ["luma.oled"],
  "testcmd": "from luma.core.render import canvas",
  "installed":-1},
@@ -132,6 +132,16 @@ modulelist = [
  "apt": ["python3-pip","python3-setuptools"],
  "pip": ["suntime"],
  "testcmd": "from suntime import Sun",
+ "installed":-1},
+{"name":"pydigitemp",
+ "apt": ["python3-pip","python3-setuptools"],
+ "pip": ["pydigitemp"],
+ "testcmd": "from digitemp.device import AddressableDevice",
+ "installed":-1},
+{"name":"pysolar",
+ "apt": ["python3-pip","python3-setuptools"],
+ "pip": ["pytz","pysolar"],
+ "testcmd": "from pysolar import solar",
  "installed":-1},
 
 ]
@@ -291,7 +301,10 @@ plugindependencies = [
 {"pluginid": "509", # EVDEV
  "modules":["linux-kernel"]},
 {"pluginid": "510", # BLE iTag
- "modules":["bluepy"]}
+ "modules":["bluepy"]},
+ {"pluginid": "514", # USB-Dallas
+ "supported_os_level": [1,2,10],
+ "modules":["pyserial","pydigitemp"]}
 ]
 
 def ismoduleusable(modulename):

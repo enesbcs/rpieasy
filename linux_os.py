@@ -678,3 +678,46 @@ def getarmbianinfo():
     except:
      pass
     return hwarr
+
+soundmixer = ""
+
+def getsoundmixer():
+  global soundmixer
+  if soundmixer == "":
+   try:
+    cc = 0
+    output = os.popen('amixer scontrols')
+    for line in output:
+      if cc == 0 and soundmixer=="":
+       lc = line.split("'")
+       soundmixer = str(lc[1])
+       cc = 1
+       return soundmixer
+   except Exception as e:
+    print(e)
+  return soundmixer
+
+def getvolume(): # volume in percentage
+  vol = 0
+  try:
+   output = os.popen('amixer get '+getsoundmixer())
+   for line in output:
+     if '%' in line:
+      line2 = line.replace("[","%").replace("]","%")
+      lc = line2.split("%")
+      vol = str(lc[1]).strip()
+      return vol
+  except:
+   pass
+  return vol
+
+def setvolume(volume): # volume in percentage
+  try:
+   output = os.popen('amixer set '+getsoundmixer()+' '+str(volume)+'%')
+   for l in output:
+    pass
+   output = os.popen(cmdline_rootcorrect('sudo alsactl store'))
+   for l in output:
+    pass
+  except:
+   pass

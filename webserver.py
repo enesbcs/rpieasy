@@ -533,6 +533,12 @@ def handle_hardware(self):
  if (arg('nokernelserial',responsearr) != ""):
   OS.disable_serialsyslog()
 
+ if (arg('volume',responsearr) != ""):
+  try:
+   OS.setvolume(str(arg('volume',responsearr)))
+  except Exception as e:
+   print(e)
+
  submit = arg("Submit",responsearr)
 
  if (submit=="Submit") and (suplvl[0] != "N"):
@@ -587,6 +593,12 @@ def handle_hardware(self):
    for i in range(0,len(sounddevs)):    
     addSelector_Item(sounddevs[i][1],int(sounddevs[i][0]),(int(sounddevs[i][0])==int(defaultdev)),False)
    addSelector_Foot()
+   vol = 100
+   try:
+    vol = OS.getvolume()
+   except Exception as e:
+    print(e)
+   TXBuffer += '<TR><TD>Sound volume:<TD><input type="range" id="volume" name="volume" min="0" max="100" value="'+str(vol)+'">'
   else:
    TXBuffer += "No device"
 
@@ -2037,25 +2049,54 @@ def handle_advanced(self):
  addFormTextBox("Syslog IP", "syslogip", val,64)
 
  addFormSubHeader("Location Settings")
- suntimesupported = False
  try:
-  from suntime import Sun
-  suntimesupported = True
- except:
-  suntimesupported = False
- if (suntimesupported):
-  try:
    lat = Settings.AdvSettings["Latitude"]
    lon = Settings.AdvSettings["Longitude"]
-  except:
+ except:
    lat = 0
    lon = 0
-  addFormFloatNumberBox("Latitude", "latitude", lat , -90.0, 90.0)
-  addUnit("&deg;")
-  addFormFloatNumberBox("Longitude", "longitude", lon, -180.0, 180.0)
-  addUnit("&deg;")
- else:
-    TXBuffer += "<tr><td colspan=2>SunTime supporting library not found! Please install <a href='plugins?installmodule=suntime'>suntime</a>"
+ addFormFloatNumberBox("Latitude", "latitude", lat , -90.0, 90.0)
+ addUnit("&deg;")
+ addFormFloatNumberBox("Longitude", "longitude", lon, -180.0, 180.0)
+ addUnit("&deg;")
+
+ try:
+  if (plugindeps.modulelist):
+   pass
+ except:
+  import plugindeps
+
+ try:
+  TXBuffer += "<TR><TD>Suntime library status: (needed for sunset/sunrise)<TD>"
+  modname = "suntime"
+  puse = plugindeps.ismoduleusable(modname)
+  addEnabled(puse)
+  if puse==False:
+   usable = False
+   TXBuffer += "<a href='plugins?installmodule="+modname+"'>"
+  TXBuffer += modname+" "
+  if puse==False:
+   TXBuffer += "</a> (Not installed)"
+  else:
+   TXBuffer += "Installed"
+ except Exception as e:
+  print(e)
+
+ try:
+  TXBuffer += "<TR><TD>PySolar library status: (needed for Sun azimuth)<TD>"
+  modname = "pysolar"
+  puse = plugindeps.ismoduleusable(modname)
+  addEnabled(puse)
+  if puse==False:
+   usable = False
+   TXBuffer += "<a href='plugins?installmodule="+modname+"'>"
+  TXBuffer += modname+" "
+  if puse==False:
+   TXBuffer += "</a> (Not installed)"
+  else:
+   TXBuffer += "Installed"
+ except Exception as e:
+  print(e)
 
  addFormSubHeader("Battery reporting source")
  try:

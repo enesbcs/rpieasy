@@ -23,7 +23,7 @@ import threading
 
 GlobalRules = []
 SysVars = ["systime","system_hm","lcltime","syshour","sysmin","syssec","sysday","sysmonth",
-"sysyear","sysyears","sysweekday","sysweekday_s","unixtime","uptime","rssi","ip","ip4","sysname","unit","ssid","mac","mac_int","build","sunrise","sunset"]
+"sysyear","sysyears","sysweekday","sysweekday_s","unixtime","uptime","rssi","ip","ip4","sysname","unit","ssid","mac","mac_int","build","sunrise","sunset","sun_altitude","sun_azimuth","sun_radiation"]
 
 def doCleanup():
   rulesProcessing("System#Shutdown",rpieGlobals.RULE_SYSTEM)
@@ -645,6 +645,61 @@ def getglobalvar(varname):
       res = abd_ss.strftime('%H:%M')
      except Exception as e:
       res = "00:00"
+     return res
+
+   elif svname==SysVars[25]: #sun altitude
+    try:
+      from pytz import reference
+      from pysolar.solar import get_altitude
+      pysolarsupported = 1
+    except:
+      pysolarsupported = 0
+    res = "0"
+    if pysolarsupported==1:
+     try:
+      localtime = reference.LocalTimezone()
+      today = datetime.now(localtime)
+      res = get_altitude(Settings.AdvSettings["Latitude"],Settings.AdvSettings["Longitude"], today)
+     except Exception as e:
+      print(e)
+      res = "0"
+     return res
+
+   elif svname==SysVars[26]: #sun azimuth
+    try:
+      from pytz import reference
+      from pysolar.solar import get_azimuth
+      pysolarsupported = 1
+    except:
+      pysolarsupported = 0
+    res = "0"
+    if pysolarsupported==1:
+     try:
+      localtime = reference.LocalTimezone()
+      today = datetime.now(localtime)
+      res = get_azimuth(Settings.AdvSettings["Latitude"],Settings.AdvSettings["Longitude"], today)
+     except Exception as e:
+      print(e)
+      res = "0"
+     return res
+
+   elif svname==SysVars[27]: #sun radiation
+    try:
+      from pytz import reference
+      from pysolar.solar import get_altitude
+      from pysolar.radiation import get_radiation_direct
+      pysolarsupported = 1
+    except:
+      pysolarsupported = 0
+    res = "-1"
+    if pysolarsupported==1:
+     try:
+      localtime = reference.LocalTimezone()
+      today = datetime.now(localtime)
+      altitude_deg = get_altitude(Settings.AdvSettings["Latitude"],Settings.AdvSettings["Longitude"], today)
+      res = get_radiation_direct(today, altitude_deg)
+     except Exception as e:
+      print(e)
      return res
 
  return res
