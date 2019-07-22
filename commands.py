@@ -365,6 +365,31 @@ def doExecuteCommand(cmdline,Parse=True):
    commandfound = doExecuteNotification(plugin-1,data)
   return commandfound
 
+ elif cmdarr[0] == "setvolume":
+  vmr = 0
+  if "+" in cmdarr[1] or "-" in cmdarr[1]:
+   vmr = 1
+  try:
+   vol = int(cmdarr[1])
+  except:
+   vol = -200
+  if (vmr==0):               # absolute vol
+   if (vol>=0 and vol<=100):
+    try:
+     OS.setvolume(vol)
+     commandfound = True
+    except Exception as e:
+     commandfound = str(e)
+  else:
+   if (vol>=-100 and vol<=100): # relative vol
+    try:
+     avol = OS.getvolume()
+     OS.setvolume(int(avol)+vol)
+     commandfound = True
+    except Exception as e:
+     commandfound = str(e)
+  return commandfound
+
  if commandfound==False:
   commandfound = doExecutePluginCommand(retval)
  if commandfound==False:
