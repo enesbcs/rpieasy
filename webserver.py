@@ -1346,7 +1346,7 @@ def handle_devices(self):
              else:
               ctrlidx = int(ctrlidx)
              Settings.Tasks[taskIndex].controlleridx[controllerNr] = ctrlidx
-        for pins in range(0,3):
+        for pins in range(0,4):
          pinnum = arg("taskdevicepin"+str(pins+1),responsearr)
          if pinnum:
           Settings.Tasks[taskIndex].taskdevicepin[pins]=int(pinnum)
