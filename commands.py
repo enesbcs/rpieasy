@@ -567,15 +567,15 @@ def getglobalvar(varname):
    elif svname==SysVars[2]: #%lcltime% 	2018-03-16 01:23:54 
     return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
    elif svname==SysVars[3]: #%syshour% 	11 	Current hour (hh)
-    return datetime.now().strftime('%H')
+    return int(datetime.now().strftime('%H'))
    elif svname==SysVars[4]: #%sysmin% 	22 	Current minute (mm)
-    return datetime.now().strftime('%M')
+    return int(datetime.now().strftime('%M'))
    elif svname==SysVars[5]: #%syssec% 	33 	Current second (ss)
-    return datetime.now().strftime('%S')
+    return int(datetime.now().strftime('%S'))
    elif svname==SysVars[6]: #%sysday% 	16 	Current day of month (DD)
-    return datetime.now().strftime('%d')
+    return int(datetime.now().strftime('%d'))
    elif svname==SysVars[7]: #%sysmonth% 	3 	Current month (MM)
-    return datetime.now().strftime('%m')
+    return int(datetime.now().strftime('%m'))
    elif svname==SysVars[8]: #%sysyear% 	2018 	4 digits (YYYY)
     return datetime.now().strftime('%Y')
    elif svname==SysVars[9]: #%sysyears% 	18 	2 digits (YY)
@@ -940,7 +940,7 @@ def comparetime(tstr):
   tleft[0] = tleft[0].lower()
   tright[0] = tright[0].lower()
   l1 = len(tleft)
-  l2 = len(tleft)
+  l2 = len(tright)
   if l2<l1:
    l1 = l2
   for t in range(l1):
