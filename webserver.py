@@ -1915,9 +1915,11 @@ def handle_blescanner(self):
      TXBuffer += "BLE scanning failed "+str(e)+"<p>"
      blesuccess = False
     if blesuccess:
-     TXBuffer += "<table class='multirow'><TR><TH>Interface<TH>Address<TH>Address type<TH>RSSI<TH>Connectable<TH>Name<TH>Appearance</TH></TR>"
+     TXBuffer += "<table class='multirow'><TR><TH>Interface<TH>Address<TH>Address type<TH>RSSI<TH>Connectable<TH>Name<TH>Appearance</TH><TH>Actions</TH></TR>"
+     cc = 0
      for dev in devices:
-      TXBuffer += "<TR><TD>"+str(dev.iface)+"<TD>"+str(dev.addr)+"<TD>"+str(dev.addrType)+"<TD>"+str(dev.rssi)+" dBm<TD>"+str(dev.connectable)
+      cc += 1
+      TXBuffer += "<TR><TD>"+str(dev.iface)+"<TD><div id='mac"+str(cc)+"_1' name='mac"+str(cc)+"_1'>"+str(dev.addr)+"</div><TD>"+str(dev.addrType)+"<TD>"+str(dev.rssi)+" dBm<TD>"+str(dev.connectable)
       dname = ""
       shortdname = ""
       appear = ""
@@ -1930,7 +1932,9 @@ def handle_blescanner(self):
          appear = str(value)
       if dname.strip()=="":
         dname = shortdname
-      TXBuffer += "<TD>"+str(dname)+"<TD>"+str(appear)+"</TR>"
+      TXBuffer += "<TD>"+str(dname)+"<TD>"+str(appear)+"<TD>"
+      addCopyButton("mac"+str(cc),"","Copy MAC to clipboard")
+      TXBuffer += "</TR>"
      TXBuffer += "</table>"
  else:
     TXBuffer += "BLE supporting library not found! Please install <a href='plugins?installmodule=bluepy'>bluepy</a>"
@@ -2293,11 +2297,10 @@ def handle_rules(self):
  saved = arg("Submit",responsearr)
  if (saved):
   rules = arg("rules",responsearr)
-  if rules!="":
-    try:
+  try:
      with open(rpieGlobals.FILE_RULES,'w') as f:
       f.write(rules)
-    except:
+  except:
      pass
   if len(rules)>0:
     commands.splitruletoevents(rules)

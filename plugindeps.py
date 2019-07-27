@@ -302,6 +302,8 @@ plugindependencies = [
  "modules":["linux-kernel"]},
 {"pluginid": "510", # BLE iTag
  "modules":["bluepy"]},
+{"pluginid": "512", # BLE Xiaomi Temp
+ "modules":["bluepy"]},
  {"pluginid": "514", # USB-Dallas
  "supported_os_level": [1,2,10],
  "modules":["pyserial","pydigitemp"]}
