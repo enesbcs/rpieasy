@@ -33,6 +33,7 @@ import misc
 from lib.Stepper.Stepper import Motor
 import threading
 import time
+import Settings
 
 class Plugin(plugin.PluginProto):
  PLUGIN_ID = 204
@@ -140,7 +141,7 @@ class Plugin(plugin.PluginProto):
     except:
      rname = ""
     try:
-      angle = int(cmdarr[3].strip())
+      angle = int(float(cmdarr[3].strip()))
     except:
       angle = -360
     try:
@@ -149,6 +150,20 @@ class Plugin(plugin.PluginProto):
       speed = 0
     if speed==0:
      speed = int(self.taskdevicepluginconfig[0])
+   if rname.lower()=="all": # this command is for every motor
+    if subcmd.lower() in ["off","panstop"]:
+     for x in range(0,len(Settings.Tasks)):
+      try:
+       if (Settings.Tasks[x]) and type(Settings.Tasks[x]) is not bool:
+        if (Settings.Tasks[x].enabled) and (Settings.Tasks[x].PLUGIN_ID==self.PLUGIN_ID):
+         if subcmd.lower() == "off":
+          Settings.Tasks[x].panning = False
+          Settings.Tasks[x].motor.stop()
+         elif subcmd.lower() == "panstop":
+          Settings.Tasks[x].panning = False
+      except:
+        pass
+     return True
    if self.taskname.lower() == rname.lower(): # this command is for us
     res = True
     if subcmd.lower() == "pos":
@@ -197,6 +212,7 @@ class Plugin(plugin.PluginProto):
        self.motor.stop()
        self.uservar[0] = 0
        self.motor.step_angle = 0
+       self.motor.step_angle2 = 0
       except:
        pass
     elif subcmd.lower() == "pan":
