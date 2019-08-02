@@ -298,7 +298,7 @@ class Controller(controller.ControllerProto):
     try:
      usebattery = float(usebattery)
     except:
-     userbattery = -1
+     usebattery = -1
     if int(idx) > 0:
      if usebattery != -1 and usebattery != 255:
       bval = usebattery

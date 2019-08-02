@@ -50,7 +50,7 @@ class Controller(controller.ControllerProto):
     try:
      usebattery = float(usebattery)
     except:
-     userbattery = -1
+     usebattery = -1
     if int(sensortype)==rpieGlobals.SENSOR_TYPE_SWITCH:
       url = "/json.htm?type=command&param=switchlight&idx="
       url += str(idx)

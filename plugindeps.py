@@ -143,6 +143,14 @@ modulelist = [
  "pip": ["pytz","pysolar"],
  "testcmd": "from pysolar import solar",
  "installed":-1},
+{"name":"mysql",
+ "apt": ["python3-pip","python3-setuptools"],
+ "pip": ["PyMySQL"],
+ "testcmd": "import pymysql",
+ "installed":-1},
+{"name":"sqlite",
+ "testcmd": "import sqlite3",
+ "installed":-1},
 
 ]
 
@@ -152,7 +160,10 @@ controllerdependencies = [
 {"controllerid":"13",      # ESPEasy P2P
 "modules":["linux-kernel"]},
 {"controllerid":"14",      # Generic MQTT
-"modules":["paho-mqtt"]}
+"modules":["paho-mqtt"]},
+{"controllerid":"16",      # DBStore
+"modules":["sqlite","mysql"]}
+
 ]
 
 plugindependencies = [

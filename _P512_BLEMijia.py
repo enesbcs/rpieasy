@@ -200,11 +200,12 @@ class Plugin(plugin.PluginProto):
 #  print("disconn")
   self.connected = False
   self.waitnotifications = False
-  try:
-   self.BLEPeripheral.disconnect()
-   self.cproc._stop()
-  except:
-   pass
+  if self.enabled:
+   try:
+    self.BLEPeripheral.disconnect()
+    self.cproc._stop()
+   except:
+    pass
 
  def __del__(self):
   self.disconnect()
