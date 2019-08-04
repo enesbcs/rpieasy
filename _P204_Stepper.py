@@ -37,7 +37,7 @@ import Settings
 
 class Plugin(plugin.PluginProto):
  PLUGIN_ID = 204
- PLUGIN_NAME = "Output - Stepper driver (TESTING)"
+ PLUGIN_NAME = "Output - Stepper driver"
  PLUGIN_VALUENAME1 = "Angle"
 
  def __init__(self,taskindex): # general init

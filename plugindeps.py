@@ -317,9 +317,12 @@ plugindependencies = [
  "modules":["bluepy"]},
 {"pluginid": "513", # BLE Xiaomi Clock
  "modules":["bluepy"]},
- {"pluginid": "514", # USB-Dallas
+{"pluginid": "514", # USB-Dallas
  "supported_os_level": [1,2,10],
- "modules":["pyserial","pydigitemp"]}
+ "modules":["pyserial","pydigitemp"]},
+{"pluginid": "515", # BLE MiFlora
+ "modules":["bluepy"]},
+
 ]
 
 def ismoduleusable(modulename):

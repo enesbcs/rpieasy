@@ -18,7 +18,7 @@ import lib.HT16K33.Adafruit_LEDBackpack as HT16K33
 
 class Plugin(plugin.PluginProto):
  PLUGIN_ID = 58
- PLUGIN_NAME = "Input - HT16K33 KeyPad (EXPERIMENTAL)"
+ PLUGIN_NAME = "Input - HT16K33 KeyPad"
  PLUGIN_VALUENAME1 = "ScanCode"
 
  def __init__(self,taskindex): # general init
