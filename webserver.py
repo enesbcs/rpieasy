@@ -1933,7 +1933,7 @@ def handle_blescanner(self):
       if dname.strip()=="":
         dname = shortdname
       TXBuffer += "<TD>"+str(dname)+"<TD>"+str(appear)+"<TD>"
-      addCopyButton("mac"+str(cc),"","Copy MAC to clipboard")
+      addCopyButton("mac"+str(cc),"","Copy MAC to clipboard",str(cc))
       TXBuffer += "</TR>"
      TXBuffer += "</table>"
  else:
@@ -2927,9 +2927,9 @@ def addSubmitButton(value = "Submit", name="Submit"):
   TXBuffer += "'><div id='toastmessage'></div><script type='text/javascript'>toasting();</script>"
 
 
-def addCopyButton(value, delimiter, name):
+def addCopyButton(value, delimiter, name,dist=""):
   global TXBuffer
-  TXBuffer += "<script>function setClipboard() { var clipboard = ''; max_loop = 100; for (var i = 1; i < max_loop; i++){ var cur_id = '"
+  TXBuffer += "<script>function setClipboard"+str(dist)+"() { var clipboard = ''; max_loop = 100; for (var i = 1; i < max_loop; i++){ var cur_id = '"
   TXBuffer += str(value)
   TXBuffer += "_' + i; var test = document.getElementById(cur_id); if (test == null){ i = max_loop + 1;  } else { clipboard += test.innerHTML.replace(/<[Bb][Rr]\\s*\\/?>/gim,'\\n') + '"
   TXBuffer += str(delimiter)
@@ -2938,7 +2938,7 @@ def addCopyButton(value, delimiter, name):
   TXBuffer += "clipboard = clipboard.replace(/<[^>]*>/gim,'');"
   TXBuffer += "var tempInput = document.createElement('textarea'); tempInput.style = 'position: absolute; left: -1000px; top: -1000px'; tempInput.innerHTML = clipboard;"
   TXBuffer += "document.body.appendChild(tempInput); tempInput.select(); document.execCommand('copy'); document.body.removeChild(tempInput); alert('Copied: \"' + clipboard + '\" to clipboard!') }</script>"
-  TXBuffer += "<button class='button link' onclick='setClipboard()'>"
+  TXBuffer += "<button class='button link' onclick='setClipboard"+str(dist)+"()'>"
   TXBuffer += str(name)
   TXBuffer += "</button>"
 
