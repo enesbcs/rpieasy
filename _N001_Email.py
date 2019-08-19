@@ -86,6 +86,7 @@ class Plugin(nplugin.NPluginProto):
   if self.sender=="" or self.receiver=="":
    return False
   message = ("From: %s\r\nTo: %s\r\n" % (self.sender,self.receiver))
+  message += "Content-Type: text/plain; charset=utf-8\r\n"
   message += "Subject: "+self.mailparse(self.subject)+"\r\n\r\n"
   if pmsg=="":
    message += self.mailparse(self.body)
@@ -100,7 +101,7 @@ class Plugin(nplugin.NPluginProto):
     smtpObj = smtplib.SMTP_SSL(self.server, port=self.port, timeout=2)
    if self.login!="" and self.passw!="":
     smtpObj.login(self.login,self.passw)
-   smtpObj.sendmail(self.sender, self.receiver, message)
+   smtpObj.sendmail(self.sender, self.receiver, message.encode("utf8"))
    smtpObj.quit()
    misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"Mail sent!")
    return True

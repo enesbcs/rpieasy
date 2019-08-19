@@ -151,6 +151,11 @@ modulelist = [
 {"name":"sqlite",
  "testcmd": "import sqlite3",
  "installed":-1},
+{"name":"pocketsphinx",
+ "apt": ["python3-dev","python3-pip","build-essential","swig","libpulse-dev","libasound2-dev","python3-pyaudio"],
+ "pip": ["pocketsphinx","SpeechRecognition"],
+ "testcmd": "import speech_recognition as sr",
+ "installed":-1},
 
 ]
 
@@ -309,6 +314,9 @@ plugindependencies = [
 {"pluginid": "505", # vlc radio play
  "supported_os_level": [1,2,10],
  "modules":["vlc"]},
+{"pluginid": "506", # pocketsphinx
+ "supported_os_level": [1,2,10],
+ "modules":["pocketsphinx"]},
 {"pluginid": "508", #Temper
  "supported_os_level": [1,2,10],
  "modules":["pyserial","linux-kernel"]},
