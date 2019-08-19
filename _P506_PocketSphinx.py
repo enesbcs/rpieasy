@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 #############################################################################
-################## Generic EvDev input plugin for RPIEasy ###################
+############ Pocket Sphinx speech recognition lugin for RPIEasy #############
 #############################################################################
 #
-# Read raw values from generic linux evdev devices, such as joystick, keypad...
-# Device can be selected from /dev/input/event*
-# Tested with Bluetooth VRBOX keypad
+# PocketSphinx support through SpeechRecognition python module
+#  https://pypi.org/project/SpeechRecognition/
 #
-# Copyright (C) 2018-2019 by Alexander Nagy - https://bitekmindenhol.blog.hu/
+# Copyright (C) 2019 by Alexander Nagy - https://bitekmindenhol.blog.hu/
 #
 import plugin
 import webserver
