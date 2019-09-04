@@ -106,7 +106,7 @@ class Plugin(plugin.PluginProto):
    else:
     self.set_value(1,0,False)
     self.set_value(2,0,False,suserssi=-100,susebattery=0)
-    if publischange:
+    if publishchange:
      self.plugin_senddata()
     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"BLE connection failed "+str(self.taskdevicepluginconfig[0]))
     return False
