@@ -122,9 +122,10 @@ class Plugin(plugin.PluginProto):
       self.set_value(1,self.TARR[-1],False)
       if self.taskdevicepluginconfig[1]:
        self.set_value(2,self.HARR[-1],False)
-       self.set_value(3,self.battery,True,susebattery=self.battery)
+       self.set_value(3,self.battery,False,susebattery=self.battery)
       else:
-       self.set_value(2,self.HARR[-1],True,susebattery=self.battery)
+       self.set_value(2,self.HARR[-1],False,susebattery=self.battery)
+      self.plugin_senddata()
       if self.interval>10:
        self.disconnect()
 #      print("b:",self.battery)

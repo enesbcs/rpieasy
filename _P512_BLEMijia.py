@@ -65,12 +65,6 @@ class Plugin(plugin.PluginProto):
  def webform_save(self,params): # process settings post reply
   self.taskdevicepluginconfig[0] = str(webserver.arg("plugin_512_addr",params)).strip()
   self.taskdevicepluginconfig[1] = (webserver.arg("plugin_512_bat",params)=="on")
-  if self.taskdevicepluginconfig[1]:
-   self.valuecount = 3
-   self.vtype = rpieGlobals.SENSOR_TYPE_TRIPLE
-  else:
-   self.valuecount = 2
-   self.vtype = rpieGlobals.SENSOR_TYPE_TEMP_HUM
   self.plugin_init()
   return True
 
@@ -91,6 +85,12 @@ class Plugin(plugin.PluginProto):
    self._lastdataservetime = 0
 #   self.lastread = 0
    self.failures = 0
+   if self.taskdevicepluginconfig[1]:
+    self.valuecount = 3
+    self.vtype = rpieGlobals.SENSOR_TYPE_TRIPLE
+   else:
+    self.valuecount = 2
+    self.vtype = rpieGlobals.SENSOR_TYPE_TEMP_HUM
   else:
    self.timer1s = False
  
@@ -119,9 +119,10 @@ class Plugin(plugin.PluginProto):
       self.set_value(1,self.TARR[-1],False)
       if self.taskdevicepluginconfig[1]:
        self.set_value(2,self.HARR[-1],False)
-       self.set_value(3,self.battery,True,susebattery=self.battery)
+       self.set_value(3,self.battery,False,susebattery=self.battery)
       else:
-       self.set_value(2,self.HARR[-1],True,susebattery=self.battery)
+       self.set_value(2,self.HARR[-1],False,susebattery=self.battery)
+      self.plugin_senddata()
       if self.interval>10:
        self.disconnect()
 #      print("b:",self.battery)

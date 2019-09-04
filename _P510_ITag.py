@@ -76,7 +76,8 @@ class Plugin(plugin.PluginProto):
    if (self.connected):
     self.conninprogress = False
    self.set_value(1,0,False)
-   self.set_value(2,self.connected,True)       # advertise status at startup
+   self.set_value(2,self.connected,False)       # advertise status at startup
+   self.plugin_senddata()
    if (self.connected == False and self.enabled): # connect if not connected
     self.handshake = False
     self.waitnotifications = False
@@ -104,7 +105,9 @@ class Plugin(plugin.PluginProto):
     self.set_value(2,self.connected,publishchange)
    else:
     self.set_value(1,0,False)
-    self.set_value(2,0,publishchange,suserssi=-100,susebattery=0)
+    self.set_value(2,0,False,suserssi=-100,susebattery=0)
+    if publischange:
+     self.plugin_senddata()
     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"BLE connection failed "+str(self.taskdevicepluginconfig[0]))
     return False
    if self.connected and self.handshake:
@@ -169,7 +172,8 @@ class Plugin(plugin.PluginProto):
   if self.connected:
     self.connected = False
     self.set_value(1,0,False)
-    self.set_value(2,0,True,suserssi=-100,susebattery=0)
+    self.set_value(2,0,False,suserssi=-100,susebattery=0)
+    self.plugin_senddata()
   if tryreconn and self.enabled:
    rpieTime.addsystemtimer(int(self.taskdevicepluginconfig[1]),self.reconnect,[-1])
 
@@ -187,7 +191,8 @@ class Plugin(plugin.PluginProto):
     aval=0
    if float(self.uservar[1])!=1:
     self.set_value(2,1,False)
-   self.set_value(1,aval,True,susebattery=battery)
+   self.set_value(1,aval,False,susebattery=battery)
+   self.plugin_senddata()
 
  def __del__(self):
   self.waitnotifications = False
