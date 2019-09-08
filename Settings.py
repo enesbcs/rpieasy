@@ -58,6 +58,7 @@ SoundSystem = { # do not save, filled on startup!
 }
 
 nodelist = [] # for ESPEasy P2P, fill at runtime!
+p2plist = [] # for LORA/P2P peer list
 WebUIPort = 0 # filled at startup!
 
 # msg arrived from a controller->reroute data to the destination device

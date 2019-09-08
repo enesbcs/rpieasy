@@ -156,6 +156,16 @@ modulelist = [
  "pip": ["pocketsphinx","SpeechRecognition"],
  "testcmd": "import speech_recognition as sr",
  "installed":-1},
+{"name": "pylora",
+ "apt": ["python3-dev","python3-pip","python3-setuptools"],
+ "pip":["RPi.GPIO","spidev","pyLoRa"],
+ "testcmd":"from SX127x.board_config import BOARD",
+ "installed":-1},
+{"name":"pybleno",
+ "apt": ["python3-pip","python3-setuptools"],
+ "pip": ["pybleno"],
+ "testcmd": "from pybleno import *",
+ "installed":-1},
 
 ]
 
@@ -167,7 +177,11 @@ controllerdependencies = [
 {"controllerid":"14",      # Generic MQTT
 "modules":["paho-mqtt"]},
 {"controllerid":"16",      # DBStore
-"modules":["sqlite","mysql"]}
+"modules":["sqlite","mysql"]},
+{"controllerid":"20",      # Lora Direct
+"modules":["pylora"]},
+{"controllerid":"21",      # BLE Direct
+"modules":["bluepy","pybleno"]}
 
 ]
 

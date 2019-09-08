@@ -133,6 +133,46 @@ def handle_root(self):
     TXBuffer += "<TD>"+str(n["age"])
    TXBuffer += "</table></form>"
 
+ if len(Settings.p2plist)>0:
+  try:
+   TXBuffer += "<BR><table class='multirow'><TR><TH>Protocol<TH>P2P node number<TH>Name<TH>Build<TH>Type<TH>MAC<TH>RSSI<TH>Last seen<TH>Capabilities"
+   for n in Settings.p2plist:
+    TXBuffer += "<TR><TD>"+str(n["protocol"])+"<TD>Unit "+str(n["unitno"])+"<TD>"+str(n["name"])+"<TD>"+str(n["build"])+"<TD>"
+    ntype = "Unknown"
+    if int(n["type"])==rpieGlobals.NODE_TYPE_ID_ESP_EASY_STD:
+     ntype = "ESP Easy"
+    elif int(n["type"])==rpieGlobals.NODE_TYPE_ID_ESP_EASYM_STD:
+     ntype = "ESP Easy Mega"
+    elif int(n["type"])==rpieGlobals.NODE_TYPE_ID_ESP_EASY32_STD:
+     ntype = "ESP Easy32"
+    elif int(n["type"])==rpieGlobals.NODE_TYPE_ID_ARDUINO_EASY_STD:
+     ntype = "Arduino Easy"
+    elif int(n["type"])==rpieGlobals.NODE_TYPE_ID_NANO_EASY_STD:
+     ntype = "Nano Easy"
+    elif int(n["type"])==rpieGlobals.NODE_TYPE_ID_RPI_EASY_STD:
+     ntype = "RPI Easy"
+    elif int(n["type"])==rpieGlobals.NODE_TYPE_ID_ATMEGA_EASY_LORA:
+     ntype = "LoRa32u4"
+    TXBuffer += ntype
+    TXBuffer += "<TD>"+str(n["mac"])
+    TXBuffer += "<TD>"+str(n["lastrssi"])
+    ldt = n["lastseen"]
+    lstr = ""
+    try:
+     lstr = ldt.strftime('%Y-%m-%d %H:%M:%S')
+    except:
+     lstr = str(ldt)
+    TXBuffer += "<TD>"+lstr
+    wm = int(n["cap"])
+    wms = ""
+    if (wm & 1)==1:
+     wms = "SEND "
+    if (wm & 2)==2:
+     wms += "RECEIVE "
+    TXBuffer += "<TD>"+wms
+   TXBuffer += "</table></form>"
+  except Exception as e:
+   print(e)
  sendHeadandTail("TmplStd",_TAIL)
  return TXBuffer
 
@@ -1145,7 +1185,10 @@ def handle_devices(self):
             TXBuffer += str(Settings.Tasks[x].ports)
         except:
          pass
-        TXBuffer += "<TD>"
+        if Settings.Tasks[x].remotefeed:
+         TXBuffer += "<TD style='background-color:#00FF00'>"
+        else:
+         TXBuffer += "<TD>"
 
         try:
          if (Settings.Tasks[x].senddataoption):

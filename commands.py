@@ -232,6 +232,56 @@ def doExecuteCommand(cmdline,Parse=True):
   commandfound = True
   return commandfound
 
+ elif cmdarr[0] == "blecommand":
+  try:
+   unitno = int(cmdarr[1])
+  except:
+   unitno = -1
+  data = ""
+  if len(cmdarr)>2:
+   sepp = ( len(cmdarr[0]) + len(cmdarr[1]) + 1 )
+   sepp = cmdline.find(',',sepp)
+   data = cmdline[sepp+1:].replace("==","=")
+  else:
+   unitno = -1
+  if unitno>=0 and unitno<=255:
+    cfound = False
+    for y in range(len(Settings.Controllers)):
+     if (Settings.Controllers[y]):
+      if (Settings.Controllers[y].enabled):
+       if "BLE Direct" in Settings.Controllers[y].getcontrollername():
+        Settings.Controllers[y].sendcommand(unitno,data)
+        cfound = True
+    if cfound==False:
+     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"BLE controller not found!")
+  commandfound = True
+  return commandfound
+
+ elif cmdarr[0] == "loracommand":
+  try:
+   unitno = int(cmdarr[1])
+  except:
+   unitno = -1
+  data = ""
+  if len(cmdarr)>2:
+   sepp = ( len(cmdarr[0]) + len(cmdarr[1]) + 1 )
+   sepp = cmdline.find(',',sepp)
+   data = cmdline[sepp+1:].replace("==","=")
+  else:
+   unitno = -1
+  if unitno>=0 and unitno<=255:
+    cfound = False
+    for y in range(len(Settings.Controllers)):
+     if (Settings.Controllers[y]):
+      if (Settings.Controllers[y].enabled):
+       if "LORA Direct" in Settings.Controllers[y].getcontrollername():
+        Settings.Controllers[y].sendcommand(unitno,data)
+        cfound = True
+    if cfound==False:
+     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"LORA controller not found!")
+  commandfound = True
+  return commandfound
+
  elif cmdarr[0] == "publish":
   topic = cmdarr[1].strip()
   data = ""

@@ -6,7 +6,7 @@
 # Copyright (C) 2018-2019 by Alexander Nagy - https://bitekmindenhol.blog.hu/
 # 
 PROGNAME = "RPIEasy"
-BUILD   = 19247
+BUILD   = 19251
 PROGVER = "0."+str(BUILD/1000)
 
 gpMenu = []
@@ -29,11 +29,12 @@ controllerselector = [[0,0,"- None -"]]
 notifierselector = [[0,0,"- None -"]]
 
 NODE_TYPE_ID_ESP_EASY_STD        =   1
+NODE_TYPE_ID_RPI_EASY_STD        =   5
 NODE_TYPE_ID_ESP_EASYM_STD       =  17
 NODE_TYPE_ID_ESP_EASY32_STD      =  33
 NODE_TYPE_ID_ARDUINO_EASY_STD    =  65
 NODE_TYPE_ID_NANO_EASY_STD       =  81
-NODE_TYPE_ID_RPI_EASY_STD        =   5
+NODE_TYPE_ID_ATMEGA_EASY_LORA    =  97
 
 LOG_LEVEL_ERROR                  =   1
 LOG_LEVEL_INFO                   =   2

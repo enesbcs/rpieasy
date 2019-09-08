@@ -171,6 +171,7 @@ class Plugin(plugin.PluginProto):
    desc.write(0x01.to_bytes(2, byteorder="little"), withResponse=True)
    res = True
   except Exception as e:
+   print(e)
    res = False
    self.failures+=1
   return res
