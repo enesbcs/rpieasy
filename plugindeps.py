@@ -181,8 +181,9 @@ controllerdependencies = [
 {"controllerid":"20",      # Lora Direct
 "modules":["pylora"]},
 {"controllerid":"21",      # BLE Direct
-"modules":["bluepy","pybleno"]}
-
+"modules":["bluepy","pybleno"]},
+{"controllerid":"22",      # ESPNow
+"modules":["pyserial"]},
 ]
 
 plugindependencies = [

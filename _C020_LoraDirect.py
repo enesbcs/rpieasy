@@ -53,6 +53,8 @@ class Controller(controller.ControllerProto):
    self.enabled = enablecontroller
   self.initialized = False
   if self.enabled:
+   if int(Settings.Settings["Unit"])>0:
+    self.controllerport = Settings.Settings["Unit"]
    try:
     BOARD.setup()
     gpios.HWPorts.remove_event_detect(BOARD.DIO0)
@@ -321,7 +323,7 @@ class Controller(controller.ControllerProto):
     if Settings.Tasks[tasknum].remotefeed == False:  # do not republish received values
      dp2 = p2pbuffer.data_packet()
      dp2.sensordata["sunit"] = Settings.Settings["Unit"]
-     dp2.sensordata["dunit"] = self.defaultuint
+     dp2.sensordata["dunit"] = self.defaultunit
      dp2.sensordata["idx"] = idx
      if tasknum>-1:
       dp2.sensordata["pluginid"] = Settings.Tasks[tasknum].pluginid

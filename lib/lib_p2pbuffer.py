@@ -13,7 +13,7 @@ class data_packet:
  infopacket = {"unitno":-1,"mac":"","build":0,"name":"","type":0,"cap":0}
  sensordata = {"sunit":0,"dunit":0,"pluginid":0,"idx":0,"valuecount":0,"values":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}
  cmdpacket  = {"sunit":0,"dunit":0,"cmdline":""}
-
+ pktlen  = 0
  pkgtype = 0
 
  def __init__(self):
@@ -82,8 +82,8 @@ class data_packet:
      tbuf.append(cvf[c])
    self.buffer = bytes(tbuf)
 
-  if ptype == 7:
-   tbuf = [255,7]
+  if ptype in [7,8]:
+   tbuf = [255,int(ptype)]
    tbuf.append(int(self.cmdpacket["sunit"]))
    tbuf.append(int(self.cmdpacket["dunit"]))
    nl = len(self.cmdpacket["cmdline"])
@@ -92,10 +92,10 @@ class data_packet:
     tbuf.append(ord(self.cmdpacket["cmdline"][s]))
    self.buffer = bytes(tbuf)
 
-
  def decode(self):
   tbuffer = list(self.buffer)
   self.pkgtype = 0
+  self.pktlen  = 0
   if len(tbuffer)<7:
    return False
   if tbuffer[0] == 255:
@@ -108,6 +108,7 @@ class data_packet:
      cdata = struct.unpack_from('<B B B B 6B H B B B '+str(nlen)+'s',self.buffer)
     except Exception as e:
      print(e)
+    self.pktlen = 15+int(nlen)
     self.infopacket["unitno"] = int(cdata[2])
     array_alpha = cdata[4:10]
 #    print(array_alpha)
@@ -123,11 +124,22 @@ class data_packet:
     self.pkgtype = 5
     nlen = int(tbuffer[9])
     if nlen>len(tbuffer)-10:
-     nlen = len(tbuffer)-10
-    try:
-     cdata = struct.unpack_from('<4B 2H 2B '+str(nlen)+'f',self.buffer)
-    except Exception as e:
-     print(e)
+     nlen = int((len(tbuffer)-10)/4)
+    explen = 10+(nlen*4)
+    correction = 0
+    if explen+2==len(tbuffer):
+     correction = 1
+     try:
+      cdata = struct.unpack_from('<4B 2H 2B H '+str(nlen)+'f',self.buffer)
+     except Exception as e:
+      print(e)
+     self.pktlen = 12+(int(nlen)*4)
+    else:
+     try:
+      cdata = struct.unpack_from('<4B 2H 2B '+str(nlen)+'f',self.buffer)
+     except Exception as e:
+      print(e)
+     self.pktlen = 10+(int(nlen)*4)
     self.sensordata["sunit"] = int(cdata[2])
     self.sensordata["dunit"] = int(cdata[3])
     self.sensordata["pluginid"]  = int(cdata[4])
@@ -138,11 +150,11 @@ class data_packet:
     self.sensordata["valuecount"] = nlen
     for f in range(nlen):
      try:
-      self.sensordata["values"].append(float(cdata[8+f]))
+      self.sensordata["values"].append(float(cdata[8+f+correction]))
      except:
       pass
-   elif tbuffer[1] == 7: 
-    self.pkgtype = 7
+   elif tbuffer[1] in [7,8]:
+    self.pkgtype = int(tbuffer[1])
 #    print(self.buffer)
     nlen = int(tbuffer[4])
     if nlen>len(tbuffer)-5:
@@ -151,6 +163,7 @@ class data_packet:
      cdata = struct.unpack_from('<5B '+str(nlen)+'s',self.buffer)
     except Exception as e:
      print(e)
+    self.pktlen = 5+int(nlen)
     self.cmdpacket["sunit"] = int(cdata[2])
     self.cmdpacket["dunit"] = int(cdata[3])
     self.cmdpacket["cmdline"] = decodezerostr(cdata[5])
@@ -161,6 +174,7 @@ class data_packet:
 
 def decodezerostr(barr):
  result = ""
+ b=len(barr)
  for b in range(len(barr)):
   if barr[b] == 0:
    try:

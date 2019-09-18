@@ -106,7 +106,7 @@ def handle_root(self):
  TXBuffer += "<TR><TD>Wifi RSSI:<TD>" + str(rssi)
  TXBuffer += '<tr><td>Build<td>' + str(rpieGlobals.PROGNAME) + " " + str(rpieGlobals.PROGVER)
  TXBuffer += "<TR><TD><TD>"
- addButton("sysinfo", "More info");
+ addButton("sysinfo", "More info")
  TXBuffer += "</table><BR>"
  if len(Settings.nodelist)>0:
    TXBuffer += "<BR><table class='multirow'><TR><TH>Node List<TH>Name<TH>Build<TH>Type<TH>IP<TH>Age"
@@ -137,7 +137,10 @@ def handle_root(self):
   try:
    TXBuffer += "<BR><table class='multirow'><TR><TH>Protocol<TH>P2P node number<TH>Name<TH>Build<TH>Type<TH>MAC<TH>RSSI<TH>Last seen<TH>Capabilities"
    for n in Settings.p2plist:
-    TXBuffer += "<TR><TD>"+str(n["protocol"])+"<TD>Unit "+str(n["unitno"])+"<TD>"+str(n["name"])+"<TD>"+str(n["build"])+"<TD>"
+    hstr = str(n["protocol"])
+    if hstr=="ESPNOW":
+     hstr = "<a href='espnow'>"+hstr+"</a>"
+    TXBuffer += "<TR><TD>"+hstr+"<TD>Unit "+str(n["unitno"])+"<TD>"+str(n["name"])+"<TD>"+str(n["build"])+"<TD>"
     ntype = "Unknown"
     if int(n["type"])==rpieGlobals.NODE_TYPE_ID_ESP_EASY_STD:
      ntype = "ESP Easy"
@@ -272,7 +275,7 @@ def handle_config(self):
  else:
   Settings.loadsettings() 
 
- sendHeadandTail("TmplStd",_HEAD); 
+ sendHeadandTail("TmplStd",_HEAD)
 
  TXBuffer += "<form name='frmselect' method='post'><table class='normal'>"
  addFormHeader("Main Settings")

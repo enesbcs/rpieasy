@@ -282,6 +282,50 @@ def doExecuteCommand(cmdline,Parse=True):
   commandfound = True
   return commandfound
 
+ elif cmdarr[0] == "espnowcommand":
+  try:
+   unitno = int(cmdarr[1])
+  except:
+   unitno = -1
+  data = ""
+  if len(cmdarr)>2:
+   sepp = ( len(cmdarr[0]) + len(cmdarr[1]) + 1 )
+   sepp = cmdline.find(',',sepp)
+   data = cmdline[sepp+1:].replace("==","=")
+  else:
+   unitno = -1
+  if unitno>=0 and unitno<=255:
+    cfound = False
+    for y in range(len(Settings.Controllers)):
+     if (Settings.Controllers[y]):
+      if (Settings.Controllers[y].enabled):
+       if "ESPNow" in Settings.Controllers[y].getcontrollername():
+        Settings.Controllers[y].sendcommand(unitno,data)
+        cfound = True
+    if cfound==False:
+     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"ESPNow controller not found!")
+  commandfound = True
+  return commandfound
+
+ elif cmdarr[0] == "serialcommand":
+  data = ""
+  if len(cmdarr)>1:
+   sepp = cmdline.find(',')
+   data = cmdline[sepp+1:].replace("==","=")
+  else:
+   return False
+  cfound = False
+  for y in range(len(Settings.Controllers)):
+     if (Settings.Controllers[y]):
+      if (Settings.Controllers[y].enabled):
+       if "ESPNow" in Settings.Controllers[y].getcontrollername():
+        Settings.Controllers[y].serialcommand(data)
+        cfound = True
+  if cfound==False:
+     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"ESPNow controller not found!")
+  commandfound = True
+  return commandfound
+
  elif cmdarr[0] == "publish":
   topic = cmdarr[1].strip()
   data = ""

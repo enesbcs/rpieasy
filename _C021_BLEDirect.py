@@ -105,8 +105,11 @@ class Controller(controller.ControllerProto):
   webserver.addFormNote("IP and Port parameter is not used!")
   webserver.addFormCheckBox("Enable Receiver Service","receiver",self.enablerec)
   webserver.addFormNote("Enable this for Gateway/Repeater unit, Disable if you only want to send data!")
-  if self.bleserv is not None:
+  try:
+   if self.bleserv is not None:
     webserver.addFormNote("Current Address: "+str(self.bleserv.getaddress()))
+  except:
+   pass
   webserver.addFormCheckBox("Enable Sending to Default Master Unit","sender",self.enablesend)
   webserver.addFormCheckBox("Enable Direct Sending to Units in P2P list","directsender",self.directsend)
   webserver.addFormNote("Please respect MASTER-SLAVE nature of BLE and do not create infinite loops!")
