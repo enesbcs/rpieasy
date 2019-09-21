@@ -85,20 +85,23 @@ class Controller(controller.ControllerProto):
       self.bgproc = threading.Thread(target=self.bgreceiver)
       self.bgproc.daemon = True
       self.bgproc.start()
-      time.sleep(1)
+      time.sleep(2)
       mode = self.changemode(0)
       if mode!=0:
        mode = self.changemode(0)
       if mode!=0:
        misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Serial ESPNow GW adapter is not compatible!")
        self.initialized = False
-       self.connected = False
+       self.disconnect()
 
      if self.connected:
       if int(self.controllerport)>0:
        self.serialcommand("unit,"+str(self.controllerport))
+      time.sleep(0.2)
       self.serialcommand("espnow,dest,"+str(self.defaultunit))
+      time.sleep(0.2)
       self.serialcommand("espnow,chan,"+str(self.wchan))
+      time.sleep(0.2)
       misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"Serial ESPNow GW initialized")
       self.serialcommand("settings")
       time.sleep(0.5)
@@ -194,6 +197,13 @@ class Controller(controller.ControllerProto):
     webserver.addFormNumericBox("Default destination node index","defaultnode",self.defaultunit,0,255)
     webserver.addFormNote("Default node index for data sending")
     webserver.addFormNote("Detected gateway MAC address "+str(self.mac))
+    options = []
+    optionvalues = []
+    for i in range(1,14):
+       options.append(str(i))
+       optionvalues.append(i)
+    webserver.addFormSelector("Wifi channel","wchannel",len(options),options,optionvalues,None,self.wchan)
+    webserver.addFormNote("Set the same wifi channel at all nodes!")
     webserver.addWideButton("espnow","ESPNow endpoint management","")
    else:
     webserver.addFormNote("No serial ports found")
@@ -206,6 +216,7 @@ class Controller(controller.ControllerProto):
   try:
    self.port = str(webserver.arg("ser_addr",params))
    self.baud = int(webserver.arg("ser_spd",params))
+   self.wchan = int(webserver.arg("wchannel",params))
    self.defaultunit = int(webserver.arg("defaultnode",params))
 #   self.enablesend = (webserver.arg("sender",params)=="on")
   except Exception as e:
