@@ -81,6 +81,7 @@ class Controller(controller.ControllerProto):
 
      if self.connected:
       self.initialized = True
+      misc.shadowlogenabled = True
       self.bgproc = threading.Thread(target=self.bgreceiver)
       self.bgproc.daemon = True
       self.bgproc.start()
@@ -466,22 +467,22 @@ def getunitordfromnum(unitno):
 
 def getlastseriallogs(num=3):
     scmdarr = []
-    for i in reversed(range(len(misc.SystemLog))):
+    for i in reversed(range(len(misc.ShadowLog))):
      if len(scmdarr)>=num:
       break
-     if misc.SystemLog[i]["lvl"]== rpieGlobals.LOG_LEVEL_DEBUG:
-      if "SERIAL:" in misc.SystemLog[i]["l"]:
-       scmdarr.append(misc.SystemLog[i]["l"].replace("SERIAL:","").strip())
+     if misc.ShadowLog[i]["lvl"]== rpieGlobals.LOG_LEVEL_DEBUG:
+      if "SERIAL:" in misc.ShadowLog[i]["l"]:
+       scmdarr.append(misc.ShadowLog[i]["l"].replace("SERIAL:","").strip())
     return scmdarr
 
 def getlastespnowlogs(num=1):
     scmdarr = []
-    for i in reversed(range(len(misc.SystemLog))):
+    for i in reversed(range(len(misc.ShadowLog))):
      if len(scmdarr)>=num:
       break
-     if misc.SystemLog[i]["lvl"]== rpieGlobals.LOG_LEVEL_DEBUG:
-      if "ESPNOW:" in misc.SystemLog[i]["l"]:
-       scmdarr.append(misc.SystemLog[i]["l"].replace("ESPNOW:","").strip())
+     if misc.ShadowLog[i]["lvl"]== rpieGlobals.LOG_LEVEL_DEBUG:
+      if "ESPNOW:" in misc.ShadowLog[i]["l"]:
+       scmdarr.append(misc.ShadowLog[i]["l"].replace("ESPNOW:","").strip())
     return scmdarr
 
 ############################
@@ -712,14 +713,14 @@ def handle_espnow(self):
      commands.doExecuteCommand("espnowcommand,"+str(managenode)+",i2cscanner",False)
      time.sleep(3)
     scmdarr = []
-    for i in reversed(range(len(misc.SystemLog))):
+    for i in reversed(range(len(misc.ShadowLog))):
       if len(scmdarr)>=30:
        break
-      if "i2cscanner" in misc.SystemLog[i]["l"]:
+      if "i2cscanner" in misc.ShadowLog[i]["l"]:
        break
-      if misc.SystemLog[i]["lvl"]== rpieGlobals.LOG_LEVEL_DEBUG:
-       if "I2C  :" in misc.SystemLog[i]["l"]:
-        scmdarr.append(misc.SystemLog[i]["l"].replace("ESPNOW:","").replace("SERIAL:","").strip())
+      if misc.ShadowLog[i]["lvl"]== rpieGlobals.LOG_LEVEL_DEBUG:
+       if "I2C  :" in misc.ShadowLog[i]["l"]:
+        scmdarr.append(misc.ShadowLog[i]["l"].replace("ESPNOW:","").replace("SERIAL:","").strip())
     webserver.TXBuffer += "<TR><TD colspan='2'><textarea readonly rows='10' wrap='on'>"
     for i in range(len(scmdarr)):
      webserver.TXBuffer += scmdarr[i]+"&#13;&#10;"
@@ -756,14 +757,14 @@ def handle_espnow(self):
      commands.doExecuteCommand("espnowcommand,"+str(managenode)+",espnow,tasklist",False)
      time.sleep(3)
      scmdarr = []
-     for i in reversed(range(len(misc.SystemLog))):
+     for i in reversed(range(len(misc.ShadowLog))):
       if len(scmdarr)>=30:
        break
-      if "espnow,tasklist" in misc.SystemLog[i]["l"]:
+      if "espnow,tasklist" in misc.ShadowLog[i]["l"]:
        break
-      if misc.SystemLog[i]["lvl"]== rpieGlobals.LOG_LEVEL_DEBUG:
-       if "ESPNOW:" in misc.SystemLog[i]["l"]:
-        scmdarr.append(misc.SystemLog[i]["l"].replace("ESPNOW:","").strip())
+      if misc.ShadowLog[i]["lvl"]== rpieGlobals.LOG_LEVEL_DEBUG:
+       if "ESPNOW:" in misc.ShadowLog[i]["l"]:
+        scmdarr.append(misc.ShadowLog[i]["l"].replace("ESPNOW:","").strip())
     if len(scmdarr)>0:
       for i in range(len(scmdarr)):
        if ",tasklist" in scmdarr[i]:

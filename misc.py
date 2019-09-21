@@ -14,6 +14,8 @@ import socket
 supportedsys = ['Not supported', 'Linux-apt (partially supported)', 'Linux-pacman (experimental support)','OPI-Linux-armbian (experimental)','-Reserved','-Reserved','-Reserved','-Reserved','-Reserved','-Reserved','RPI-Linux-apt (supported)']
 
 SystemLog = []
+ShadowLog = []
+shadowlogenabled = False
 
 def getosname(lvl=0):
  if lvl==0:
@@ -55,6 +57,7 @@ def WebLog(lvl,logstamp, line):
  SystemLog.append({"t":logstamp,"l":line,"lvl":lvl})
 
 def addLog(logLevel, line):
+ global ShadowLog
  lstamp = datetime.now().strftime('%H:%M:%S')
  if int(logLevel)<=int(Settings.AdvSettings["webloglevel"]): # if weblogging enabled
     WebLog(logLevel,lstamp,line)
@@ -67,6 +70,10 @@ def addLog(logLevel, line):
     else:
      lstamp += ": "
     print(lstamp+line)
+ if shadowlogenabled:
+    if len(ShadowLog)>1000:
+     ShadowLog = []
+    ShadowLog.append({"t":lstamp,"l":line,"lvl":logLevel})
 
 def udpsender(destip,data,dport=514,retrynum=1):
   if destip != "":
