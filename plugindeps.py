@@ -166,6 +166,11 @@ modulelist = [
  "pip": ["pybleno"],
  "testcmd": "from pybleno import *",
  "installed":-1},
+{"name":"blynklib",
+ "apt": ["python3-pip","python3-setuptools"],
+ "pip": ["blynklib"],
+ "testcmd": "import blynklib",
+ "installed":-1},
 
 ]
 
@@ -176,6 +181,8 @@ controllerdependencies = [
 "modules":["linux-kernel"]},
 {"controllerid":"14",      # Generic MQTT
 "modules":["paho-mqtt"]},
+{"controllerid":"15",      # Blynk
+"modules":["blynklib"]},
 {"controllerid":"16",      # DBStore
 "modules":["sqlite","mysql"]},
 {"controllerid":"20",      # Lora Direct
@@ -184,6 +191,11 @@ controllerdependencies = [
 "modules":["bluepy","pybleno"]},
 {"controllerid":"22",      # ESPNow
 "modules":["pyserial"]},
+]
+
+notifierdependencies = [
+{"npluginid":"5",      # Blynk
+"modules":["blynklib"]},
 ]
 
 plugindependencies = [

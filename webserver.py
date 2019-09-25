@@ -1014,6 +1014,36 @@ def handle_plugins(self):
    addEnabled(usable)
    TXBuffer += "</td></tr>"
 
+ TXBuffer += "</table><p><table class='multirow' border=1px frame='box' rules='all'><TR><TH colspan=4>Notifications</TH></TR>"
+ TXBuffer += "<TR><TH>#</TH><TH>Name</TH><TH>Dependencies</TH><TH>Usable</TH></TR>"
+
+ for x in range(len(rpieGlobals.notifierselector)):
+  if (rpieGlobals.notifierselector[x][1] != 0):
+   TXBuffer += "<tr><td>" + str(rpieGlobals.notifierselector[x][1])+"</td><td align=left>"+rpieGlobals.notifierselector[x][2]+"</td>"
+   depfound = -1
+   for y in range(len(plugindeps.notifierdependencies)):
+    if str(plugindeps.notifierdependencies[y]["npluginid"]) == str(rpieGlobals.notifierselector[x][1]):
+     depfound = y
+     break
+   TXBuffer += "<td>"
+   usable = True
+   if depfound>-1:
+    if (plugindeps.notifierdependencies[depfound]["modules"]):
+     for z in range(len(plugindeps.notifierdependencies[depfound]["modules"])):
+      puse = plugindeps.ismoduleusable(plugindeps.notifierdependencies[depfound]["modules"][z])
+      addEnabled(puse)
+      if puse==False:
+       usable = False
+       TXBuffer += "<a href='plugins?installmodule="+plugindeps.notifierdependencies[depfound]["modules"][z]+"'>"
+      TXBuffer += plugindeps.notifierdependencies[depfound]["modules"][z]+" "
+      if puse==False:
+       TXBuffer += "</a>"
+   else:
+    TXBuffer += "No dependencies"
+   TXBuffer += "</td><td>"
+   addEnabled(usable)
+   TXBuffer += "</td></tr>"
+
  TXBuffer += "</table><p><table class='multirow' border=1px frame='box' rules='all'><TR><TH colspan=5>Plugins</TH></TR>"
  TXBuffer += "<TR><TH>#</TH><TH>Name</TH><TH>OS</TH><TH>Dependencies</TH><TH>Usable</TH></TR>"
 
