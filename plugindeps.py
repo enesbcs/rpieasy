@@ -50,7 +50,7 @@ modulelist = [
  "testcmd": "import pygame\ntest=pygame.mixer.get_init()",
  "installed":-1},
 {"name":"vlc",
- "apt": ["vlc-nox"],
+ "apt": ["vlc-bin"], # vlc-nox is deprecated
  "testcmd":"import subprocess\nsubprocess.Popen(['/usr/bin/cvlc', '--version'])",
  "installed":-1},
 {"name":"wiegand_io",
