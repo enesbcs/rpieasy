@@ -62,13 +62,14 @@ class Controller(controller.ControllerProto):
         vname = "field"+str(u+1)
        jdata[vname] = str(value[u])
      else:
-      vname = Settings.Tasks[tasknum].valuenames[changedvalue-1].strip().lower()
+      u = changedvalue-1
+      vname = Settings.Tasks[tasknum].valuenames[u].strip().lower()
       if vname.startswith('field')==False:
         vname = "field"+str(u+1)
       jdata[vname] = str(value[u])
 
      jdata = urllib.parse.urlencode(jdata).encode("utf-8")
-     urlstr = "http://"+str(self.controllerip)+":"+self.controllerport+"/update" # create destination url
+     urlstr = "http://"+str(self.controllerip)+":"+str(self.controllerport)+"/update" # create destination url
      misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"Sending task "+str(tasknum+1)+" data to ThingSpeak at "+str(urlstr))
      self.lastsend = time.time()
      httpproc = threading.Thread(target=self.urlpost, args=(urlstr,jdata,))  # use threading to avoid blocking
