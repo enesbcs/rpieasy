@@ -27,7 +27,7 @@ class Controller(controller.ControllerProto):
   self.usesAccount = False
   self.usesPassword = False
   self.controllerport = 80
-  self.inchannel = "demo.php?name=%sysname%&task=%tskname%&valuename=%valname%&value=%value%"
+  self.inchannel = "demo.php?name=%sysname%&task=%tskname%&taskid=%id%&valuename=%valname%&value=%value%"
   self.templatestr = ""
 
  def controller_init(self,enablecontroller=None):
@@ -52,6 +52,7 @@ class Controller(controller.ControllerProto):
     if Settings.Tasks[tasknum] != False:
       hn = str(urllib.parse.quote(str(Settings.Tasks[tasknum].gettaskname())))
       templatestra = self.templatestr.replace('%tskname%',hn)
+      templatestra = templatestra.replace('%id%',str(tasknum+1))
       procarr = []
       for u in range(Settings.Tasks[tasknum].valuecount):
        vn = str(Settings.Tasks[tasknum].valuenames[u]).strip()
