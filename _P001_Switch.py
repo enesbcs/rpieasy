@@ -64,7 +64,10 @@ class Plugin(plugin.PluginProto):
      misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"Registering 10/sec timer as asked")
      self.timer100ms = True
      return True
-    gpios.HWPorts.add_event_detect(int(self.taskdevicepin[0]),gpios.BOTH,self.p001_handler)
+    if int(self.taskdevicepluginconfig[1])>0:
+     gpios.HWPorts.add_event_detect(int(self.taskdevicepin[0]),gpios.BOTH,self.p001_handler,int(self.taskdevicepluginconfig[1]))
+    else:
+     gpios.HWPorts.add_event_detect(int(self.taskdevicepin[0]),gpios.BOTH,self.p001_handler)
     misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"Event registered to pin "+str(self.taskdevicepin[0]))
     self.timer100ms = False
    except:
@@ -72,8 +75,14 @@ class Plugin(plugin.PluginProto):
     self.timer100ms = True
 
  def webform_load(self):
-  webserver.addFormNote("Please make sure to select <a href='pinout'>pin configured for input!</a>")
+  webserver.addFormNote("Please make sure to select <a href='pinout'>pin configured</a> for input for default (or output to report back its state)!")
   webserver.addFormCheckBox("Force 10/sec periodic checking of pin","p001_per",self.taskdevicepluginconfig[0])
+  webserver.addFormNote("For output pin, only 10/sec periodic method will work!")
+  webserver.addFormNumericBox("De-bounce (ms)","p001_debounce",self.taskdevicepluginconfig[1],0,1000)
+  options = ["Normal Switch","Push Button Active Low","Push Button Active High"]
+  optionvalues = [0,1,2]
+  webserver.addFormSelector("Switch Button Type","p001_button",len(optionvalues),options,optionvalues,None,self.taskdevicepluginconfig[2])
+  webserver.addFormNote("Use only normal switch for output type, i warned you!")
   return True
 
  def webform_save(self,params):
@@ -81,32 +90,54 @@ class Plugin(plugin.PluginProto):
    self.taskdevicepluginconfig[0] = True
   else:
    self.taskdevicepluginconfig[0] = False
+  par = webserver.arg("p001_debounce",params)
+  try:
+   self.taskdevicepluginconfig[1] = int(par)
+  except:
+   self.taskdevicepluginconfig[1] = 0
+  par = webserver.arg("p001_button",params)
+  try:
+   self.taskdevicepluginconfig[2] = int(par)
+  except:
+   self.taskdevicepluginconfig[2] = 0
   return True
 
  def plugin_read(self):
   result = False
   if self.initialized:
-   self.set_value(1,gpios.HWPorts.input(int(self.taskdevicepin[0])),True)
+   self.set_value(1,int(float(self.uservar[0])),True)
    self._lastdataservetime = rpieTime.millis()
    result = True
   return result
 
  def p001_handler(self,channel):
-  if self.initialized and self.enabled:
-   val = gpios.HWPorts.input(int(self.taskdevicepin[0]))
-#   print("GPIO",int(self.taskdevicepin[0]),"v:",val)
-   if int(val) != int(float(self.uservar[0])):
-    self.set_value(1,val,True)
-    self._lastdataservetime = rpieTime.millis()
-    rpieTime.addsystemtimer(1,self.postchecker,[int(self.taskdevicepin[0]),int(float(self.uservar[0]))]) # failsafe check
+  self.pinstate_check(True)
 
  def timer_ten_per_second(self):
+  self.pinstate_check()
+
+ def pinstate_check(self,postcheck=False):
   if self.initialized and self.enabled:
-   val = gpios.HWPorts.input(int(self.taskdevicepin[0]))
-#   print(val,self.uservar[0])
-   if int(val) != int(float(self.uservar[0])):
-    self.set_value(1,val,True)
+   prevval = int(float(self.uservar[0]))
+   inval = gpios.HWPorts.input(int(self.taskdevicepin[0]))
+   if self.pininversed:
+    prevval=1-int(prevval)
+   outval = prevval
+   if int(self.taskdevicepluginconfig[2])==0: # normal switch
+    outval = int(inval)
+   elif int(self.taskdevicepluginconfig[2])==1: # active low button
+    if inval==0:             # if low
+     outval = 1-int(prevval) # negate
+   elif int(self.taskdevicepluginconfig[2])==2: # active high button
+    if inval==1:             # if high
+     outval = 1-int(prevval) # negate
+   if prevval != outval:
+    self.set_value(1,outval,True)
     self._lastdataservetime = rpieTime.millis()
+    if self.taskdevicepluginconfig[2]>0 and self.timer100ms:
+      time.sleep(self.taskdevicepluginconfig[1]/1000) # force debounce if not event driven detection
+    if postcheck:
+     rpieTime.addsystemtimer(1,self.postchecker,[int(self.taskdevicepin[0]),int(float(self.uservar[0]))]) # failsafe check
 
  def plugin_write(self,cmd):
   res = False
