@@ -11,11 +11,13 @@
 from collections import namedtuple
 import re
 import subprocess
+import shlex
 import os
 import Settings
 import time
 import misc
 import rpieGlobals
+import linux_os as OS
 
 cellNumberRe = re.compile(r"^Cell\s+(?P<cellnumber>.+)\s+-\s+Address:\s(?P<mac>.+)$")
 regexps = [
@@ -137,7 +139,7 @@ class NetworkDevice:
   self.gw = ""
   self.dns = ""            # /etc/resolv.conf
   self.dnsserver = False
-  self.apmode = 0          # 0-no,1-on connection error,2-always
+  self.apmode = 0          # 0-no,1-yes
   self.enabled=True
   self.connectiontype=0    # 1-wired,2-wireless
   self.connected = False
@@ -145,7 +147,7 @@ class NetworkDevice:
   self.netdevorder=-1
 
  def isconnected(self):
-  if time.time()-self.lastconnectiontest>5:
+  if time.time()-self.lastconnectiontest>=4:
     conn = False
     try:
      with open('/sys/class/net/'+self.devicename.strip()+'/carrier') as f:
@@ -185,6 +187,11 @@ class NetworkDevice:
         break
     except:
      pass
+    if wless==False:
+     try:
+      wless = os.path.exists("/sys/class/net/"+str(self.devicename)+"/wireless")
+     except:
+      pass
     if wless:
      self.connectiontype=2
     else:
@@ -220,9 +227,14 @@ class NetworkManager:
   self.WifiKey   = ""
   self.WifiSSID2 = ""
   self.WifiKey2  = ""
-  self.APMode    = 1 # 0-ap mode do not starts automatically, 1-ap mode starts automatically
-  self.WifiAPKey = "rpieasy"
-  self.dhcpcd_inuse = False
+  self.APMode    = 99 # -1:never, 0: on primary device fail, 1: on secondary device fail, 99: if first wifi fail, 100: always
+  self.APModeDev = 99 # 0: primary, 1: secondary, 99 first wifi
+  self.APModeTime = 30 # in seconds
+  self.WifiAPKey = "configrpi"
+  self.WifiAPChannel = 1
+  self.WifiDevWatch  = -1
+  self.WifiDevNum    = -1
+  self.dhcpcd_inuse  = False
 
  def networkinit(self):
   ipi = getipinfos()
@@ -377,6 +389,43 @@ class NetworkManager:
      if Settings.NetworkDevices[dc].gw == "" and Settings.NetworkDevices[dc].ip!="":
       Settings.NetworkDevices[dc].gw = getgw(Settings.NetworkDevices[dc].devicename)
      Settings.NetworkDevices[dc].connectiontype = 0 # reset iswireless value in case of device name change!
+     Settings.NetworkDevices[dc].iswireless()
+  if (OS.is_command_found('hostapd')==False or OS.is_command_found('dnsmasq')==False):
+   self.APMode = -1
+  self.setAPconf(True)
+
+ def setAPconf(self,startup=False):
+  try:
+   if self.APModeDev:
+    pass
+  except:
+   self.APModeDev = 99
+   self.APMode = 99
+  try:
+   if self.APModeTime:
+    pass
+  except:
+   self.APModeTime = 30
+  if self.APModeDev==99: # set device idx to manage
+   self.WifiDevNum = self.getfirstwirelessdevnum()
+  elif self.APModeDev==0:
+   self.WifiDevNum = self.getprimarydevice()
+  elif self.APModeDev==1:
+   self.WifiDevNum = self.getsecondarydevice()
+  else:
+   return False
+  if self.WifiDevNum>=0:
+   if startup:
+    AP_stop(self.WifiDevNum) # try to stop it just for sure
+  if self.APMode== 99:  # set device idx to watch
+   self.WifiDevWatch = self.getfirstwirelessdevnum()
+  elif self.APMode == 0:
+   self.WifiDevWatch = self.getprimarydevice()
+  elif self.APMode == 1:
+   self.WifiDevWatch = self.getsecondarydevice()
+  elif self.APMode == 100:
+   if startup:
+    AP_start(self.WifiDevNum)
 
  def getdevicenames(self):
   rs = []
@@ -396,6 +445,18 @@ class NetworkManager:
   except:
    return False
   return False
+
+ def getfirstwirelessdevnum(self):
+  try:
+   pd = self.getprimarydevice()
+   if Settings.NetworkDevices[pd].iswireless():
+    return pd
+   pd = self.getsecondarydevice()
+   if Settings.NetworkDevices[pd].iswireless():
+    return pd
+  except:
+   return -1
+  return -1
 
  def getprimarydevice(self):
   rs = 0
@@ -592,3 +653,37 @@ def cidr_to_netmask(cidr):
 def netmask_to_cidr(netmask):
  return sum([bin(int(x)).count("1") for x in netmask.split(".")])
 
+def AP_start(ndi): # index in NetworkDevices array
+    ndi = int(ndi)
+    if ndi>=len(Settings.NetworkDevices) or ndi<0:
+     print("NetworkDevice "+str(ndi)+" not found")
+     return False
+    if Settings.NetworkDevices[ndi].ip=="192.168.4.1" or Settings.NetworkDevices[ndi].apmode==1:
+     return False # already in apmode
+    APName = Settings.Settings["Name"]
+    if APName  == "RPIEasy":
+     APName += "-"+str(Settings.Settings["Unit"])
+    try:
+     chan = Settings.NetMan.WifiAPChannel
+    except:
+     chan = 1
+    if len(Settings.NetMan.WifiAPKey.strip())<8: # wpa password can not be shorter than 8 character
+     Settings.NetMan.WifiAPKey = "configrpi"
+    cmdline = 'sudo lib/scripts/ap_start.sh '+str(Settings.NetworkDevices[ndi].devicename)+" "+str(APName)+" "+str(Settings.NetMan.WifiAPKey)+" "+str(chan)
+#    print(cmdline) # debug
+    subprocess.call(shlex.split(OS.cmdline_rootcorrect(cmdline)))
+    Settings.NetworkDevices[ndi].apmode = 1
+    return True
+
+def AP_stop(ndi): # index in NetworkDevices array
+    ndi = int(ndi)
+    if ndi>=len(Settings.NetworkDevices) or ndi<0:
+     print("NetworkDevice "+str(ndi)+" not found")
+     return False
+    if Settings.NetworkDevices[ndi].ip!="192.168.4.1" and Settings.NetworkDevices[ndi].apmode==0:
+     return False # not in apmode
+    cmdline = 'sudo lib/scripts/ap_stop.sh '+str(Settings.NetworkDevices[ndi].devicename)
+#    print(cmdline) # debug
+    subprocess.call(shlex.split(OS.cmdline_rootcorrect(cmdline)))
+    Settings.NetworkDevices[ndi].apmode = 0
+    return True

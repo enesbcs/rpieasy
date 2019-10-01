@@ -171,6 +171,11 @@ modulelist = [
  "pip": ["blynklib"],
  "testcmd": "import blynklib",
  "installed":-1},
+{"name":"wifiap",
+ "apt": ["hostapd","dnsmasq"],
+ "testcmd" : "if (OS.is_command_found('hostapd')==False or OS.is_command_found('dnsmasq')==False):\n raise Exception('hostapd/dnsmasq not found')",
+ "installcmd" : "sudo systemctl disable dnsmasq hostapd && sudo systemctl unmask hostapd",
+ "installed":-1},
 
 ]
 

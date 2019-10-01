@@ -39,8 +39,10 @@ timer20ms  = 0
 timer1s    = 0
 timer2s    = 0
 timer30s   = 0
-init_ok = False
+init_ok    = False
 prevminute = -1
+netmode    = False
+lastdisconntime = 0
 
 def hardwareInit():
  #print("Init hardware...")
@@ -276,6 +278,7 @@ def runon2seconds():
       t.start()
    except:
     pass
+ checkNetwork()
  if len(procarr)>0:
   for process in procarr:
     process.join()
@@ -314,6 +317,34 @@ def checkSensors():
   for process2 in procarr2:
     process2.join()
  return True
+
+def checkNetwork():
+ global netmode, lastdisconntime
+ try:
+  if Settings.NetMan.APMode not in [-1,100]:
+   if Settings.NetMan.WifiDevWatch>=0 and Settings.NetMan.WifiDevNum>=0:
+    if Settings.NetworkDevices[Settings.NetMan.WifiDevWatch].apmode==0:
+     anetmode = Settings.NetworkDevices[Settings.NetMan.WifiDevWatch].isconnected()
+     if anetmode!=netmode: # network mode changed
+      netmode=anetmode
+      if netmode: # if connected
+       lastdisconntime = 0 # forgive last disconnect time
+       commands.rulesProcessing("WiFi#Connected",rpieGlobals.RULE_SYSTEM)
+       return True
+      else:
+       lastdisconntime = time.time() # store last disconnect time
+       commands.rulesProcessing("WiFi#Disconnected",rpieGlobals.RULE_SYSTEM)
+       return True
+     elif anetmode==False: # otherwise, if in disconnect state
+      if lastdisconntime!=0:
+       if (time.time()-lastdisconntime)>int(Settings.NetMan.APModeTime):
+          from linux_network import AP_start
+          AP_start(Settings.NetMan.WifiDevNum)
+          lastdisconntime = 0 # forgive last disconnect time
+      else:
+       lastdisconntime = time.time() # store last disconnect time
+ except Exception as e:
+  print(e)
 
 def mainloop():
  global timer100ms, timer20ms, timer1s, timer2s, timer30s, init_ok, prevminute

@@ -213,13 +213,22 @@ def handle_config(self):
   Settings.Settings["Name"]  = arg("name",responsearr).replace(" ","")
   Settings.Settings["Unit"]  = arg("unit",responsearr)
   tpw = arg("password",responsearr)
+  pwh = (arg("passwordhack",responsearr)=="on")
+  try:
+   Settings.Settings["PasswordHack"] = pwh
+  except Exception as e:
+   print(e)
+
   if "**" not in tpw:
    Settings.Settings["Password"]  = tpw
 # ...
   Settings.savesettings()
 #  time.sleep(0.1)
   if Settings.NetMan:
-   Settings.NetMan.APMode = arg("apmode",responsearr)
+   Settings.NetMan.APMode = int(arg("apmode",responsearr))
+   Settings.NetMan.APModeDev = int(arg("apmodedev",responsearr))
+   Settings.NetMan.APModeTime = int(arg("apmodetime",responsearr))
+   Settings.NetMan.WifiAPChannel = int(arg("wifiapchannel",responsearr))
    tpw = arg("apkey",responsearr)
    if "**" not in tpw:
     Settings.NetMan.WifiAPKey = tpw
@@ -231,6 +240,7 @@ def handle_config(self):
    tpw = arg("key2",responsearr)
    if "**" not in tpw:
     Settings.NetMan.WifiKey2 = tpw
+   Settings.NetMan.setAPconf()
   else:
    Settings.NetMan = Network.NetworkManager()
  
@@ -271,7 +281,10 @@ def handle_config(self):
    Settings.NetMan.saveconfig()  # save OS config files only if enabled and have root rights!!
   else:
    misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"Settings saved without OS network settings modifications as you wish!")
+ 
   Settings.savenetsettings()     # save to json
+  if netmanage:
+   Network.AP_stop(Settings.NetMan.WifiDevNum)
  else:
   Settings.loadsettings() 
 
@@ -281,12 +294,67 @@ def handle_config(self):
  addFormHeader("Main Settings")
 
  addFormTextBox( "Unit Name", "name", Settings.Settings["Name"], 25)
- 
+
  addFormNumericBox( "Unit Number", "unit", Settings.Settings["Unit"], 0, 256)
  addFormPasswordBox( "Admin Password" , "password", Settings.Settings["Password"], 25)
+ try:
+  ph = Settings.Settings["PasswordHack"]
+ except:
+  ph = False
+ addFormCheckBox("Disable password for safe commands","passwordhack", ph)
+ addFormNote("NOT SAFE COMMANDS: Reboot,Reset,Halt,Update,Exit")
 
-# addFormCheckBox("AP Mode enable on connection failure","apmode",Settings.NetMan.APMode) # Not implemented MISSING!
-# addFormPasswordBox("WPA AP Mode Key", "apkey", Settings.NetMan.WifiAPKey, 128)          # Not implemented MISSING!
+ addFormSeparator(2)
+ try:
+  choice = Settings.NetMan.APMode
+ except:
+  choice = 99
+ options = ["Never","At startup without condition","Primary dev disconnected","Secondary dev disconnected","First WiFi dev disconnected"]
+ optionvalues = [-1,100,0,1,99]
+ addFormSelector("Start AP when","apmode",len(optionvalues),options,optionvalues,None,int(choice))
+ try:
+  choice = Settings.NetMan.APModeDev
+ except:
+  choice = 99
+ options = ["Primary network device","Secondary network device","First wireless network device"]
+ optionvalues = [0,1,99]
+ addFormSelector("On this device","apmodedev",len(optionvalues),options,optionvalues,None,int(choice))
+ try:
+  dval = Settings.NetMan.APModeTime
+ except:
+  dval = 30
+ addFormNumericBox( "After this time", "apmodetime", dval, 5, 600)
+ addUnit("sec")
+ try:
+  dval = Settings.NetMan.WifiAPChannel
+ except:
+  dval = 1
+ addFormNumericBox( "On this channel", "wifiapchannel", dval, 1, 13)
+ addFormPasswordBox("WPA AP Mode Key", "apkey", Settings.NetMan.WifiAPKey, 128)
+ addFormNote("Password has to be at least 8 character long!")
+
+ try:
+  if (plugindeps.modulelist):
+   pass
+ except:
+  import plugindeps
+
+ try:
+  TXBuffer += "<TR><TD>HostAPD library status:<TD>"
+  modname = "wifiap"
+  puse = plugindeps.ismoduleusable(modname)
+  addEnabled(puse)
+  if puse==False:
+   usable = False
+   TXBuffer += "<a href='plugins?installmodule="+modname+"'>"
+  TXBuffer += modname+" "
+  if puse==False:
+   TXBuffer += "</a> (Not installed, AP mode will not work!)"
+  else:
+   TXBuffer += "module installed"
+ except Exception as e:
+  print(e)
+
  TXBuffer += "<TR><TD style='width:150px;' align='left'><TD>"
  addSubmitButton()
 
@@ -2055,13 +2123,22 @@ def handle_login(self):
 def handle_control(self):
  if (rpieGlobals.wifiSetup):
   return self.redirect('/setup')
- if (not isLoggedIn(self.get,self.cookie)):
-  return self.redirect('/login')
  if self.type == "GET":
   responsearr = self.get
  else:
   responsearr = self.post
  webrequest = arg("cmd",responsearr)
+ try:
+  ph = Settings.Settings["PasswordHack"]
+ except:
+  ph = False
+ if ph:
+  wrs = str(webrequest).strip()[:4]
+  if wrs in ["rebo","rese","halt","upda","exit"]: #Reboot,Reset,Halt,Update,Exit
+   ph = False
+ if ph==False:
+  if (not isLoggedIn(self.get,self.cookie)):
+   return self.redirect('/login')
  if len(webrequest)>0:
   responsestr = str(commands.doExecuteCommand(webrequest))
  return "OK"

@@ -398,8 +398,22 @@ def doExecuteCommand(cmdline,Parse=True):
   else:
    commandfound = False
   return commandfound
- elif cmdarr[0] == "wifiapmode": # implement it
-  commandfound = False
+ elif cmdarr[0] == "wifiapmode":
+  if int(Settings.NetMan.WifiDevNum)>=0:
+    apdev = int(Settings.NetMan.WifiDevNum)
+  else:
+    apdev = Settings.NetMan.getfirstwirelessdevnum()
+  Network.AP_start(apdev)
+  commandfound = True
+  return commandfound
+ elif cmdarr[0] == "wifistamode":
+  Settings.NetMan.APMode = -1
+  if int(Settings.NetMan.WifiDevNum)>=0:
+    apdev = int(Settings.NetMan.WifiDevNum)
+  else:
+    apdev = Settings.NetMan.getfirstwirelessdevnum()
+  Network.AP_stop(apdev)
+  commandfound = True
   return commandfound
  elif cmdarr[0] == "wificonnect": # implement it
   commandfound = False

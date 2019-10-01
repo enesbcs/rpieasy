@@ -134,7 +134,11 @@ class Controller(controller.ControllerProto):
    webserver.addFormFloatNumberBox("Frequency","freq",self.freq,433,928)
    webserver.addUnit("Mhz")
    if self.lora is not None:
-     webserver.addFormNote("Current frequency: "+str(self.lora.get_freq())+" Mhz")
+     try:
+      afreq = self.lora.get_freq()
+     except:
+      afreq = "UNINITIALIZED"
+     webserver.addFormNote("Current frequency: "+str(afreq)+" Mhz")
    webserver.addFormNote("Please check local regulations for your selected frequency!")
 
    options = ["10%","1%","0.1%"]
