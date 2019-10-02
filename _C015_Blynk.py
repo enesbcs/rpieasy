@@ -69,7 +69,7 @@ class Controller(controller.ControllerProto):
   return True
 
  def webform_load(self):
-  webserver.addFormNote("Add your Blynk token to the Password field! Only on Blynk can be used on one system!")
+  webserver.addFormNote("Add your Blynk token to the Password field! Only one Blynk can be used on one system!")
   return True
 
  def on_message(self,vpin,msg):

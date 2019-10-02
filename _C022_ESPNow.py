@@ -44,7 +44,7 @@ class Controller(controller.ControllerProto):
   self.bgproc = None
   self.serdev = None
   self.timeout = 0.001
-  self.maxexpecteddata = 512
+  self.maxexpecteddata = 250
   self.port = ""
   self.mac  = ""
   self.wchan = 1
@@ -240,12 +240,20 @@ class Controller(controller.ControllerProto):
 #     tt = rpieTime.millis()
      try:
       while self.serdev.available()>0:
-       reading = self.serdev.readline()
+       reading = []
+       fc = self.serdev.read(1)
+       if int(fc[0])!=255:
+        reading.append(chr(fc[0]))
+        breading = self.serdev.readline().decode('utf-8')
+       else:
+        reading.append(fc[0])
+        breading = list(self.serdev.read(self.maxexpecteddata))
+       reading.extend(breading)
        if len(reading)>0:
-        if reading[0]==255:
-         self.pkt_receiver(reading)
+        if int(fc[0])==255:
+         self.pkt_receiver(bytes(reading))
         else:
-         sstr = str(reading.decode("utf-8")).strip()
+         sstr = ''.join(reading).strip()
          if sstr != "":
           misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"SERIAL: "+sstr)
      except Exception as e:
@@ -262,7 +270,7 @@ class Controller(controller.ControllerProto):
     dp = p2pbuffer.data_packet()
     dp.buffer = payload
     dp.decode()
-#    print(dp.pktlen,dp.pkgtype)
+#    print(dp.pktlen," T:",dp.pkgtype," FL:",len(payload)," PL:",dp.pktlen)
 #    print("DATA ARRIVED ",payload,dp.buffer)
     if int(dp.pkgtype)!=0:
         if dp.pkgtype==1:
