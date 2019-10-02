@@ -282,9 +282,10 @@ def handle_config(self):
   else:
    misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"Settings saved without OS network settings modifications as you wish!")
  
-  Settings.savenetsettings()     # save to json
   if netmanage:
    Network.AP_stop(Settings.NetMan.WifiDevNum)
+   time.sleep(3)
+  Settings.savenetsettings()     # save to json
  else:
   Settings.loadsettings() 
 
@@ -1505,7 +1506,7 @@ def handle_devices(self):
           Settings.Tasks[taskIndex].formula[varnr] = arg("TDF"+str(varnr+1),responsearr)
           tvdec = arg("TDVD"+str(varnr+1),responsearr)
           if tvdec == "" or tvdec == False or tvdec == None:
-           tvdec = 1
+           tvdec = 0
           Settings.Tasks[taskIndex].decimals[varnr] = tvdec
          else:
           Settings.Tasks[taskIndex].valuenames[varnr] = ""

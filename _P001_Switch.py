@@ -57,7 +57,7 @@ class Plugin(plugin.PluginProto):
   plugin.PluginProto.plugin_init(self,enableplugin)
   self.decimals[0]=0
   if int(self.taskdevicepin[0])>=0 and self.enabled:
-   self.set_value(1,gpios.HWPorts.input(int(self.taskdevicepin[0])),True) # Sync plugin value with real pin state
+   self.set_value(1,int(gpios.HWPorts.input(int(self.taskdevicepin[0]))),True) # Sync plugin value with real pin state
    try:
     self.__del__()
     if self.taskdevicepluginconfig[0]:
@@ -132,7 +132,7 @@ class Plugin(plugin.PluginProto):
     if inval==1:             # if high
      outval = 1-int(prevval) # negate
    if prevval != outval:
-    self.set_value(1,outval,True)
+    self.set_value(1,int(outval),True)
     self._lastdataservetime = rpieTime.millis()
     if self.taskdevicepluginconfig[2]>0 and self.timer100ms:
       time.sleep(self.taskdevicepluginconfig[1]/1000) # force debounce if not event driven detection

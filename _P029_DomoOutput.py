@@ -3,7 +3,9 @@
 ################# (Domoticz) Output helper for RPIEasy ######################
 #############################################################################
 #
-# Two way communication is implemented through plugin_receivedata()
+# Only receiver! Communication is implemented through plugin_receivedata()
+# Primarily for Domoticz, but can be used any MQTT based controller
+# which do not need feedback.
 #
 # Copyright (C) 2018-2019 by Alexander Nagy - https://bitekmindenhol.blog.hu/
 #
@@ -18,7 +20,7 @@ import Settings
 
 class Plugin(plugin.PluginProto):
  PLUGIN_ID = 29
- PLUGIN_NAME = "Output - Output Helper"
+ PLUGIN_NAME = "Output - Domoticz Output Helper (No feedback)"
  PLUGIN_VALUENAME1 = "State"
 
  def __init__(self,taskindex): # general init
