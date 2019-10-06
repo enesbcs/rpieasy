@@ -653,13 +653,16 @@ def cidr_to_netmask(cidr):
 def netmask_to_cidr(netmask):
  return sum([bin(int(x)).count("1") for x in netmask.split(".")])
 
-def AP_start(ndi): # index in NetworkDevices array
+def AP_start(ndi,force=False): # index in NetworkDevices array
     ndi = int(ndi)
     if ndi>=len(Settings.NetworkDevices) or ndi<0:
      print("NetworkDevice "+str(ndi)+" not found")
      return False
-    if Settings.NetworkDevices[ndi].ip=="192.168.4.1" or Settings.NetworkDevices[ndi].apmode==1:
-     return False # already in apmode
+    if force==False:
+     if Settings.NetworkDevices[ndi].ip=="192.168.4.1" or Settings.NetworkDevices[ndi].apmode==1:
+      return False # already in apmode
+     if Settings.NetMan.APMode < 0:
+      return False
     APName = Settings.Settings["Name"]
     if APName  == "RPIEasy":
      APName += "-"+str(Settings.Settings["Unit"])
@@ -677,6 +680,7 @@ def AP_start(ndi): # index in NetworkDevices array
 
 def AP_stop(ndi): # index in NetworkDevices array
     ndi = int(ndi)
+    Settings.NetworkDevices[ndi].apmode = 0
     if ndi>=len(Settings.NetworkDevices) or ndi<0:
      print("NetworkDevice "+str(ndi)+" not found")
      return False
@@ -685,5 +689,4 @@ def AP_stop(ndi): # index in NetworkDevices array
     cmdline = 'sudo lib/scripts/ap_stop.sh '+str(Settings.NetworkDevices[ndi].devicename)
 #    print(cmdline) # debug
     subprocess.call(shlex.split(OS.cmdline_rootcorrect(cmdline)))
-    Settings.NetworkDevices[ndi].apmode = 0
     return True

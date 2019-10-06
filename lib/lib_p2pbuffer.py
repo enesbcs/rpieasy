@@ -101,9 +101,14 @@ class data_packet:
   if tbuffer[0] == 255:
    if tbuffer[1] == 1:
     self.pkgtype = 1
-    nlen = int(tbuffer[14])
-    if nlen>len(tbuffer)-15:
-     nlen = len(tbuffer)-15
+    try:
+     nlen = int(tbuffer[14])
+     if nlen>len(tbuffer)-15:
+      nlen = len(tbuffer)-15
+    except Exception as e:
+     nlen = -1
+    if nlen<0:
+     nlen=1
     try:
      cdata = struct.unpack_from('<B B B B 6B H B B B '+str(nlen)+'s',self.buffer)
     except Exception as e:
@@ -122,9 +127,14 @@ class data_packet:
      print(str(e))
    elif tbuffer[1] == 5:
     self.pkgtype = 5
-    nlen = int(tbuffer[9])
-    if nlen>len(tbuffer)-10:
-     nlen = int((len(tbuffer)-10)/4)
+    try:
+     nlen = int(tbuffer[9])
+     if nlen>len(tbuffer)-10:
+      nlen = int((len(tbuffer)-10)/4)
+    except Exception as e:
+     nlen = -1
+    if nlen<0:
+     nlen = 1
     explen = 10+(nlen*4)
     correction = 0
     if explen+2==len(tbuffer):

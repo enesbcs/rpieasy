@@ -61,8 +61,16 @@ class Plugin(plugin.PluginProto):
      except:
       pinnum = 0
      try:
+      tnum = int(self.taskdevicepluginconfig[2])
+     except:
+      tnum = 0
+     if tnum<1:
+      ctype = "MCP23017"
+     else:
+      ctype = "MCP23008"
+     try:
       self.i2ca, self.rpin = lib_mcprouter.get_pin_address(pinnum)
-      self.mcp = lib_mcprouter.request_mcp_device(int(i2cport),pinnum)
+      self.mcp = lib_mcprouter.request_mcp_device(int(i2cport),pinnum,ctype)
      except Exception as e:
       misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"MCP device requesting failed: "+str(e))
       self.mcp = None
@@ -127,6 +135,10 @@ class Plugin(plugin.PluginProto):
   options = ["Input","Input-Pullup","Output"]
   optionvalues = [0,1,2]
   webserver.addFormSelector("Type","p009_ptype",len(optionvalues),options,optionvalues,None,int(choice2))
+  choice3 = self.taskdevicepluginconfig[2]
+  options = ["MCP23017","MCP23008"]
+  optionvalues = [0,1]
+  webserver.addFormSelector("Chip","p009_chip",len(optionvalues),options,optionvalues,None,int(choice3))
   return True
 
  def webform_save(self,params): # process settings post reply
@@ -139,6 +151,11 @@ class Plugin(plugin.PluginProto):
     self.taskdevicepluginconfig[1] = int(par)
    except:
     self.taskdevicepluginconfig[1] = 0
+   par = webserver.arg("p009_chip",params)
+   try:
+    self.taskdevicepluginconfig[2] = int(par)
+   except:
+    self.taskdevicepluginconfig[2] = 0
    try:
     self.taskdevicepin[0]=webserver.arg("taskdevicepin0",params)
    except:

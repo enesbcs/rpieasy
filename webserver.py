@@ -281,13 +281,13 @@ def handle_config(self):
    Settings.NetMan.saveconfig()  # save OS config files only if enabled and have root rights!!
   else:
    misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"Settings saved without OS network settings modifications as you wish!")
- 
-  if netmanage:
+
+  if netmanage and Settings.NetMan.WifiSSID != "" and Settings.NetMan.WifiKey != "":
    Network.AP_stop(Settings.NetMan.WifiDevNum)
    time.sleep(3)
   Settings.savenetsettings()     # save to json
  else:
-  Settings.loadsettings() 
+  Settings.loadsettings()
 
  sendHeadandTail("TmplStd",_HEAD)
 

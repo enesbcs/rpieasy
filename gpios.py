@@ -403,6 +403,8 @@ I2CDevices = [
 
 ]
 
+GPIOStatus = []
+
 try:
  BOTH=GPIO.BOTH
  RISING=GPIO.RISING
@@ -537,8 +539,8 @@ class hwports:
    pinnum = int(gpio)
    if pinnum>0:
     typeint = GPIO.gpio_function(pinnum)
-    typestr = gpio_function_name(typeint)
-  except:
+    typestr = self.gpio_function_name(typeint)
+  except Exception as e:
    typestr = "Unknown"
   return typestr
 
@@ -1278,7 +1280,60 @@ def geti2cdevname(devaddr):
  if name == "":
   name = "Unknown"
  return name
-    
+
+def GPIO_get_statusid(gpionum): # input: BCM GPIO num, output: GPIOStatus entry number or -1
+ global GPIOStatus
+ res = -1
+ for i in range(len(GPIOStatus)):
+  try:
+   if int(GPIOStatus[i]["pin"])==int(gpionum):
+    res = i
+    break
+  except:
+   pass
+ return res
+
+def GPIO_refresh_status(pin,pstate=-1,pluginid=0,pmode="unknown"):
+ global GPIOStatus, HWPorts
+ pin = int(pin)
+ if pin<0:
+  return -1
+ createnew = False
+ gi = GPIO_get_statusid(pin)
+ if gi==-1:
+  createnew = True
+  if pmode=="unknown":
+   try:
+    pmode = HWPorts.gpio_function_name_from_pin(pin).lower()
+   except Exception as e:
+    pass
+  if pluginid==0:
+   for tp in range(len(Settings.Tasks)):
+    try:
+     if pin in Settings.Tasks[tp].taskdevicepin:
+      pluginid = Settings.Tasks[tp].pluginid
+      break
+    except:
+     pass
+ else:
+  if pmode!="unknown":
+   GPIOStatus[gi]["mode"]=pmode.strip().lower()
+  elif pmode.strip()!=GPIOStatus[gi]["mode"].strip():
+   GPIOStatus[gi]["mode"]=pmode.strip().lower()
+ if pstate==-1:
+   if ("input" in pmode) or ("output" in pmode):
+    try:
+     pstate = int(HWPorts.input(int(pin)))
+    except:
+     pstate = -1
+ elif createnew==False:
+   GPIOStatus[gi]["state"] = int(pstate)
+ if createnew:
+  tstruc = {"plugin":pluginid,"pin":pin,"mode": pmode, "state": pstate}
+  gi = len(GPIOStatus)
+  GPIOStatus.append(tstruc)
+ return gi
+
 #Init Hardware GLOBAL ports
 HWPorts = hwports()
 if os.path.exists("/DietPi/config.txt"): # DietPi FIX!

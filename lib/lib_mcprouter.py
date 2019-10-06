@@ -16,8 +16,8 @@ import Settings
 
 class MCPEntity(MCP.MCP230XX):
 
- def __init__(self,chip, i2cAddress, regScheme='16bit', busnum=1):
-  MCP.MCP230XX.__init__(self,chip,i2cAddress,regScheme,busnum)
+ def __init__(self,chip, i2cAddress, busnum=1):
+  MCP.MCP230XX.__init__(self,chip,i2cAddress,busnum)
   self.externalintsetted = False
   self.extinta = 0
 
@@ -67,13 +67,13 @@ class MCPEntity(MCP.MCP230XX):
 
 mcp_devices = []
 
-def request_mcp_device(mbusnum,mportnum):
+def request_mcp_device(mbusnum,mportnum,chipname="MCP23017"):
  i2caddress, realpin = get_pin_address(mportnum)
  if realpin > -1:
   for i in range(len(mcp_devices)):
    if (mcp_devices[i].i2cAddress == int(i2caddress)):
     return mcp_devices[i]
-  mcp_devices.append(MCPEntity('MCP23017',i2caddress, busnum=mbusnum))
+  mcp_devices.append(MCPEntity(chipname,i2caddress, busnum=mbusnum))
   return mcp_devices[-1]
  else:
   return None

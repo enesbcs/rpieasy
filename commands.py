@@ -49,7 +49,7 @@ def doCleanup():
     rpieTime.SysTimers[t].pause()
   except:
    pass
-
+  procarr = []
   for y in range(0,len(Settings.Controllers)):
    if (Settings.Controllers[y]):
     if (Settings.Controllers[y].enabled):
@@ -57,6 +57,9 @@ def doCleanup():
       t.daemon = True
       procarr.append(t)
       t.start()
+  if int(Settings.NetMan.WifiDevNum)>=0:
+    apdev = int(Settings.NetMan.WifiDevNum)
+    Network.AP_stop(apdev) # try to stop AP mode if needed
   if len(procarr)>0:
    for process in procarr:
      process.join()
@@ -403,16 +406,16 @@ def doExecuteCommand(cmdline,Parse=True):
     apdev = int(Settings.NetMan.WifiDevNum)
   else:
     apdev = Settings.NetMan.getfirstwirelessdevnum()
-  Network.AP_start(apdev)
+  Network.AP_start(apdev,True)
   commandfound = True
   return commandfound
  elif cmdarr[0] == "wifistamode":
-  Settings.NetMan.APMode = -1
   if int(Settings.NetMan.WifiDevNum)>=0:
     apdev = int(Settings.NetMan.WifiDevNum)
   else:
     apdev = Settings.NetMan.getfirstwirelessdevnum()
   Network.AP_stop(apdev)
+  Settings.NetMan.APMode = -1
   commandfound = True
   return commandfound
  elif cmdarr[0] == "wificonnect": # implement it
