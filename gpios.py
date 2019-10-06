@@ -1300,7 +1300,7 @@ def GPIO_refresh_status(pin,pstate=-1,pluginid=0,pmode="unknown"):
   return -1
  createnew = False
  gi = GPIO_get_statusid(pin)
- print(gi)
+# print(gi)
  if gi==-1:
   createnew = True
   if pmode=="unknown":
