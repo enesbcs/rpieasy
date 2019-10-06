@@ -1300,6 +1300,7 @@ def GPIO_refresh_status(pin,pstate=-1,pluginid=0,pmode="unknown"):
   return -1
  createnew = False
  gi = GPIO_get_statusid(pin)
+ print(gi)
  if gi==-1:
   createnew = True
   if pmode=="unknown":
@@ -1318,8 +1319,12 @@ def GPIO_refresh_status(pin,pstate=-1,pluginid=0,pmode="unknown"):
  else:
   if pmode!="unknown":
    GPIOStatus[gi]["mode"]=pmode.strip().lower()
-  elif pmode.strip()!=GPIOStatus[gi]["mode"].strip():
-   GPIOStatus[gi]["mode"]=pmode.strip().lower()
+  else:
+   try:
+    pmode = HWPorts.gpio_function_name_from_pin(pin).lower()
+    GPIOStatus[gi]["mode"]=pmode.strip().lower()
+   except Exception as e:
+    pass
  if pstate==-1:
    if ("input" in pmode) or ("output" in pmode):
     try:
