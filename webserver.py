@@ -2140,9 +2140,12 @@ def handle_control(self):
  if ph==False:
   if (not isLoggedIn(self.get,self.cookie)):
    return self.redirect('/login')
+ responsestr = False
  if len(webrequest)>0:
   responsestr = str(commands.doExecuteCommand(webrequest))
- return "OK"
+ if responsestr == False:
+  return "FAILED"
+ return responsestr
 
 @WebServer.route('/advanced')
 def handle_advanced(self):
