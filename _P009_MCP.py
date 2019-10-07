@@ -7,7 +7,6 @@
 # Available commands:
 #  MCPGPIO,<pin>,<state>		 - digital GPIO output, state can be: 0/1
 #  MCPPULSE,<pin>,<state>,<duration>	 - state can be 0/1, set gpio to <state> then after <duration> milliseconds reverses it's state
-#  MCPLONGPULSE,<pin>,<state>,<duration> - state can be 0/1, set gpio to <state> then after <duration> seconds reverses it's state
 #
 # Copyright (C) 2018-2019 by Alexander Nagy - https://bitekmindenhol.blog.hu/
 #
@@ -264,7 +263,7 @@ class Plugin(plugin.PluginProto):
    if (Settings.Tasks[x]) and type(Settings.Tasks[x]) is not bool: # device exists
     if (Settings.Tasks[x].enabled):
      try:
-      if (Settings.Tasks[x].pluginid==9) and (Settings.Tasks[x].taskdevicepluginconfig[0]==epin): # output on specific pin
+      if (Settings.Tasks[x].pluginid==9) and (int(Settings.Tasks[x].taskdevicepluginconfig[0])==epin): # output on specific pin
        Settings.Tasks[x].uservar[0] = value
        if Settings.Tasks[x].valuenames[0]!= "":
         commands.rulesProcessing(Settings.Tasks[x].taskname+"#"+Settings.Tasks[x].valuenames[0]+"="+str(value),rpieGlobals.RULE_USER)
