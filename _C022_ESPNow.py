@@ -163,9 +163,14 @@ class Controller(controller.ControllerProto):
       self.serialcommand("espnow,mode,"+str(modenum)) # TRY TO SET MODE
       time.sleep(0.5)
       scmdarr = getlastseriallogs(3)
+      saddr = 0
       if len(scmdarr)>2:
-       if "espnow,mode" in scmdarr[2]:
-        result = scmdarr[1].replace("SERIAL: ","").strip()
+       saddr = 2
+      elif len(scmdarr)>1:
+       saddr = 1
+      if saddr>0:
+       if "espnow,mode" in scmdarr[saddr]:
+        result = scmdarr[saddr-1].replace("SERIAL: ","").strip()
         try:
          result = int(result)
         except:
