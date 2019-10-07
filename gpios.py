@@ -1293,7 +1293,7 @@ def GPIO_get_statusid(gpionum): # input: BCM GPIO num, output: GPIOStatus entry 
    pass
  return res
 
-def GPIO_refresh_status(pin,pstate=-1,pluginid=0,pmode="unknown"):
+def GPIO_refresh_status(pin,pstate=-1,pluginid=0,pmode="unknown",logtext=""):
  global GPIOStatus, HWPorts
  pin = int(pin)
  if pin<0:
@@ -1334,10 +1334,19 @@ def GPIO_refresh_status(pin,pstate=-1,pluginid=0,pmode="unknown"):
  elif createnew==False:
    GPIOStatus[gi]["state"] = int(pstate)
  if createnew:
-  tstruc = {"plugin":pluginid,"pin":pin,"mode": pmode, "state": pstate}
+  tstruc = {"log": logtext,"plugin":pluginid,"pin":pin,"mode": pmode, "state": pstate}
   gi = len(GPIOStatus)
   GPIOStatus.append(tstruc)
  return gi
+
+def GPIO_get_status(gpionum): # input: BCM GPIO num, output: GPIOStatus string
+ global GPIOStatus
+ gpionum=int(gpionum)
+ result = "{}"
+ if gpionum<len(GPIOStatus) and gpionum>-1:
+  result = str(GPIOStatus[gpionum]).replace("'",'"').replace(', ',',\n')
+  result = result.replace("{","{\n").replace("}","\n}")
+ return result
 
 #Init Hardware GLOBAL ports
 HWPorts = hwports()

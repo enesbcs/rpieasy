@@ -43,19 +43,21 @@ def gpio_commands(cmd):
    pin = -1
    val = -1
    gi = -1
+   logline = ""
    try:
     pin = int(cmdarr[1].strip())
     val = int(cmdarr[2].strip())
    except:
     pin = -1
    if pin>-1 and val in [0,1]:
-    misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"BCM"+str(pin)+" set to "+str(val))
+    logline = "BCM"+str(pin)+" set to "+str(val)
+    misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,logline)
     suc = False
     try:
      suc = True
      gpios.HWPorts.output(pin,val)
      syncvalue(pin,val)
-     gi = gpios.GPIO_refresh_status(pin,pstate=val,pluginid=1,pmode="output")
+     gi = gpios.GPIO_refresh_status(pin,pstate=val,pluginid=1,pmode="output",logtext=logline)
     except Exception as e:
      misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"BCM"+str(pin)+": "+str(e))
      suc = False
@@ -66,12 +68,13 @@ def gpio_commands(cmd):
 #      print("output failed ",pin,val,e)
 #     suc = False
    if gi>-1:
-     return gpios.GPIOStatus[gi]
+     return gpios.GPIO_get_status(gi)
    res = True
   elif cmdarr[0]=="pwm":
    pin = -1
    prop = -1
    gi = -1
+   logline = ""
    try:
     pin = int(cmdarr[1].strip())
     prop = int(cmdarr[2].strip())
@@ -88,18 +91,20 @@ def gpio_commands(cmd):
     try:
      suc = True
      gpios.HWPorts.output_pwm(pin,prop,freq)
-     misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"BCM"+str(pin)+" PWM "+str(prop)+"% "+str(freq)+"Hz")
-     gi = gpios.GPIO_refresh_status(pin,pstate=prop,pluginid=1,pmode="pwm")
+     logline = "BCM"+str(pin)+" PWM "+str(prop)+"% "+str(freq)+"Hz"
+     misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,logline)
+     gi = gpios.GPIO_refresh_status(pin,pstate=prop,pluginid=1,pmode="pwm",logtext=logline)
     except Exception as e:
      misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"BCM"+str(pin)+" PWM "+str(e))
      suc = False
    if gi>-1:
-     return gpios.GPIOStatus[gi]
+     return gpios.GPIO_get_status(gi)
    res = True
   elif cmdarr[0]=="pulse":
    pin = -1
    val = -1
    gi = -1
+   logline = ""
    try:
     pin = int(cmdarr[1].strip())
     val = int(cmdarr[2].strip())
@@ -111,7 +116,8 @@ def gpio_commands(cmd):
    except:
     dur = 100
    if pin>-1 and val in [0,1]:
-    misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"BCM"+str(pin)+": Pulse started")
+    logline = "BCM"+str(pin)+": Pulse started"
+    misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,logline)
     try:
      syncvalue(pin,val)
      gpios.HWPorts.output(pin,val)
@@ -119,18 +125,19 @@ def gpio_commands(cmd):
      time.sleep(s)
      gpios.HWPorts.output(pin,(1-val))
      syncvalue(pin,(1-val))
-     gi = gpios.GPIO_refresh_status(pin,pstate=(1-val),pluginid=1,pmode="output")
+     gi = gpios.GPIO_refresh_status(pin,pstate=(1-val),pluginid=1,pmode="output",logtext=logline)
     except Exception as e:
      misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"BCM"+str(pin)+": "+str(e))
      suc = False
     misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"BCM"+str(pin)+": Pulse ended")
    if gi>-1:
-     return gpios.GPIOStatus[gi]
+     return gpios.GPIO_get_status(gi)
    res = True
   elif cmdarr[0]=="longpulse":
    pin = -1
    val = -1
    gi = -1
+   logline = ""
    try:
     pin = int(cmdarr[1].strip())
     val = int(cmdarr[2].strip())
@@ -142,23 +149,26 @@ def gpio_commands(cmd):
    except:
     dur = 2
    if pin>-1 and val in [0,1]:
-    misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"BCM"+str(pin)+": LongPulse started")
+    logline ="BCM"+str(pin)+": LongPulse started"
+    misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,logline)
     try:
      gpios.HWPorts.output(pin,val)
      syncvalue(pin,val)
-     gi = gpios.GPIO_refresh_status(pin,pstate=val,pluginid=1,pmode="output")
+     gi = gpios.GPIO_refresh_status(pin,pstate=val,pluginid=1,pmode="output",logtext=logline)
     except Exception as e:
      misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"BCM"+str(pin)+": "+str(e))
      suc = False
     rarr = [pin,(1-val)]
     rpieTime.addsystemtimer(dur,timercb,rarr)
    if gi>-1:
-     return gpios.GPIOStatus[gi]
+     return gpios.GPIO_get_status(gi)
    res = True
   elif cmdarr[0]=="tone":
    pin  = -1
    freq = -1
    dur  = 0
+   gi = -1
+   logline = ""
    try:
     pin  = int(cmdarr[1].strip())
     freq = int(cmdarr[2].strip())
@@ -171,17 +181,23 @@ def gpio_commands(cmd):
     suc = False
     try:
      suc = True
-     misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"BCM"+str(pin)+" "+str(freq)+"Hz")
+     logline = "BCM"+str(pin)+" "+str(freq)+"Hz"
+     misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,logline)
      play_tone(pin,freq,dur)
      gpios.HWPorts.output_pwm(pin,0,0) # stop sound
+     gi = gpios.GPIO_refresh_status(pin,pstate=0,pluginid=1,pmode="pwm",logtext=logline)
     except Exception as e:
      misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"BCM"+str(pin)+" Tone "+str(e))
      suc = False
+   if gi>-1:
+     return gpios.GPIO_get_status(gi)
    res = True
 
   elif cmdarr[0]=="rtttl":
    cmdarr = cmd.replace(":",",").split(",")
    pin  = -1
+   gi = -1
+   logline = ""
    try:
     pin  = int(cmdarr[1].strip())
    except:
@@ -212,7 +228,7 @@ def gpio_commands(cmd):
    if pin>-1 and subcmd=="gpio":
     gi = gpios.GPIO_refresh_status(pin)
     if gi>-1:
-     return gpios.GPIOStatus[gi]
+     return gpios.GPIO_get_status(gi)
    res = True
 
   return res
