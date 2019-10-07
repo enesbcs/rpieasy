@@ -18,11 +18,12 @@ import rpieTime
 import misc
 import gpios
 import time
+import Settings
 import lib.lib_mcprouter as lib_mcprouter
 
 class Plugin(plugin.PluginProto):
  PLUGIN_ID = 9
- PLUGIN_NAME = "Extra IO - MCP23017"
+ PLUGIN_NAME = "Extra IO - MCP23017/MCP23008"
  PLUGIN_VALUENAME1 = "State"
 
  def __init__(self,taskindex): # general init
@@ -97,11 +98,12 @@ class Plugin(plugin.PluginProto):
     self.i2cport = int(i2cport)
     self.initialized = True
     try:
-     if str(self.taskdevicepin[0]).strip() != "0" and str(self.taskdevicepin[0]).strip() != "":
-      self.mcp.setexternalint(0,int(self.taskdevicepin[0]))
+     if self.mcp.externalintsetted>-1:
+      self.taskdevicepin[0] = int(self.mcp.extinta)
+     elif str(self.taskdevicepin[0]).strip() != "":
+      self.mcp.setexternalint(0,int(self.taskdevicepin[0]),self.gettaskindex())
      if self.rpin>-1 and self.taskdevicepluginconfig[1]<2:
       self.mcp.add_interrupt(self.rpin,callbackFunctLow=self.p009_handler_low,callbackFunctHigh=self.p009_handler_high)
-#      print("add int",self.rpin)
     except Exception as e:
      misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"MCP interrupt configuration failed:"+str(e))
     try:
@@ -122,12 +124,16 @@ class Plugin(plugin.PluginProto):
     plugin.PluginProto.plugin_exit(self)
 
  def webform_load(self): # create html page for settings
+  ownpin = -1
   try:
-   if self.mcp.externalintsetted:
-    self.taskdevicepin[0]=self.mcp.extinta
+   if self.mcp:
+    if self.mcp.externalintsetted>-1:
+     ownpin=int(self.mcp.extinta)
+   else:
+    ownpin = ""
   except Exception as e:
-   pass
-  webserver.addFormPinSelect("MCP interrupt","taskdevicepin0",self.taskdevicepin[0])
+   ownpin = -1
+  webserver.addFormPinSelect("MCP interrupt","taskdevicepin0",ownpin)
   webserver.addFormNote("Add one RPI input pin to handle input changes immediately - not needed for interval input reading and output using only")
   webserver.addFormNumericBox("Port","p009_pnum",self.taskdevicepluginconfig[0],0,128)
   webserver.addFormNote("First extender 1-16, Second 17-32...")
@@ -157,9 +163,12 @@ class Plugin(plugin.PluginProto):
    except:
     self.taskdevicepluginconfig[2] = 0
    try:
-    self.taskdevicepin[0]=webserver.arg("taskdevicepin0",params)
-   except:
+    par1 = webserver.arg("taskdevicepin0",params)
+    self.mcp.setexternalint(0,int(par1),self.gettaskindex())
+    self.taskdevicepin[0] = int(self.mcp.extinta)
+   except Exception as e: 
     self.taskdevicepin[0]=-1
+   self.plugin_init()
    return True
 
  def p009_handler_low(self,pin):
@@ -214,6 +223,7 @@ class Plugin(plugin.PluginProto):
      tmcp = lib_mcprouter.request_mcp_device(int(self.i2cport),int(pin))
      tmcp.set_mode(trpin, 'output')
      tmcp.output(trpin, val)
+     self.syncvalue(pin,val)
     except Exception as e:
      misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"MCPGPIO"+str(pin)+": "+str(e))
    return True
@@ -235,51 +245,30 @@ class Plugin(plugin.PluginProto):
    if pin>-1 and val in [0,1] and trpin >-1:
     misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"MCPGPIO"+str(pin)+": Pulse started")
     try:
+     self.syncvalue(pin,val)
      tmcp = lib_mcprouter.request_mcp_device(int(self.i2cport),int(pin))
      tmcp.set_mode(trpin, 'output')
      tmcp.output(trpin, val)
      s = float(dur/1000)
      time.sleep(s)
      tmcp.output(trpin, (1-val))
+     self.syncvalue(pin,(1-val))
     except Exception as e:
      misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"MCPGPIO"+str(pin)+": "+str(e))
     misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"MCPGPIO"+str(pin)+": Pulse ended")
    return True
-  elif cmdarr[0]=="mcplongpulse":
-   pin = -1
-   val = -1
-   try:
-    pin = int(cmdarr[1].strip())
-    ti2ca, trpin = lib_mcprouter.get_pin_address(pin)
-    val = int(cmdarr[2].strip())
-   except:
-    pin = -1
-    trpin = -1
-   dur = 2
-   try:
-    dur = float(cmdarr[3].strip())
-   except:
-    dur = 2
-   if pin>-1 and val in [0,1] and trpin >-1:
-    misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"MCPGPIO"+str(pin)+": LongPulse started")
-    try:
-     tmcp = lib_mcprouter.request_mcp_device(int(self.i2cport),int(pin))
-     tmcp.set_mode(trpin, 'output')
-     tmcp.output(trpin, val)
-    except Exception as e:
-     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"MCPGPIO"+str(pin)+": "+str(e))
-    rarr = [trpin,(1-val)]
-    rpieTime.addsystemtimer(dur,self.p009_timercb,rarr)
-   return True
   return res
 
- def p009_timercb(self,stimerid,ioarray):
-  if ioarray[0] > -1:
-    misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"EXTGPIO"+str(ioarray[0])+": LongPulse ended")
-    try:
-     tmcp = lib_mcprouter.request_mcp_device(int(self.i2cport),int(ioarray[0]))
-     tmcp.set_mode(int(ioarray[0]), 'output')
-     tmcp.output(int(ioarray[0]), int(ioarray[1]))
-    except Exception as e:
-     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"MCPGPIO"+str(ioarray[0])+": "+str(e))
-
+ def syncvalue(self,epin,value):
+  for x in range(0,len(Settings.Tasks)):
+   if (Settings.Tasks[x]) and type(Settings.Tasks[x]) is not bool: # device exists
+    if (Settings.Tasks[x].enabled):
+     try:
+      if (Settings.Tasks[x].pluginid==9) and (Settings.Tasks[x].taskdevicepluginconfig[0]==epin): # output on specific pin
+       Settings.Tasks[x].uservar[0] = value
+       if Settings.Tasks[x].valuenames[0]!= "":
+        commands.rulesProcessing(Settings.Tasks[x].taskname+"#"+Settings.Tasks[x].valuenames[0]+"="+str(value),rpieGlobals.RULE_USER)
+       Settings.Tasks[x].plugin_senddata()
+       break
+     except:
+       pass

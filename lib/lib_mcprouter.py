@@ -17,13 +17,17 @@ import Settings
 class MCPEntity(MCP.MCP230XX):
 
  def __init__(self,chip, i2cAddress, busnum=1):
-  MCP.MCP230XX.__init__(self,chip,i2cAddress,busnum)
-  self.externalintsetted = False
-  self.extinta = 0
+  self.externalintsetted = -1
+  self.extinta = -1
+  MCP.MCP230XX.__init__(self,chip,i2cAddress,busnum) # DEBUG
 
- def setexternalint(self,itype,intpin):
+ def setexternalint(self,itype,intpin,taskid=1):
   if itype == 0:
 #   if int(intpin)>-1 and int(intpin)!=self.extinta:
+   if self.externalintsetted > -1:
+    if taskid!=self.externalintsetted:
+     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Interrupt change request from non master task!")
+     return False
    if int(intpin)>-1:
     if self.extinta>-1:
      try:
@@ -45,16 +49,16 @@ class MCPEntity(MCP.MCP230XX):
       self.interrupt_options(outputType=ptype, bankControl='both') # activelow, opendrain, activehigh
       self.extinta = int(intpin)
       gpios.HWPorts.add_event_detect(self.extinta,etype,self.callbackBoth)
-      self.externalintsetted = True
+      self.externalintsetted = taskid
      except Exception as e:
-      self.externalintsetted = False
+      self.externalintsetted = -1
       misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Adding MCP interrupt failed "+str(e))
     else:
       misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"You have failed to select a valid input Pin!")
 
  def __del__(self):
     # remove event handler
-    if self.extinta>0:
+    if self.extinta>-1:
      try:
       gpios.HWPorts.remove_event_detect(self.extinta)
      except:
@@ -91,4 +95,3 @@ def get_pin_address(pinnumber):
    pn-=1
   ia+=0x20
  return ia, pn
-

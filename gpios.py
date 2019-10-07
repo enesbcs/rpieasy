@@ -1325,6 +1325,7 @@ def GPIO_refresh_status(pin,pstate=-1,pluginid=0,pmode="unknown",logtext=""):
     GPIOStatus[gi]["mode"]=pmode.strip().lower()
    except Exception as e:
     pass
+  GPIOStatus[gi]["log"]=logtext.strip()
  if pstate==-1:
    if ("input" in pmode) or ("output" in pmode):
     try:
