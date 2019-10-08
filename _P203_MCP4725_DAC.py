@@ -17,7 +17,7 @@ import rpieGlobals
 import rpieTime
 import misc
 import gpios
-import fcntl
+#import fcntl
 
 class Plugin(plugin.PluginProto):
  PLUGIN_ID = 203

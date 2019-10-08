@@ -176,6 +176,11 @@ modulelist = [
  "testcmd" : "if (OS.is_command_found('hostapd')==False or OS.is_command_found('dnsmasq')==False):\n raise Exception('hostapd/dnsmasq not found')",
  "installcmd" : "sudo systemctl disable dnsmasq hostapd && sudo systemctl unmask hostapd",
  "installed":-1},
+{"name":"lywsd",
+ "apt": ["python3-pip","libglib2.0-dev","python3-setuptools"],
+ "pip": ["bluepy","lywsd02"],
+ "testcmd": "from lywsd02 import Lywsd02Client",
+ "installed":-1},
 
 ]
 
@@ -359,7 +364,7 @@ plugindependencies = [
 {"pluginid": "512", # BLE Xiaomi Temp
  "modules":["bluepy"]},
 {"pluginid": "513", # BLE Xiaomi Clock
- "modules":["bluepy"]},
+ "modules":["lywsd"]},
 {"pluginid": "514", # USB-Dallas
  "supported_os_level": [1,2,10],
  "modules":["pyserial","pydigitemp"]},
