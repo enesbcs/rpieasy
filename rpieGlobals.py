@@ -6,8 +6,8 @@
 # Copyright (C) 2018-2019 by Alexander Nagy - https://bitekmindenhol.blog.hu/
 # 
 PROGNAME = "RPIEasy"
-BUILD   = 19280
-PROGVER = "0."+str(BUILD/1000)
+BUILD   = 19281
+PROGVER = str(BUILD)[:1]+"."+str(BUILD)[1:2]+"."+str(BUILD)[2:]
 
 gpMenu = []
 gpMenu.append(['\u2302 Main','.'])

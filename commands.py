@@ -749,7 +749,7 @@ def getglobalvar(varname):
     return res
    elif svname==SysVars[22]: #%build%
     bstr = str(rpieGlobals.BUILD)
-    return bstr[:2]+"."+bstr[2:]
+    return bstr
    elif svname==SysVars[23]: #sunrise
     try:
       from suntime import Sun
