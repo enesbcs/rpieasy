@@ -84,19 +84,18 @@ class Plugin(plugin.PluginProto):
    if self.enabled and self.initialized and self.readinprogress==0:
      self.readinprogress  = 1
      try:
-      self.battery = self.BLEPeripheral.battery()
-      self.set_value(1,self.BLEPeripheral.temperature(),False)
+      self.battery = self.BLEPeripheral.battery
+      self.set_value(1,int(self.BLEPeripheral.temperature),False)
       if self.taskdevicepluginconfig[1]:
-       self.set_value(2,self.BLEPeripheral.humidity(),False)
-       self.set_value(3,self.battery,False,susebattery=self.battery)
+       self.set_value(2,int(self.BLEPeripheral.humidity),False)
+       self.set_value(3,int(self.battery),False,susebattery=self.battery)
       else:
-       self.set_value(2,self.BLEPeripheral.humidity(),False,susebattery=self.battery)
-      self.plugin_senddata()
+       self.set_value(2,int(self.BLEPeripheral.humidity),False,susebattery=self.battery)
+      self.plugin_senddata(pusebattery=self.battery)
       self._lastdataservetime = rpieTime.millis()
       result = True
-      self.readinprogress = 0
+#      print(self.uservar)
      except Exception as e:
-      print("LYWSD read error: "+str(e))
-      time.sleep(3)
-      self.readinprogress = 0
+      pass # print("LYWSD read error: "+str(e))
+     self.readinprogress = 0
    return result
