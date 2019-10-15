@@ -18,7 +18,7 @@ _lastRSSItime = 0
 def humStatDomoticz(humidity):
  res=3
  try:
-  hum = int(humidity)
+  hum = misc.str2num(humidity)
   if (hum<30):
    res=2
   elif (hum<40):
