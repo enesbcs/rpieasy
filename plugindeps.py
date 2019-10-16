@@ -185,6 +185,11 @@ modulelist = [
  "apt": ["ir-keytable"],
  "testcmd" : "if (OS.is_command_found('ir-keytable')==False):\n raise Exception('ir-keytable not found')",
  "installed":-1},
+{"name":"eq3bt",
+ "apt": ["python3-pip","libglib2.0-dev","python3-setuptools"],
+ "pip": ["python-eq3bt"],
+ "testcmd": "from eq3bt import Thermostat",
+ "installed":-1},
 
 ]
 
@@ -378,6 +383,8 @@ plugindependencies = [
  "modules":["pyserial","pydigitemp"]},
 {"pluginid": "515", # BLE MiFlora
  "modules":["bluepy"]},
+{"pluginid": "516", # BLE EQ3
+ "modules":["eq3bt"]},
 
 ]
 
