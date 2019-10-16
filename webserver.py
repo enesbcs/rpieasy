@@ -918,7 +918,7 @@ def handle_pinout(self):
       TXBuffer += "<td>"+ Settings.Pinout[p]["name"][0] +"</td>"
      TXBuffer += "<td>"+ str(Settings.Pinout[p]["ID"]) +"</td>"
      TXBuffer += "<td style='{border-right: solid 1px #000;}'>"
-     if Settings.Pinout[p]["canchange"]==1 and pinfunc in [0,1]:
+     if Settings.Pinout[p]["canchange"]==1 and pinfunc in [0,1] and (astate in ["Input","Output"]):
       if gpios.HWPorts.gpioinit:
        gpios.HWPorts.setpinstate(p,int(Settings.Pinout[p]["startupstate"]))
        try:

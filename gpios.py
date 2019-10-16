@@ -435,6 +435,8 @@ class hwports:
  CONFIG_ENABLE_AUDIO="dtparam=audio=on" #on/off
  CONFIG_DISABLE_AUDIO="dtparam=audio=off" #on/off
  CONFIG_ONEWIRE="dtoverlay=w1-gpio"
+ CONFIG_IR="dtoverlay=gpio-ir"
+ CONFIG_PWMIR="dtoverlay=pwm-ir-tx"
  CONFIG_GPIO="gpio="
  CONFIG_GPUMEM="gpu_mem"
  COMMAND_DISABLE_BT="sudo systemctl disable hciuart"
@@ -785,7 +787,7 @@ class hwports:
       self.pwmo[1]["o"] = syspwm.HPWM(1)
       self.pwmo[1]["pin"] = pin
     except Exception as e:
-      print(e)
+      print("PWM error: ",e)
 
  def disable_pwm_pin(self,channel):
   if channel>=0 and channel<=1:
@@ -888,7 +890,20 @@ class hwports:
       if FirstRead:
        Settings.Pinout[b]["actualstate"]=Settings.Pinout[b]["startupstate"]
      break
- 
+
+ def setirgpio(self,bcmpin,FirstRead=False,mode=0):
+   for b in range(len(Settings.Pinout)):
+    if str(Settings.Pinout[b]["BCM"])==str(bcmpin).strip():
+     if Settings.Pinout[b]["altfunc"] == 0 and Settings.Pinout[b]["canchange"]==1:
+      pmode = (int(mode)+10)
+      if mode==2:
+       if ("PWM" not in Settings.Pinout[b]["name"][0]):
+        break
+      Settings.Pinout[b]["startupstate"] = pmode
+      if FirstRead:
+       Settings.Pinout[b]["actualstate"]=Settings.Pinout[b]["startupstate"]
+     break
+
  def setpinstartstate(self,bcmpin,state):
    for b in range(len(Settings.Pinout)):
     if str(Settings.Pinout[b]["BCM"])==str(bcmpin).strip():
@@ -960,6 +975,10 @@ class hwports:
    elif state==8:
     self.setpinactualstate(PINID,-1)
     self.set1wgpio(int(Settings.Pinout[PINID]["BCM"]))
+    return True
+   elif state in [10,11,12]:
+    self.setpinactualstate(PINID,-1)
+    self.setirgpio(int(Settings.Pinout[PINID]["BCM"]),mode=(state-10))
     return True
    return False
 
@@ -1033,23 +1052,6 @@ class hwports:
          self.gpumem=int(params[1].strip())
         except:
          self.gpumem=self.gpumin
-       elif self.CONFIG_PWM0 in line.lower() or self.CONFIG_PWM0_1 in line.lower():
-        params = line.split(",")
-        if self.CONFIG_PWM0_1 in line.lower():
-         self.pwm = [18,19]
-        else:
-         self.pwm = [18,0]
-        try:
-         pwmi = 0
-         for p in range(len(params)):
-          params2 = params[p].split("=")
-          if "pin" in params2[0].lower():
-           self.enable_pwm_pin(pwmi,int(params2[1].strip()),True)
-           pwmi=pwmi+1
-        except:
-         pass
-        self.enable_pwm_pin(0,self.pwm[0],True)
-        self.enable_pwm_pin(1,self.pwm[1],True)
        elif self.CONFIG_ONEWIRE in line.lower():
         pinfound = False
         params = line.split(",")
@@ -1066,6 +1068,42 @@ class hwports:
           self.set1wgpio(pin,True)
         if pinfound==False:
          self.set1wgpio(4,True)
+       elif self.CONFIG_IR in line.lower():
+        pinfound = False
+        params = line.split(",")
+        for p in range(len(params)):
+         pin = 0
+         if "gpio_pin" in params[p]:
+          params2 = params[p].split('=')
+          try:
+           pin = int(params2[1].strip())
+           pinfound = True
+          except:
+           pin = 0
+        if ("-tx" in line):
+         mode = 1
+        else:
+         mode = 0
+        if pin!= 0:
+          self.setirgpio(pin,True,mode)
+        if pinfound==False:
+         self.setirgpio(18,True,mode)
+       elif self.CONFIG_PWMIR in line.lower():
+        pinfound = False
+        params = line.split(",")
+        for p in range(len(params)):
+         pin = 0
+         if "gpio_pin" in params[p]:
+          params2 = params[p].split('=')
+          try:
+           pin = int(params2[1].strip())
+           pinfound = True
+          except:
+           pin = 0
+        if pin!= 0:
+          self.setirgpio(pin,True,2)
+        if pinfound==False:
+         self.setirgpio(18,True,2)
        elif line.lower().startswith(self.CONFIG_GPIO):
         params = line.split("=")
         bcmpin = -1
@@ -1091,8 +1129,26 @@ class hwports:
             pstate = 6
           if pstate != -1:
             self.setpinstartstate(bcmpin,pstate)
-    except:
-     pass
+       elif self.CONFIG_PWM0 in line.lower() or self.CONFIG_PWM0_1 in line.lower():
+        params = line.split(",")
+        if self.CONFIG_PWM0_1 in line.lower():
+         self.pwm = [18,19]
+        else:
+         self.pwm = [18,0]
+        try:
+         pwmi = 0
+         for p in range(len(params)):
+          params2 = params[p].split("=")
+          if "pin" in params2[0].lower():
+           self.enable_pwm_pin(pwmi,int(params2[1].strip()),True)
+           pwmi=pwmi+1
+        except:
+         pass
+        self.enable_pwm_pin(0,self.pwm[0],True)
+        self.enable_pwm_pin(1,self.pwm[1],True)
+    except Exception as e:
+     print(e)
+
     if self.get_internal_bt_level()>1:
       self.set_serial(0)
       self.set_internal_bt(2) # uart collision resolving
@@ -1105,6 +1161,7 @@ class hwports:
  def saveconfig(self):
   # save config.txt
     contents = []
+    use_ir = False
     try:
      with open(self.config_file_name) as f:
       for line in f:
@@ -1148,6 +1205,10 @@ class hwports:
        elif self.CONFIG_PWM0_1 in line.lower():
         line = ""
        elif self.CONFIG_ONEWIRE in line.lower():
+        line = ""
+       elif self.CONFIG_IR in line.lower():
+        line = ""
+       elif self.CONFIG_PWMIR in line.lower():
         line = ""
        elif line.lower().startswith(self.CONFIG_GPIO):
         line = ""
@@ -1209,7 +1270,7 @@ class hwports:
      if line != "":
       f.write(line+"\n")
      for b in range(len(Settings.Pinout)):
-      if Settings.Pinout[b]["altfunc"] == 0 and Settings.Pinout[b]["canchange"]==1 and Settings.Pinout[b]["startupstate"]>0 and Settings.Pinout[b]["startupstate"]<9:
+      if Settings.Pinout[b]["altfunc"] == 0 and Settings.Pinout[b]["canchange"]==1 and Settings.Pinout[b]["startupstate"]>0 and Settings.Pinout[b]["startupstate"]<Settings.PinStatesMax:
        if Settings.Pinout[b]["startupstate"] == 1: # input
         f.write(self.CONFIG_GPIO+str(Settings.Pinout[b]["BCM"])+"=ip\n")
        elif Settings.Pinout[b]["startupstate"] == 2: # input pulldown
@@ -1224,6 +1285,22 @@ class hwports:
         f.write(self.CONFIG_GPIO+str(Settings.Pinout[b]["BCM"])+"=op,dh\n")
        elif Settings.Pinout[b]["startupstate"] == 8: # 1wire
         f.write(self.CONFIG_ONEWIRE+",gpiopin="+str(Settings.Pinout[b]["BCM"])+"\n")
+       elif Settings.Pinout[b]["startupstate"] == 10: # IR-RX
+        f.write(self.CONFIG_IR+",gpio_pin="+str(Settings.Pinout[b]["BCM"])+"\n")
+        use_ir = True
+       elif Settings.Pinout[b]["startupstate"] == 11: # IR-TX
+        f.write(self.CONFIG_IR+"-tx,gpio_pin="+str(Settings.Pinout[b]["BCM"])+"\n")
+        use_ir = True
+       elif Settings.Pinout[b]["startupstate"] == 12: # IR-PWM
+        f.write(self.CONFIG_PWMIR+",gpio_pin="+str(Settings.Pinout[b]["BCM"])+",func="+self.pwm_get_func(Settings.Pinout[b]["BCM"])+"\n")
+        use_ir = True
+    if use_ir:
+     lircrules = "/etc/udev/rules.d/71-lirc.rules"
+     if os.path.exists(lircrules)==False:
+      with open(lircrules,"w") as f:
+        f.write('ACTION=="add|change", KERNEL=="lirc*", DRIVERS=="gpio_ir_recv", SYMLINK+="lirc-rx"\n')
+        f.write('ACTION=="add|change", KERNEL=="lirc*", DRIVERS=="gpio-ir-tx", SYMLINK+="lirc-tx"\n')
+        f.write('ACTION=="add|change", KERNEL=="lirc*", DRIVERS=="pwm-ir-tx", SYMLINK+="lirc-tx"\n')
 
 def is_i2c_lib_available():
  res = False

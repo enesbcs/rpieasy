@@ -181,6 +181,10 @@ modulelist = [
  "pip": ["bluepy","lywsd02"],
  "testcmd": "from lywsd02 import Lywsd02Client",
  "installed":-1},
+{"name":"irkey",
+ "apt": ["ir-keytable"],
+ "testcmd" : "if (OS.is_command_found('ir-keytable')==False):\n raise Exception('ir-keytable not found')",
+ "installed":-1},
 
 ]
 
@@ -209,8 +213,6 @@ notifierdependencies = [
 ]
 
 plugindependencies = [
-{"pluginid": "26", #Sysinfo
- "supported_os_level": [1,2,10]},
 {"pluginid": "1", #Switch
  "supported_os_level": [10],
  "modules":["GPIO"]},
@@ -250,6 +252,9 @@ plugindependencies = [
 {"pluginid": "15", # tsl2561
  "supported_os_level": [10],
  "modules":["i2c"]},
+{"pluginid": "16", #IR
+ "supported_os_level": [1,2,10],
+ "modules":["irkey"]},
 {"pluginid": "17", # PN532
  "supported_os_level": [10],
  "modules":["GPIO","i2c"]},
@@ -280,6 +285,9 @@ plugindependencies = [
 {"pluginid": "29", # DomoOutput nem csak gpio??
  "supported_os_level": [10],
  "modules":["GPIO"]},
+{"pluginid": "35", #IRTrans
+ "supported_os_level": [1,2,10],
+ "modules":["irkey"]},
 {"pluginid": "36", # FramedOLED
  "supported_os_level": [10],
  "modules":["i2c","OLED"]},

@@ -45,7 +45,7 @@ netmode    = False
 lastdisconntime = 0
 
 def hardwareInit():
- #print("Init hardware...")
+ print("Init hardware...")
  rpieGlobals.osinuse = misc.getosname(0)
  rpieGlobals.ossubtype = misc.getsupportlevel(1)
  pinout = "0"
@@ -60,10 +60,11 @@ def hardwareInit():
    if rpv:
      pinout = rpv["pins"]
      misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,str(rpv["name"])+" "+str(rpv["pins"])+" pins")
-
+ print("Load network settings...")
  Settings.loadnetsettings()
  Settings.NetMan.networkinit()
 
+ print("Load GPIO settings...")
  if pinout != "0":
   Settings.loadpinout()
   if pinout == "40" and len(Settings.Pinout)!=41:
@@ -112,7 +113,7 @@ def PluginInit():
   tarr[0] = tarr[0].replace(".py","")
   rpieGlobals.deviceselector.append(tarr) # create list for form select
 
- #print("Load devices from file")
+ print("Load devices from file")
  Settings.loadtasks()
 
  return 0
@@ -134,7 +135,7 @@ def CPluginInit():
   tarr[0] = tarr[0].replace(".py","")
   rpieGlobals.controllerselector.append(tarr) # create list for form select
 
- #print("Load controllers from file")
+ print("Load controllers from file")
  Settings.loadcontrollers()
 
  for x in range(0,len(Settings.Tasks)):
@@ -180,7 +181,7 @@ def NPluginInit():
   tarr[0] = tarr[0].replace(".py","")
   rpieGlobals.notifierselector.append(tarr) # create list for form select
 
- #print("Load controllers from file")
+ print("Load notifiers from file")
  Settings.loadnotifiers()
 
  for x in range(0,len(Settings.Notifiers)):
@@ -201,7 +202,7 @@ def RulesInit():
  except:
   pass
  if rules!="":
-  #print("Loading rules...")
+  print("Loading rules...")
   commands.splitruletoevents(rules)
  commands.rulesProcessing("System#Boot",rpieGlobals.RULE_SYSTEM)
 

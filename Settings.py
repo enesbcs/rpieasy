@@ -40,8 +40,8 @@ AdvSettings = {
 }
 
 Pinout = []
-PinStatesMax = 9
-PinStates = ["Default","Input","Input-Pulldown","Input-Pullup","Output","Output-Lo","Output-Hi","H-PWM","1WIRE","Special","Reserved"]
+PinStatesMax = 13
+PinStates = ["Default","Input","Input-Pulldown","Input-Pullup","Output","Output-Lo","Output-Hi","H-PWM","1WIRE","Special","IR-RX","IR-TX","IR-PWM","Reserved","Reserved"]
 
 Tasks = [False]
 Controllers = [False]
