@@ -595,8 +595,9 @@ def handle_espnow(self):
       if wv>-1:
        taskc[2] = wv
       try:
+       wv = 0
        wv = webserver.arg('inverse',responsearr)
-       if str(wv)=="on":
+       if str(wv)=="on" or str(wv)=="1":
         wv = 1
        else:
         wv = 0
@@ -609,7 +610,8 @@ def handle_espnow(self):
         wv = webserver.arg('c'+str(i),responsearr)
         wv = int(wv)
        except:
-        if str(wv)=="on":
+        wv = -1
+        if str(wv)=="on" or str(wv)=="1":
          wv = 1
         else:
          wv = 0
@@ -756,9 +758,17 @@ def handle_espnow(self):
 
    elif taskmode and int(tasknum)>0: # display plugin selection
     webserver.TXBuffer += "<form name='frmadd' method='post'><table class='normal'>"
-    webserver.addFormHeader("ESPNow add new task "+str(tasknum)+" on Node "+str(managenode))
+    try:
+       if ("," in taska):
+        ts = str(taska).split(",")
+        tasknum2 = int(ts[1])
+       else:
+        tasknum2 = int(taska[1])
+    except:
+       tasknum2 = int(tasknum)
+    webserver.addFormHeader("ESPNow add new task "+str(tasknum2)+" on Node "+str(managenode))
     displaytask(taska,taskc)
-    webserver.addHtml("<tr><td><input type='hidden' name='nodenum' value='"+str(managenode)+"'><input type='hidden' name='tasknum' value='"+str(tasknum)+"'>")
+    webserver.addHtml("<tr><td><input type='hidden' name='nodenum' value='"+str(managenode)+"'><input type='hidden' name='tasknum' value='"+str(tasknum2)+"'>")
     webserver.addSubmitButton("Save task", "savetask")
     webserver.addButton("espnow","Back")
 
@@ -798,15 +808,24 @@ def handle_espnow(self):
        elif "Conf," in scmdarr[i]:
         confs.append(scmdarr[i])
     tasknum = 0
+    tasknum2 = tasknum
     if len(tasks)>0:
      for i in reversed(range(len(tasks))):
       tasknum = len(tasks)-i
-      webserver.addFormSubHeader("Task "+str(tasknum))
-      webserver.addSubmitButton("Delete task "+str(tasknum), "del"+str(tasknum))
+      try:
+       if ("," in tasks[i]):
+        ts = str(tasks[i]).split(",")
+        tasknum2 = int(ts[1])
+       else:
+        tasknum2 = int(tasks[i][1])
+      except:
+       tasknum2 = int(tasknum)
+      webserver.addFormSubHeader("Task "+str(tasknum2))
+      webserver.addSubmitButton("Delete task "+str(tasknum2), "del"+str(tasknum2))
       displaytask(tasks[i],confs[i])
       webserver.addFormSeparator(2)
     webserver.addHtml("<tr><td><input type='hidden' name='nodenum' value='"+str(managenode)+"'>")
-    webserver.addSubmitButton("Add new task "+str(tasknum+1), "add"+str(tasknum+1))
+    webserver.addSubmitButton("Add new task "+str(tasknum2+1), "add"+str(tasknum2+1))
 
     webserver.addButton("espnow","Back")
     webserver.TXBuffer += "</table></form>"
@@ -1372,6 +1391,22 @@ pluginparams = [
   {"name":"Blue","type":"num"},
 ]
 },
+{"pluginid":102,
+"name":"ESP32 touch/hall",
+"pins":1,
+"ports":0,
+"pullup":0,
+"inverse":0,
+"conf": [
+  {"name":"Source","type":"select","options":["Touch","Hall","Analog"],"optionvalues":[0,1,2]},
+  {"name":"Digital mode","type":"bool"},
+  {"name":"Digital 0 if larger (and)","type":"num"},
+  {"name":"Digital 0 if below (and)","type":"num"},
+  {"name":"Digital 1 if below (or)","type":"num"},
+  {"name":"Digital 1 if larger (or)","type":"num"},
+]
+},
+
 ]
 
 def displaytask(taskstr,confstr):
