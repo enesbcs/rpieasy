@@ -1013,8 +1013,12 @@ def rulesProcessing(eventstr,efilter=-1): # fire events
     elif GlobalRules[rfound]["ecat"] == rpieGlobals.RULE_TIMER: # check timer
       pass
     else:
+      invalue = ""
       if getfirstequpos(str(GlobalRules[rfound]["ename"]))>-1:
        invalue = removeequchars(estr[fe1:].replace("=","").strip())
+      if getfirstequpos(estr)>-1:
+       invalue = removeequchars(estr[fe1:].replace("=","").strip())
+      if invalue != "":
        GlobalRules[rfound]["evalue"]=invalue                 # %eventvalue%
        tes = str(invalue)+str(GlobalRules[rfound]["ename"][fe1:])
        try:
