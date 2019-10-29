@@ -1022,7 +1022,6 @@ def rulesProcessing(eventstr,efilter=-1): # fire events
       if invalue != "":
        GlobalRules[rfound]["evalue"]=invalue                 # %eventvalue%
        tes = str(invalue)+str(GlobalRules[rfound]["ename"][fe1:])
-       print(tes)
        try:
         if "=" == getequchars(tes):
          tes = tes.replace("=","==") # prepare line for python interpreter
