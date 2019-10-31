@@ -228,6 +228,7 @@ def handle_config(self):
    Settings.NetMan.APMode = int(arg("apmode",responsearr))
    Settings.NetMan.APModeDev = int(arg("apmodedev",responsearr))
    Settings.NetMan.APModeTime = int(arg("apmodetime",responsearr))
+   Settings.NetMan.APStopTime = int(arg("apstoptime",responsearr))
    Settings.NetMan.WifiAPChannel = int(arg("wifiapchannel",responsearr))
    tpw = arg("apkey",responsearr)
    if "**" not in tpw:
@@ -309,7 +310,7 @@ def handle_config(self):
  try:
   choice = Settings.NetMan.APMode
  except:
-  choice = 99
+  choice = -1
  options = ["Never","At startup without condition","Primary dev disconnected","Secondary dev disconnected","First WiFi dev disconnected"]
  optionvalues = [-1,100,0,1,99]
  addFormSelector("Start AP when","apmode",len(optionvalues),options,optionvalues,None,int(choice))
@@ -331,6 +332,15 @@ def handle_config(self):
  except:
   dval = 1
  addFormNumericBox( "On this channel", "wifiapchannel", dval, 1, 13)
+ try:
+  dval = Settings.NetMan.APStopTime
+ except:
+  dval = -1
+ options = ["Never","3","5","10","15"]
+ optionvalues = [-1,180,300,600,900]
+ addFormSelector("Stop AP after","apstoptime",len(optionvalues),options,optionvalues,None,int(dval))
+ addUnit("min")
+
  addFormPasswordBox("WPA AP Mode Key", "apkey", Settings.NetMan.WifiAPKey, 128)
  addFormNote("Password has to be at least 8 character long!")
 

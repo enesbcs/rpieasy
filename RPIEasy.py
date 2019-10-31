@@ -41,8 +41,9 @@ timer2s    = 0
 timer30s   = 0
 init_ok    = False
 prevminute = -1
-netmode    = False
-lastdisconntime = 0
+netmode    = -1
+lastdisconntime = time.time()
+lastaptime = 0
 
 def hardwareInit():
  print("Init hardware...")
@@ -320,30 +321,40 @@ def checkSensors():
  return True
 
 def checkNetwork():
- global netmode, lastdisconntime
+ global netmode, lastdisconntime, lastaptime
  try:
-  if Settings.NetMan.APMode not in [-1,100]:
    if Settings.NetMan.WifiDevWatch>=0 and Settings.NetMan.WifiDevNum>=0:
-    if Settings.NetworkDevices[Settings.NetMan.WifiDevWatch].apmode==0:
+    if Settings.NetworkDevices[Settings.NetMan.WifiDevNum].apmode==0:
      anetmode = Settings.NetworkDevices[Settings.NetMan.WifiDevWatch].isconnected()
      if anetmode!=netmode: # network mode changed
       netmode=anetmode
       if netmode: # if connected
        lastdisconntime = 0 # forgive last disconnect time
-       commands.rulesProcessing("WiFi#Connected",rpieGlobals.RULE_SYSTEM)
+       commands.rulesProcessing("Network#Connected",rpieGlobals.RULE_SYSTEM)
        return True
       else:
        lastdisconntime = time.time() # store last disconnect time
-       commands.rulesProcessing("WiFi#Disconnected",rpieGlobals.RULE_SYSTEM)
+       commands.rulesProcessing("Network#Disconnected",rpieGlobals.RULE_SYSTEM)
        return True
      elif anetmode==False: # otherwise, if in disconnect state
-      if lastdisconntime!=0:
-       if (time.time()-lastdisconntime)>int(Settings.NetMan.APModeTime):
-          from linux_network import AP_start
-          AP_start(Settings.NetMan.WifiDevNum)
-          lastdisconntime = 0 # forgive last disconnect time
-      else:
-       lastdisconntime = time.time() # store last disconnect time
+      if Settings.NetMan.APMode not in [-1,100]:
+       if lastdisconntime!=0:
+        if (time.time()-lastdisconntime)>int(Settings.NetMan.APModeTime):
+           from linux_network import AP_start
+           AP_start(Settings.NetMan.WifiDevNum)
+           lastdisconntime = 0 # forgive last disconnect time
+           lastaptime = time.time()
+       else:
+        lastdisconntime = time.time() # store last disconnect time
+    else: # apmode active
+     if Settings.NetMan.APStopTime>-1:
+      if Settings.NetMan.APMode not in [-1,100]:
+       if lastaptime!=0:
+        if (time.time()-lastaptime)>int(Settings.NetMan.APStopTime):
+           from linux_network import AP_stop
+           AP_stop(Settings.NetMan.WifiDevNum)
+           lastaptime = 0
+           lastdisconntime = 0 # forgive last disconnect time
  except Exception as e:
   print(e)
 

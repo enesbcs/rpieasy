@@ -22,9 +22,11 @@ if test -d /etc/NetworkManager; then
 fi
 systemctl stop dnsmasq.service
 sudo pkill dnsmasq
-sudo rm /etc/dnsmasq.conf > /dev/null 2>&1
-sudo mv /etc/dnsmasq.conf.backup /etc/dnsmasq.conf > /dev/null 2>&1
-sudo rm /etc/dnsmasq.hosts > /dev/null 2>&1
+if test -d /etc/dnsmasq.conf.backup; then
+ sudo rm /etc/dnsmasq.conf > /dev/null 2>&1
+ sudo mv /etc/dnsmasq.conf.backup /etc/dnsmasq.conf > /dev/null 2>&1
+fi
+#sudo rm /etc/dnsmasq.hosts > /dev/null 2>&1
 sudo ifconfig $WLAN 0.0.0.0
 
 sudo service dhcpcd restart

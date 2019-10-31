@@ -57,7 +57,7 @@ def doCleanup():
       t.daemon = True
       procarr.append(t)
       t.start()
-  if int(Settings.NetMan.WifiDevNum)>=0:
+  if int(Settings.NetMan.WifiDevNum)>=0 and int(Settings.NetMan.APMode>-1):
     apdev = int(Settings.NetMan.WifiDevNum)
     Network.AP_stop(apdev) # try to stop AP mode if needed
   if len(procarr)>0:
@@ -1067,4 +1067,3 @@ def comparetime(tstr):
  except:
   result = False
  return result
-
