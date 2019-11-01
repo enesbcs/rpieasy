@@ -1204,6 +1204,8 @@ def handle_devices(self):
  page = arg("page",responsearr)
  setpage = arg("setpage",responsearr)
  taskIndex = arg("index",responsearr)
+ runIndex = arg("run",responsearr)
+
  if page=='':
   page=0
  else:
@@ -1239,6 +1241,23 @@ def handle_devices(self):
    except Exception as e:
     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR, "Deleting failed: "+str(e))
 
+ if runIndex != "":
+  print(runIndex)
+  if len(Settings.Tasks)<1:
+   return False
+  try:
+   s = int(runIndex)
+  except:
+   s = -1
+  try:
+   if s >0 and (s<=len(Settings.Tasks)):
+    s = s-1 # array is 0 based, tasks is 1 based
+    if (type(Settings.Tasks[s])!=bool) and (Settings.Tasks[s]):
+     if (Settings.Tasks[s].enabled):
+      Settings.Tasks[s].plugin_read()
+  except Exception as e:
+    print(e)
+
  if taskIndexNotSet: # show all tasks as table
     if True:
      TXBuffer += "<script> (function(){ var max_tasknumber = "+ str(rpieGlobals.TASKS_MAX) +"; var max_taskvalues = "+ str(rpieGlobals.VARS_PER_TASK) +"; var timeForNext = 2000; var c; var k; var err = ''; var i = setInterval(function(){ var url = '/json?view=sensorupdate';"
@@ -1273,6 +1292,15 @@ def handle_devices(self):
        TXBuffer += "&page="
        TXBuffer += str(page)
        TXBuffer += "'>Edit</a>"
+       try:
+        if Settings.Tasks[x].enabled and Settings.Tasks[x].remotefeed<1:
+         TXBuffer += "<a class='button link' href='devices?run="
+         TXBuffer += str(x + 1)
+         TXBuffer += "&page="
+         TXBuffer += str(page)
+         TXBuffer += "'>Run</a>"
+       except:
+        pass
        TXBuffer += "<TD>"
        TXBuffer += str(x + 1)
        TXBuffer += "<TD>"
@@ -1843,6 +1871,13 @@ def handle_tools(self):
   try:
    TXBuffer += "<TR><TD colspan='2'>Command Output<BR><textarea readonly rows='10' wrap='on'>"
    TXBuffer += str(responsestr)
+   lc = len(misc.SystemLog)
+   if lc>5:
+    ls = lc-5
+   else:
+    ls = 0
+   for l in range(ls,lc):
+    TXBuffer += '\r\n'+str(misc.SystemLog[l]["t"])+" : "+ str(misc.SystemLog[l]["l"])
    TXBuffer += "</textarea>"
   except Exception as e:
    print(str(e))
