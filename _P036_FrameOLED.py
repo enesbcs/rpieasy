@@ -176,7 +176,11 @@ class Plugin(plugin.PluginProto):
      elif lc>4:
       lc = 4
      try:
-      self.hfont=ImageFont.truetype('img/UbuntuMono-R.ttf', 10)
+      defh = 10
+      if self.height!=64: # correct y coords
+       defh = int(defh * (self.height/64))
+
+      self.hfont=ImageFont.truetype('img/UbuntuMono-R.ttf', defh)
       lineheight=11
       if lc==1:
        lineheight = 24
@@ -190,7 +194,13 @@ class Plugin(plugin.PluginProto):
       elif lc==4:
        lineheight = 10
        self.ypos = [12,22,32,42]
-      self.ufont=ImageFont.truetype('img/UbuntuMono-R.ttf', lineheight)
+
+      if self.height!=64: # correct y coords
+       for p in range(len(self.ypos)):
+        self.ypos[p] = int(self.ypos[p] * (self.height/64))
+       lineheight = int(lineheight * (self.height/64))
+
+      self.ufont=ImageFont.truetype('img/UbuntuMono-R.ttf', lineheight) # use size
      except Exception as e:
       print(e)
      try:
@@ -205,7 +215,9 @@ class Plugin(plugin.PluginProto):
      try:
        self.dispimage = Image.new('1', (self.device.width,self.device.height), "black")
        self.conty1 = 12
-       self.conty2 = self.device.height-12
+       if self.height!=64: # correct y coords
+        self.conty1 = int(self.conty1 * (self.height/64))
+       self.conty2 = self.device.height-self.conty1
        self.textbuffer = []
        self.actualpage = 0
        self.lastlineindex = self.P36_Nlines
@@ -361,7 +373,7 @@ class Plugin(plugin.PluginProto):
 
  def showfirstpage(self):
   draw = ImageDraw.Draw(self.dispimage)
-  draw.rectangle( ((0,self.conty1),(128,self.conty2)) ,fill="black")
+  draw.rectangle( ((0,self.conty1),(self.width,self.conty2)) ,fill="black")
   for l in range(int(self.taskdevicepluginconfig[4])):
    tpos = int((self.device.width-(draw.textsize(self.textbuffer[0][l],self.ufont)[0]))/2)-2
    if tpos<0:
@@ -374,8 +386,8 @@ class Plugin(plugin.PluginProto):
   draw = ImageDraw.Draw(self.dispimage)
   ax = 0
   step=int(self.taskdevicepluginconfig[5])
-  for offset in range(0,128,step):
-    draw.rectangle( ((0,self.conty1),(128,self.conty2)) ,fill="black")
+  for offset in range(0,self.width,step):
+    draw.rectangle( ((0,self.conty1),(self.width,self.conty2)) ,fill="black")
     for l in range(int(self.taskdevicepluginconfig[4])):
      tpos = int((self.device.width-(draw.textsize(self.textbuffer[0][l],self.ufont)[0]))/2)-2
      if tpos<0:
@@ -390,7 +402,7 @@ class Plugin(plugin.PluginProto):
     ax -= step
     if self.initialized==False:
      break
-  draw.rectangle( ((0,self.conty1),(128,self.conty2)) ,fill="black")
+  draw.rectangle( ((0,self.conty1),(self.width,self.conty2)) ,fill="black")
   for l in range(int(self.taskdevicepluginconfig[4])): # last position
      tpos = int((self.device.width-(draw.textsize(self.textbuffer[1][l],self.ufont)[0]))/2)-2
      if tpos<0:
@@ -400,7 +412,13 @@ class Plugin(plugin.PluginProto):
 
  def display_time(self):
   draw = ImageDraw.Draw(self.dispimage)
-  draw.rectangle( ((0,0),(28,10)) ,fill="black")
+  cx = 28
+  if self.width!=128: # correct x coords
+    cx = int(cx * (self.width/128))
+  cy = 10
+  if self.height!=64: # correct y coords
+    cy = int(cy * (self.height/64))
+  draw.rectangle( ((0,0),(cx,cy)) ,fill="black")
   draw.text( (0,0), datetime.now().strftime('%H:%M'), fill="white", font=self.hfont)
   self.device.display(self.dispimage)
 
@@ -417,7 +435,12 @@ class Plugin(plugin.PluginProto):
   x = self.device.width - 23 # 105
   y = 0
   size_x = 15
+  if self.width!=128: # correct x coords
+    size_x = int(size_x * (self.width/128))
+    x = int(x * (self.width/128))
   size_y = 10
+  if self.height!=64: # correct y coords
+    size_y = int(size_y * (self.height/64))
   nbars = 5
   width = int(size_x / nbars)
   size_x = width * nbars -1
@@ -448,7 +471,12 @@ class Plugin(plugin.PluginProto):
   tpos = int((self.device.width-(draw.textsize(ft,self.hfont)[0]))/2)-2
   if tpos<0:
    tpos = 0
-  draw.rectangle( ((20,self.conty2),(108,self.device.height)) ,fill="black")
+  cx1 = 20
+  cx2 = 108
+  if self.width!=128: # correct x coords
+    cx1 = int(cx1 * (self.width/128))
+    cx2 = int(cx2 * (self.width/128))
+  draw.rectangle( ((cx1,self.conty2),(cx2,self.device.height)) ,fill="black")
   draw.text( (tpos, self.conty2), ft, fill="white", font=self.hfont)
   self.device.display(self.dispimage)
 
@@ -466,7 +494,17 @@ class Plugin(plugin.PluginProto):
    if wdev:
     tstr = str(Network.get_ssid(wdev))
    self.headline = 0
-  draw.rectangle( ((29,0),(106,12)) ,fill="black")
+
+  cx1 = 29
+  cx2 = 106
+  if self.width!=128: # correct x coords
+    cx1 = int(cx1 * (self.width/128))
+    cx2 = int(cx2 * (self.width/128))
+  cy = 12
+  if self.height!=64: # correct y coords
+    cy = int(cy * (self.height/64))
+
+  draw.rectangle( ((cx1,0),(cx2,cy)) ,fill="black")
   tpos = int((self.device.width-(draw.textsize(tstr,self.hfont)[0]))/2)-2
   if tpos<0:
    tpos = 0

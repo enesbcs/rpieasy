@@ -155,7 +155,7 @@ class Plugin(plugin.PluginProto):
       lc = self.P23_Nlines
      if lc < 1:
       lc = self.P23_Nlines
-     lineheight = int(self.device.height / lc)+1
+     lineheight = int(self.device.height / lc) #  lineheight = int(self.device.height / lc)+1
      self.ufont=ImageFont.truetype('img/UbuntuMono-R.ttf', lineheight)
      try:
       self.device.show()
