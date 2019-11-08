@@ -349,6 +349,7 @@ def doExecuteCommand(cmdline,Parse=True):
          Settings.Controllers[y].mqttclient.publish(topic,data)
          commandfound = True
          cfound = True
+         break
        except:
         cfound = False
      if cfound==False:
@@ -1014,11 +1015,17 @@ def rulesProcessing(eventstr,efilter=-1): # fire events
       pass
     else:
       invalue = ""
+#      print("ename ",GlobalRules[rfound]["ename"]) # debug
       if getfirstequpos(str(GlobalRules[rfound]["ename"]))>-1:
        invalue = removeequchars(estr[fe1:].replace("=","").strip())
+#      print("i1 ",invalue)                     # debug
+#      print("estr ",estr,getfirstequpos(estr)) # debug
       if getfirstequpos(estr)>-1:
        if getfirstequpos(GlobalRules[rfound]["ename"][fe1:])>-1:
         invalue = removeequchars(estr[fe1:].replace("=","").strip())
+       else:
+        GlobalRules[rfound]["evalue"]=removeequchars(estr[fe1:].replace("=","").strip())
+#      print("i2 ",invalue)                     # debug
       if invalue != "":
        GlobalRules[rfound]["evalue"]=invalue                 # %eventvalue%
        tes = str(invalue)+str(GlobalRules[rfound]["ename"][fe1:])
