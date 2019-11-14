@@ -38,6 +38,7 @@ class Plugin(plugin.PluginProto):
   self.timer100ms = False
   self.readinprogress = False
   self.irqinprogress = False
+  self.prevval = -1
 
  def webform_load(self): # create html page for settings
   webserver.addFormNote("Select an input pin.")
@@ -93,6 +94,10 @@ class Plugin(plugin.PluginProto):
   self.decimals[1]=0
   self.decimals[2]=0
   self.initialized=False
+  try:
+   self.prevval = -1
+  except:
+   self.prevval = -1
   if self.enabled and self.taskdevicepin[0]>0:
    self.__del__()
    self.readinprogress = False
@@ -140,9 +145,21 @@ class Plugin(plugin.PluginProto):
    self.irqinprogress = True
    atime = rpieTime.millis()
    ptime = atime - self.pulsetimeprevious
+   aval = gpios.HWPorts.input(channel)
    if (ptime > int(self.taskdevicepluginconfig[0])):
-    self.pulsecounter += 1
-    self.pulsetotalcounter += 1
-    self.pulsetime = ptime
-    self.pulsetimeprevious = atime
+    ok = False
+    if self.taskdevicepluginconfig[2] == gpios.BOTH:
+     ok = True
+    elif self.taskdevicepluginconfig[2] == gpios.RISING:
+     if self.prevval<aval:
+      ok = True
+    elif self.taskdevicepluginconfig[2] == gpios.FALLING:
+     if self.prevval>aval:
+      ok = True
+    if ok:
+     self.pulsecounter += 1
+     self.pulsetotalcounter += 1
+     self.pulsetime = ptime
+     self.pulsetimeprevious = atime
+    self.prevval = aval
    self.irqinprogress = False
