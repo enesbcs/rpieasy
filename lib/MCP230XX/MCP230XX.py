@@ -41,7 +41,6 @@ class MCP230XX:
         self.callBackFuncts=[]
         for i in range(0,17):
             self.callBackFuncts.append(['empty','emtpy'])
-
         return
 
     def single_access_read(self, reg=0x00):
