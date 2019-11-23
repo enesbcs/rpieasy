@@ -53,6 +53,8 @@ class data_packet:
    tbuf.append(int(nl)) # add string len
    for s in range(nl):
     tbuf.append(ord(self.infopacket["name"][s]))
+   tbuf.append(0) # add zero ending just for sure
+#   print(tbuf) # debug
    self.buffer = bytes(tbuf)
 
   if ptype == 5:
@@ -66,7 +68,9 @@ class data_packet:
    tbuf.append(0) # samplesetcount
    nlen = int(self.sensordata["valuecount"])
    tbuf.append(nlen)
-   for v in range(nlen):
+   tbuf.append(0) # fix for espeasy compatiblity
+   tbuf.append(0) # fix for espeasy compatiblity
+   for v in range(0,nlen):
     try:
      val = float(self.sensordata["values"][v])
      cvf = list(struct.pack("<f",val))# convert float to bytearray
@@ -75,11 +79,13 @@ class data_packet:
       cvf = self.sensordata["values"][v][0:4]   # strip string if needed
      else:
       cvf = list(self.sensordata["values"][v])  # do anything that we can..
+#    print(cvf) # debug
     cl = len(cvf)
     if cl>4:
      cl = 4
     for c in range(cl):
      tbuf.append(cvf[c])
+#   print(tbuf) # debug
    self.buffer = bytes(tbuf)
 
   if ptype in [7,8]:

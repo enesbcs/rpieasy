@@ -21,6 +21,7 @@ from pybleno import *
 from bluepy.btle import Peripheral
 import os
 import linux_os as OS
+import base64
 
 BLE_SERVICE_ID    = "5032505f-5250-4945-6173-795f424c455f"
 BLE_RECEIVER_CHAR = "10000001-5250-4945-6173-795f424c455f"
@@ -103,6 +104,8 @@ class Controller(controller.ControllerProto):
  
  def webform_load(self):
   webserver.addFormNote("IP and Port parameter is not used!")
+  webserver.addFormNote("<a href='https://github.com/enesbcs/ESPEasyRetro/blob/master/ESPEasyRetro/_C021.ino'>ESP32 reference controller</a>")
+
   webserver.addFormCheckBox("Enable Receiver Service","receiver",self.enablerec)
   webserver.addFormNote("Enable this for Gateway/Repeater unit, Disable if you only want to send data!")
   try:
@@ -145,8 +148,13 @@ class Controller(controller.ControllerProto):
 #  print(payload) # debug
   if self.enabled:
     dp = p2pbuffer.data_packet() 
-    dp.buffer = payload
+    pbuf = list(payload)
+    if pbuf[0]=='/' or pbuf[0]==47: # base64 encoded
+     dp.buffer = base64.b64decode(payload.decode("utf-8"))
+    else:               # otherwise plain data arrived
+     dp.buffer = payload
     dp.decode()            # asking p2pbuffer library to decode it
+#    print(dp.buffer) # debug
     if dp.pkgtype!=0:
         if dp.pkgtype==1: # info packet received
 #         print(dp.infopacket)
@@ -292,7 +300,7 @@ class Controller(controller.ControllerProto):
   if self.enabled and self.initialized:
 #   print(idx,value) # debug
    if int(idx)>0:
-    if Settings.Tasks[tasknum].remotefeed == False:  # do not republish received values
+    if Settings.Tasks[tasknum].remotefeed==False or Settings.Tasks[tasknum].remotefeed==-1:  # do not republish received values
      dp2 = p2pbuffer.data_packet()
      dp2.sensordata["sunit"] = Settings.Settings["Unit"]
      dp2.sensordata["dunit"] = self.defaultunit
@@ -303,7 +311,10 @@ class Controller(controller.ControllerProto):
       dp2.sensordata["pluginid"] = 33
      dp2.sensordata["valuecount"] = Settings.Tasks[tasknum].valuecount
      for u in range(Settings.Tasks[tasknum].valuecount):
-      dp2.sensordata["values"][u] = Settings.Tasks[tasknum].uservar[u]
+      try:
+       dp2.sensordata["values"][u] = Settings.Tasks[tasknum].uservar[u]
+      except:
+       dp2.sensordata["values"].append(Settings.Tasks[tasknum].uservar[u])
      dp2.encode(5)
 #     print(dp2.buffer) # debug
      if self.directsend:
@@ -314,7 +325,7 @@ class Controller(controller.ControllerProto):
      if un>-1:
       if (int(Settings.p2plist[un]["cap"]) & 2)==2: # try only if endpoint is able to receive
        self.bleclient.setdestination(Settings.p2plist[un]["mac"])
- #      print("a2:",Settings.p2plist[un]["mac"])
+#       print("a2:",Settings.p2plist[un]["mac"])
      success = self.bleclient.send(dp2.buffer)
      if success==False and un>-1:
 #      print("retry",success,un) # debug
@@ -362,11 +373,13 @@ class Controller(controller.ControllerProto):
         reply = self.bleclient.readpayload() # read remote infos
         self.bleclient.disconnect()
         if reply:
+#         print("repl",reply) # debug
          self.pkt_receiver(reply) # handle received infos
-    if success:
-     self.lastsysinfo = time.time()
-    else:
-     self.lastsysinfo = (time.time()-self.sysinfoperiod)+10 # retry in 10sec
+    self.lastsysinfo = time.time()
+#    if success:
+#     self.lastsysinfo = time.time()
+#    else:
+#     self.lastsysinfo = (time.time()-self.sysinfoperiod)+10 # retry in 10sec
   return True
 
  def getmode(self):
@@ -407,9 +420,9 @@ class InfoCharacteristic(Characteristic):
       dp.infopacket["cap"] = self.modefunc()
       dp.encode(1)
 #      data = array.array('B',[0]*64)
-      data = list(dp.buffer)
+      data = list(base64.b64encode(dp.buffer[offset:]))
 #      print(offset,data[offset:])
-      callback(Characteristic.RESULT_SUCCESS, data[offset:])
+      callback(Characteristic.RESULT_SUCCESS, data)
 
 class ReceiverCharacteristic(Characteristic):
     def __init__(self, updateValueCallback=None):
@@ -555,7 +568,7 @@ class BLEClient():
        try:
         ch = self.service.getCharacteristics(BLE_RECEIVER_CHAR)[0]
 #        print(ch,apayload,len(apayload))
-        ch.write(apayload, True)
+        ch.write(base64.b64encode(apayload), True)
        except Exception as e:
 #        print("write error ",e)
         return False
@@ -566,6 +579,7 @@ class BLEClient():
        try:
         ch = self.service.getCharacteristics(BLE_INFO_CHAR)[0]
         payload = ch.read()
+        payload = base64.b64decode(payload.decode("utf-8"))
        except Exception as e:
 #        print("read error ",e)
         pass
@@ -594,4 +608,3 @@ def getunitordfromnum(unitno):
    if int(Settings.p2plist[n]["unitno"]) == int(unitno) and str(Settings.p2plist[n]["protocol"]) == "BLE":
     return n
   return -1
-
