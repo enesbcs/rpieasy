@@ -1242,7 +1242,7 @@ def handle_devices(self):
     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR, "Deleting failed: "+str(e))
 
  if runIndex != "":
-  print(runIndex)
+#  print(runIndex)
   if len(Settings.Tasks)<1:
    return False
   try:

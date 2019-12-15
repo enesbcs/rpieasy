@@ -177,6 +177,8 @@ class Plugin(plugin.PluginProto):
     try:
      if br>-1:
       self.led.setBrightness(br)
+     else:
+      self.led.setBrightness(self.taskdevicepluginconfig[1])
      self.led.setPixelColor(pin,col)
      self.led.show()
      res = True
@@ -206,6 +208,8 @@ class Plugin(plugin.PluginProto):
    try:
      if br>-1:
       self.led.setBrightness(br)
+     else:
+      self.led.setBrightness(self.taskdevicepluginconfig[1])
      for p in range(self.pixelnum):
       self.led.setPixelColor(p,col)
      self.led.show()
@@ -221,17 +225,19 @@ class Plugin(plugin.PluginProto):
    pin1 = -1
    pin2 = -1
    try:
-    pin1 = int(cmdarr[1].strip())-1
+    pin1 = int(cmdarr[1].strip())-1 # zero based
    except:
     pin1 = 0
+   if pin1>=self.pixelnum:
+    return False
    try:
-    pin2 = int(cmdarr[2].strip())-1
+    pin2 = int(cmdarr[2].strip())-1 # zero based
    except:
     pin2 = self.pixelnum
-   if pin2>=pin1:
+   if pin2<pin1:
     pin2=pin1+1
-   if pin2>self.pixelnum:
-    pin2=self.pixelnum
+   if pin2>=self.pixelnum:
+    pin2=self.pixelnum-1
    try:
     r = int(cmdarr[3].strip())
     g = int(cmdarr[4].strip())
@@ -249,6 +255,8 @@ class Plugin(plugin.PluginProto):
    try:
      if br>-1:
       self.led.setBrightness(br)
+     else:
+      self.led.setBrightness(self.taskdevicepluginconfig[1])
      for p in range(pin1,pin2+1):
       self.led.setPixelColor(p,col)
      self.led.show()

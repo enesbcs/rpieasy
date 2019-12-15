@@ -389,18 +389,21 @@ def initprogram():
  except:
   pass
  #print("Loading settings")
- Settings.loadsettings()
- hardwareInit()
- PluginInit()
- CPluginInit()
- NPluginInit()
- RulesInit()
- timer100ms = millis()
- timer20ms  = timer100ms
- timer1s    = timer100ms
- timer2s    = timer100ms
- timer30s   = timer100ms
- init_ok = True
+ try:
+  Settings.loadsettings()
+  hardwareInit()
+  PluginInit()
+  CPluginInit()
+  NPluginInit()
+  RulesInit()
+  timer100ms = millis()
+  timer20ms  = timer100ms
+  timer1s    = timer100ms
+  timer2s    = timer100ms
+  timer30s   = timer100ms
+  init_ok = True
+ except:
+  init_ok = False
  t = threading.Thread(target=mainloop)  # starting sensors and background functions
  t.daemon = True
  t.start()

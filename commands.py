@@ -340,8 +340,8 @@ def doExecuteCommand(cmdline,Parse=True):
    topic = ""
   commandfound = False
   if topic!="":
+    cfound = False
     for y in range(len(Settings.Controllers)):
-     cfound = False
      if (Settings.Controllers[y]):
       if (Settings.Controllers[y].enabled):
        try:
@@ -352,7 +352,7 @@ def doExecuteCommand(cmdline,Parse=True):
          break
        except:
         cfound = False
-     if cfound==False:
+    if cfound==False:
       misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"MQTT capable controller not found!")
   return commandfound
 
