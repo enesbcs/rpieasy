@@ -1266,6 +1266,7 @@ def handle_devices(self):
      TXBuffer += "	finally {if (valueEntry !== 'TypeError') {"
      TXBuffer += "	document.getElementById('value_' + (data.Sensors[c].TaskNumber - 1) + '_' + (data.Sensors[c].TaskValues[k].ValueNumber -1)).innerHTML = data.Sensors[c].TaskValues[k].Value;"
      TXBuffer += "	document.getElementById('valuename_' + (data.Sensors[c].TaskNumber - 1) + '_' + (data.Sensors[c].TaskValues[k].ValueNumber -1) ).innerHTML = data.Sensors[c].TaskValues[k].Name + ':';"
+     TXBuffer += " if (document.getElementById('clock') !== null) { var d = new Date();var s = d.getSeconds(); var m = d.getMinutes(); var h = d.getHours(); document.getElementById('clock').innerHTML = ('0'+h).slice(-2) + ':' + ('0'+m).slice(-2) + ':' + ('0'+s).slice(-2) ;}"
      TXBuffer += "	}}}}});} ) .catch(function(err) {console.log(err.message); });}, timeForNext);})();"
      TXBuffer += "window.onblur = function() { window.blurred = true; }; window.onfocus = function() { window.blurred = false; }; </script>"
 
@@ -1429,6 +1430,7 @@ def handle_devices(self):
              print(e)
        else:
         TXBuffer += "<TD><TD><TD><TD><TD><TD>"
+      TXBuffer += "<tr><TD colspan=2><div class='button' id='clock'>00:00:00</div><TD><TD><TD><TD><TD><TD><TD></tr>"
       TXBuffer += "</table></form>"
       
  else: #Show edit form if a specific entry is chosen with the edit button

@@ -221,6 +221,9 @@ plugindependencies = [
 {"pluginid": "1", #Switch
  "supported_os_level": [10],
  "modules":["GPIO"]},
+{"pluginid": "2", #PiAnalog
+ "supported_os_level": [10],
+ "modules":["GPIO"]},
 {"pluginid": "3", #Pulse
  "supported_os_level": [10],
  "modules":["GPIO"]},
