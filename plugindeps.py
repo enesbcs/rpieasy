@@ -114,7 +114,7 @@ modulelist = [
  "testcmd": "from RPLCD.i2c import CharLCD",
  "installed":-1},
 {"name": "pca9685",
- "apt": ["python3-pip", "python3-dev","python3-setuptools"],
+ "apt": ["python3-pip", "python3-dev","python3-setuptools","libffi-dev"],
  "pip": ["PCA9685-driver"],
  "testcmd": "from pca9685_driver import Device",
  "installed":-1},
