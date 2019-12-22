@@ -329,6 +329,9 @@ plugindependencies = [
 {"pluginid": "73", # 7DGT
  "supported_os_level": [10],
  "modules":["tm1637"]},
+{"pluginid": "82", #GPS
+ "supported_os_level": [1,2,10],
+ "modules":["pyserial"]},
 {"pluginid": "111", #RF433 receiver
  "supported_os_level": [10],
  "modules":["GPIO","rcswitch"]},
