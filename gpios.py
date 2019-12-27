@@ -388,6 +388,8 @@ I2CDevices = [
   "addr": [0x60,0x61]},
  {"name": "DS1307/DS3231/PCF8523 RTC",
   "addr": [0x68]},
+ {"name": "MPU6050 Triple axis gyroscope & accelerometer",
+  "addr": [0x68,0x69]},
  {"name": "PCA9685 'All Call'",
   "addr": [0x70]},
  {"name": "BMP085/BMP180 Temp/Barometric",

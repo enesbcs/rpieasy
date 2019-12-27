@@ -190,6 +190,11 @@ modulelist = [
  "pip": ["python-eq3bt"],
  "testcmd": "from eq3bt import Thermostat",
  "installed":-1},
+{"name":"mpu6050",
+ "apt": ["python3-pip","python3-setuptools"],
+ "pip": ["mpu6050-raspberrypi"],
+ "testcmd": "from mpu6050 import mpu6050",
+ "installed":-1},
 
 ]
 
@@ -302,6 +307,9 @@ plugindependencies = [
 {"pluginid": "38", # Neopixel
  "supported_os_level": [10],
  "modules":["GPIO","ws2812"]},
+{"pluginid": "45", # MPU6050
+ "supported_os_level": [10],
+ "modules":["i2c","mpu6050"]},
 {"pluginid": "49", #MH-Z19
  "supported_os_level": [1,2,10],
  "modules":["pyserial"]},
