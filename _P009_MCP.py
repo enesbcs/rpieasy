@@ -96,15 +96,16 @@ class Plugin(plugin.PluginProto):
    else:
     self.i2cport = int(i2cport)
     self.initialized = True
-    try:
-     if self.mcp.externalintsetted>-1:
-      self.taskdevicepin[0] = int(self.mcp.extinta)
-     elif str(self.taskdevicepin[0]).strip() != "":
-      self.mcp.setexternalint(0,int(self.taskdevicepin[0]),self.gettaskindex())
-     if self.rpin>-1 and self.taskdevicepluginconfig[1]<2:
-      self.mcp.add_interrupt(self.rpin,callbackFunctLow=self.p009_handler_low,callbackFunctHigh=self.p009_handler_high)
-    except Exception as e:
-     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"MCP interrupt configuration failed:"+str(e))
+    if self.taskdevicepluginconfig[1] != 2:
+     try:
+      if self.mcp.externalintsetted>-1:
+       self.taskdevicepin[0] = int(self.mcp.extinta)
+      elif str(self.taskdevicepin[0]).strip() != "":
+       self.mcp.setexternalint(0,int(self.taskdevicepin[0]),self.gettaskindex())
+      if self.rpin>-1 and self.taskdevicepluginconfig[1]<2:
+       self.mcp.add_interrupt(self.rpin,callbackFunctLow=self.p009_handler_low,callbackFunctHigh=self.p009_handler_high)
+     except Exception as e:
+      misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"MCP interrupt configuration failed:"+str(e))
     try:
      self.ports = str(self.taskdevicepluginconfig[0])
     except:
@@ -161,12 +162,15 @@ class Plugin(plugin.PluginProto):
     self.taskdevicepluginconfig[2] = int(par)
    except:
     self.taskdevicepluginconfig[2] = 0
-   try:
-    par1 = webserver.arg("taskdevicepin0",params)
-    self.mcp.setexternalint(0,int(par1),self.gettaskindex())
-    self.taskdevicepin[0] = int(self.mcp.extinta)
-   except Exception as e: 
-    self.taskdevicepin[0]=-1
+   if self.taskdevicepluginconfig[1] != 2:
+    try:
+     par1 = webserver.arg("taskdevicepin0",params)
+     self.mcp.setexternalint(0,int(par1),self.gettaskindex())
+     self.taskdevicepin[0] = int(self.mcp.extinta)
+    except Exception as e: 
+     self.taskdevicepin[0]=-1
+   else:
+    self.interval = 0
    self.plugin_init()
    return True
 
@@ -271,3 +275,25 @@ class Plugin(plugin.PluginProto):
        break
      except:
        pass
+
+ def set_value(self,valuenum,value,publish=True,suserssi=-1,susebattery=-1): # Also reacting and handling Taskvalueset
+  if self.initialized:
+   if self.taskdevicepluginconfig[1] == 2:
+    if 'on' in str(value).lower() or str(value)=="1":
+     val = 1
+    else:
+     val = 0
+    try:
+     self.mcp.output(self.rpin, val)     # try to set gpio according to requested status
+    except Exception as e:
+     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"MCP output error "+str(e))
+  plugin.PluginProto.set_value(self,valuenum,value,publish,suserssi,susebattery)
+
+ def plugin_receivedata(self,data):                        # set value based on mqtt input
+  if (len(data)>0) and self.initialized and self.enabled:
+   if 'on' in str(data[0]).lower() or str(data[0])=="1":
+    val = 1
+   else:
+    val = 0
+   self.set_value(1,val,False)
+#  print("Data received:",data) # DEBUG

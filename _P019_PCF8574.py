@@ -74,7 +74,7 @@ class Plugin(plugin.PluginProto):
     intok = False
     try:
      self.uservar[0] = self.pcf.readpin(self.rpin)
-     if int(self.taskdevicepin[0])>0:
+     if int(self.taskdevicepin[0])>0 and (int(self.taskdevicepluginconfig[1]) != 2):
       self.pcf.setexternalint(int(self.taskdevicepin[0]))
       self.pcf.setcallback(self.rpin,self.p019_handler)
       intok = True
@@ -84,7 +84,7 @@ class Plugin(plugin.PluginProto):
     if intok:
      self.timer100ms = False
      misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"PCF 1/10s timer disabled")
-    elif int(self.interval)==0: # if no interval setted and not interrupt selected setup a failsafe method
+    elif int(self.interval)==0 and (int(self.taskdevicepluginconfig[1]) != 2): # if no interval setted and not interrupt selected setup a failsafe method
      self.timer100ms = True
      misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"PCF 1/10s timer enabled")
     try:
@@ -114,16 +114,28 @@ class Plugin(plugin.PluginProto):
   webserver.addFormNote("Add one RPI INPUT-PULLUP pin to handle input changes immediately - not needed for interval input reading and output using")
   webserver.addFormNumericBox("Port","p019_pnum",self.taskdevicepluginconfig[0],1,128)
   webserver.addFormNote("First extender 1-8 (0x20), Second 9-16 (0x21)...")
+  choice2 = self.taskdevicepluginconfig[1]
+  options = ["Input","Output"]
+  optionvalues = [0,2]
+  webserver.addFormSelector("Type","p019_ptype",len(optionvalues),options,optionvalues,None,int(choice2))
   return True
 
  def webform_save(self,params): # process settings post reply
    p1 = self.taskdevicepin[0]
    p2 = self.taskdevicepluginconfig[0]
+ 
+   par = webserver.arg("p019_ptype",params)
+   try:
+    self.taskdevicepluginconfig[1] = int(par)
+   except:
+    self.taskdevicepluginconfig[1] = 0
+
    par = webserver.arg("p019_pnum",params)
    try:
     self.taskdevicepluginconfig[0] = int(par)
    except:
     self.taskdevicepluginconfig[0] = 0
+
    try:
     self.taskdevicepin[0]=webserver.arg("taskdevicepin0",params)
    except:
@@ -186,6 +198,7 @@ class Plugin(plugin.PluginProto):
      tmcp = lib_pcfrouter.request_pcf_device(int(pin))
      tmcp.writepin(trpin, val)
      res = True
+     self.syncvalue(pin,val)
     except Exception as e:
      misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"PCFGPIO"+str(pin)+": "+str(e))
    return res
@@ -207,12 +220,14 @@ class Plugin(plugin.PluginProto):
    if pin>-1 and val in [0,1] and trpin >-1:
     misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"PCFGPIO"+str(pin)+": Pulse started")
     try:
+     self.syncvalue(pin,val)
      tmcp = lib_pcfrouter.request_pcf_device(int(pin))
      tmcp.writepin(trpin, val)
      s = float(dur/1000)
      time.sleep(s)
      tmcp.writepin(trpin, (1-val))
      res = True
+     self.syncvalue(pin,(1-val))
     except Exception as e:
      misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"PCFGPIO"+str(pin)+": "+str(e))
     misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"PCFGPIO"+str(pin)+": Pulse ended")
@@ -254,3 +269,38 @@ class Plugin(plugin.PluginProto):
     except Exception as e:
      misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"PCFGPIO"+str(ioarray[0])+": "+str(e))
 
+ def syncvalue(self,epin,value):
+  for x in range(0,len(Settings.Tasks)):
+   if (Settings.Tasks[x]) and type(Settings.Tasks[x]) is not bool: # device exists
+    if (Settings.Tasks[x].enabled):
+     try:
+      if (Settings.Tasks[x].pluginid==19) and (int(Settings.Tasks[x].taskdevicepluginconfig[0])==epin): # output on specific pin
+       Settings.Tasks[x].uservar[0] = value
+       if Settings.Tasks[x].valuenames[0]!= "":
+        commands.rulesProcessing(Settings.Tasks[x].taskname+"#"+Settings.Tasks[x].valuenames[0]+"="+str(value),rpieGlobals.RULE_USER)
+       Settings.Tasks[x].plugin_senddata()
+       break
+     except:
+       pass
+
+ def set_value(self,valuenum,value,publish=True,suserssi=-1,susebattery=-1): # Also reacting and handling Taskvalueset
+  if self.initialized:
+   if self.taskdevicepluginconfig[1] == 2:
+    if 'on' in str(value).lower() or str(value)=="1":
+     val = 1
+    else:
+     val = 0
+    try:
+     self.pcf.writepin(self.rpin,val)     # try to set gpio according to requested status
+    except Exception as e:
+     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"PCF output error "+str(e))
+  plugin.PluginProto.set_value(self,valuenum,value,publish,suserssi,susebattery)
+
+ def plugin_receivedata(self,data):                        # set value based on mqtt input
+  if (len(data)>0) and self.initialized and self.enabled:
+   if 'on' in str(data[0]).lower() or str(data[0])=="1":
+    val = 1
+   else:
+    val = 0
+   self.set_value(1,val,False)
+#  print("Data received:",data) # DEBUG

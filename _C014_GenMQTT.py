@@ -237,6 +237,8 @@ class Controller(controller.ControllerProto):
    pchange = True
   pval = self.outchannel
   self.outchannel = webserver.arg("outchannel",params)
+  if self.inchannel == self.outchannel:
+   self.outchannel = self.outchannel+"/set"
   if pval != self.outchannel:
    pchange = True
   try:
