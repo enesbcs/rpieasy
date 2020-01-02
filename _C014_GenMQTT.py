@@ -64,6 +64,17 @@ class Controller(controller.ControllerProto):
   state = self.outch.find('#')
   if state >-1:
    self.outch = self.outch[:(state+1)]
+  else:
+   state = self.outch.find('%tskname%')
+   if state >-1:
+    self.outch = self.outch[:(state)]+"/#"
+   else:
+    state = self.outch.find('%valname%')
+    if state >-1:
+     self.outch = self.outch[:(state)]+"/#"
+  self.outch = self.outch.replace('//','/').strip()
+  if self.outch=="" or self.outch=="/" or self.outch=="/#" or self.outch=="%/#":
+   self.outch = "#"
   try:
    ls = self.laststatus
   except:
@@ -280,21 +291,55 @@ class Controller(controller.ControllerProto):
  def on_message(self, msg):
   success = False
   tstart = self.outch[:len(self.outch)-1]
-  if msg.topic.startswith(tstart):
+  if msg.topic.startswith(tstart) or self.outch=="#":
    msg2 = msg.payload.decode('utf-8')
-   if msg.topic == tstart + "cmd":   # global command arrived, execute
+   if (msg.topic == tstart + "cmd") and (self.outch!="#"):   # global command arrived, execute
     commands.doExecuteCommand(msg2,True) 
     success = True
    else:
     try:
-     tend = msg.topic[len(self.outch)-1:]
-     dnames = tend.split("/")
+#      tend = msg.topic[len(self.outch)-1:]
+      dnames = msg.topic.split("/")
+      dnames2 = self.outchannel.split("/")
     except:
-     dnames = []
-    if len(dnames)>2:
+      dnames = []
+    if len(dnames)>1:
+     v1 = -1
+     v2 = -1
      if self.outchannel.endswith("/"+dnames[len(dnames)-1]): # set command arrived, forward it to the Task
-      self.onmsgcallbackfunc(self.controllerindex,-1,msg2,taskname=dnames[0],valuename=dnames[1]) #-> Settings.callback_from_controllers()
-      success = True
+      ttaskname = ""
+      try:
+       v1 = dnames2.index("#")
+       v2 = v1+1
+      except:
+       v1 = -1
+      if v1 == -1:
+       try:
+        v1 = dnames2.index("%tskname%")
+       except:
+        v1 = -1
+       try:
+        v2 = dnames2.index("%valname%")
+       except:
+        v2 = -1
+       if v1==-1 and v2>-1:
+        try:
+         for x in range(len(Settings.Tasks)):
+          if Settings.Tasks[x] and type(Settings.Tasks[x]) is not bool:
+           for u in range(Settings.Tasks[x].valuecount):
+            if Settings.Tasks[x].valuenames[u] == dnames[v2]:
+             ttaskname = Settings.Tasks[x].gettaskname().strip()
+             break
+           if ttaskname != "":
+            break
+        except:
+         pass
+      if ttaskname=="" and v1>-1:
+        ttaskname = dnames[v1]
+#      print(v1,v2,ttaskname,dnames) #debug
+      if ttaskname != "" and v2>-1 and v2<len(dnames):
+       self.onmsgcallbackfunc(self.controllerindex,-1,msg2,taskname=ttaskname,valuename=dnames[v2]) #-> Settings.callback_from_controllers()
+       success = True
 
  def senddata(self,idx,sensortype,value,userssi=-1,usebattery=-1,tasknum=-1,changedvalue=-1):
   if self.enabled:
