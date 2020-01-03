@@ -19,6 +19,7 @@ import misc
 import gpios
 import time
 import lib.lib_pcfrouter as lib_pcfrouter
+import Settings
 
 class Plugin(plugin.PluginProto):
  PLUGIN_ID = 19
