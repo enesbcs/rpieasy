@@ -82,12 +82,18 @@ class Plugin(plugin.PluginProto):
     except Exception as e:
      misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"PCF interrupt configuration failed:"+str(e))
      intok = False
+    if (int(self.taskdevicepluginconfig[1]) == 2): # try to set up as output
+     self.pcf.writepin(self.rpin,0)
     if intok:
      self.timer100ms = False
      misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"PCF 1/10s timer disabled")
-    elif int(self.interval)==0 and (int(self.taskdevicepluginconfig[1]) != 2): # if no interval setted and not interrupt selected setup a failsafe method
-     self.timer100ms = True
-     misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"PCF 1/10s timer enabled")
+    elif int(self.interval)==0: # if no interval setted and not interrupt selected setup a failsafe method
+     if (int(self.taskdevicepluginconfig[1]) != 2):
+      self.timer100ms = True
+      misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"PCF 1/10s timer enabled")
+     else:
+      self.timer1s = True
+      misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"PCF 1/s timer enabled for sync")
     try:
      self.ports = str(self.taskdevicepluginconfig[0])
     except:
@@ -95,6 +101,7 @@ class Plugin(plugin.PluginProto):
   else:
    self.ports = 0
    self.timer100ms = False
+   self.timer1s = False
    self.pcf.setcallback(self.rpin,None)
 
  def plugin_exit(self):
@@ -164,6 +171,12 @@ class Plugin(plugin.PluginProto):
    except:
     pass
   return self.timer100ms
+
+ def timer_once_per_second(self):
+  if self.initialized and self.enabled:
+   if self.timer100ms==False:
+    self.ten_per_second()
+  return self.timer1s
 
  def plugin_read(self): # deal with data processing at specified time interval
   result = False

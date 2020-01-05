@@ -911,13 +911,15 @@ def parseruleline(linestr,rulenum=-1):
  cline = linestr.strip()
  state = "CMD"
  if "[" in linestr:
-  m = re.findall(r"\[([A-Za-z0-9_#]+)\]", linestr)
+  m = re.findall(r"\[([A-Za-z0-9_#\-]+)\]", linestr)
   if len(m)>0: # replace with values
    for r in range(len(m)):
     tval = str(gettaskvaluefromname(m[r]))
     if tval=="None":
      state = "INV"
     cline = cline.replace("["+m[r]+"]",tval)
+  else:
+   print("Please avoid special characters in names! ",linestr)
  if ("%eventvalue%" in linestr) and (rulenum!=-1):
   cline = cline.replace("%eventvalue%",str(GlobalRules[rulenum]["evalue"]))
  if "%" in cline:

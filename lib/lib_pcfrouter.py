@@ -34,8 +34,7 @@ class PCFEntity():
   val = self.lastportvalue
   if (Force) or (self.busy==False):
    self.busy = True
-   if (Force) or (time.time()-self.lastread)>=(1/50):
-    try:
+   try:
      prevval = self.lastportvalue
      val = self.bus.read_byte(self.i2cAddress)
      self.lastportvalue = val
@@ -45,7 +44,7 @@ class PCFEntity():
        if self.callbacks[b] is not None:
         if isbitset(prevval,b)!=isbitset(val,b):
          self.callbacks[b](b,int(isbitset(val,b)))
-    except:
+   except:
      val = None
    self.busy = False
   return val
@@ -59,6 +58,10 @@ class PCFEntity():
 
  def writepin(self,pinnum,value): # pinnum 0-7, value 0-1
   result = False
+  mc = 5
+  while self.busy and mc>0:
+   time.sleep(0.1)
+   mc = mc - 1
   if (self.busy==False):
    self.busy = True
    try:
@@ -67,23 +70,28 @@ class PCFEntity():
      bv = 1
     else:
      bv = 0
-    if bv!=value:
+    if bv!=value: # only set if not already setted
      if value==0:
       val-= (1 << pinnum)
      else:
       val+= (1 << pinnum)
-     self.bus.write_byte(self.i2cAddress,val)
+    self.bus.write_byte(self.i2cAddress,val)
     if self.lastportvalue is not None and self.lastportvalue!=val and self.initialized:
       for b in range(8):
        if self.callbacks[b] is not None:
         if isbitset(self.lastportvalue,b)!=isbitset(val,b):
          self.callbacks[b](b,int(isbitset(val,b)))
+      self.lastportvalue = val
    except Exception as e:
     print(e)
    self.busy = False
 
  def writepinlist(self,pinnums,value): # pinnum array 0-7, value 0-1
   result = False
+  mc = 5
+  while self.busy and mc>0:
+   time.sleep(0.1)
+   mc = mc - 1
   if (self.busy==False):
    self.busy = True
    try:
@@ -106,6 +114,7 @@ class PCFEntity():
        if self.callbacks[b] is not None:
         if isbitset(self.lastportvalue,b)!=isbitset(val,b):
          self.callbacks[b](b,int(isbitset(val,b)))
+      self.lastportvalue = val
    except Exception as e:
     print(e)
    self.busy = False
