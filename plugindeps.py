@@ -195,6 +195,17 @@ modulelist = [
  "pip": ["mpu6050-raspberrypi"],
  "testcmd": "from mpu6050 import mpu6050",
  "installed":-1},
+{"name": "epd",
+ "apt": ["python3-pip", "libfreetype6-dev", "libjpeg-dev", "build-essential","python3-dev","libtiff5","libopenjp2-7","python3-setuptools"],
+ "pip":["epd-library","spidev"],
+ "testcmd":"import epd1in54",
+ "installed":-1},
+{"name":"ping",
+ "apt": ["python3-pip","python3-setuptools"],
+ "pip": ["ping3"],
+ "testcmd": "import ping3",
+ "installed":-1},
+
 
 ]
 
@@ -346,6 +357,9 @@ plugindependencies = [
 {"pluginid": "112", #RF433 sender
  "supported_os_level": [10],
  "modules":["GPIO","rcswitch"]},
+{"pluginid": "126", #Ping
+ "supported_os_level": [1,2,10],
+ "modules":["ping"]},
 {"pluginid": "133", # VL53L0X
  "supported_os_level": [10],
  "modules":["i2c"]},
@@ -367,6 +381,9 @@ plugindependencies = [
 {"pluginid": "204", #Stepper motor
  "supported_os_level": [10],
  "modules":["GPIO"]},
+{"pluginid": "205", #E-paper SPI
+ "supported_os_level": [10],
+ "modules":["epd"]},
 {"pluginid": "501", # USB relay
  "modules":["hidapi"]},
 {"pluginid": "502", # pygame play wav/mp3
