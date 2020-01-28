@@ -205,6 +205,11 @@ modulelist = [
  "pip": ["ping3"],
  "testcmd": "import ping3",
  "installed":-1},
+{"name":"modbus",
+ "apt": ["python3-pip","python3-setuptools"],
+ "pip": ["minimalmodbus"],
+ "testcmd": "import minimalmodbus",
+ "installed":-1},
 
 
 ]
@@ -384,6 +389,9 @@ plugindependencies = [
 {"pluginid": "205", #E-paper SPI
  "supported_os_level": [10],
  "modules":["epd"]},
+{"pluginid": "206", #PZEM016
+ "supported_os_level": [1,2,10],
+ "modules":["pyserial","modbus"]},
 {"pluginid": "501", # USB relay
  "modules":["hidapi"]},
 {"pluginid": "502", # pygame play wav/mp3

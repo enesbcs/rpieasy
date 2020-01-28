@@ -54,12 +54,20 @@ class Plugin(plugin.PluginProto):
    self.readinprogress = 1
    try:
     reply = ping(self.taskdevicepluginconfig[0],timeout=0.5,unit="ms")
-   except:
+   except Exception as e:
     reply = None
+#    print(e)
+   if reply is None or reply == False: # second try
+    try:
+     reply = ping(self.taskdevicepluginconfig[0],timeout=1,unit="ms")
+    except Exception as e:
+     reply = None
+#     print(e)
    if reply is None or reply == False:
     res = 0
    else:
     res = 1
+#   print(reply,res)
    self.set_value(1,res,True)
    self._lastdataservetime = rpieTime.millis()
    result = True
