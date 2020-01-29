@@ -2105,6 +2105,7 @@ def handle_blescanner(self):
      devices = scanner.scan(5.0)
     except Exception as e:
      TXBuffer += "BLE scanning failed "+str(e)+"<p>"
+     TXBuffer += "Try to run:<br>sudo systemctl stop bluetooth<br>sudo hciconfig hci0 up<p>"
      blesuccess = False
     if blesuccess:
      TXBuffer += "<table class='multirow'><TR><TH>Interface<TH>Address<TH>Address type<TH>RSSI<TH>Connectable<TH>Name<TH>Appearance</TH><TH>Actions</TH></TR>"

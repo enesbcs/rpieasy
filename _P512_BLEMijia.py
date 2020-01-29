@@ -17,6 +17,7 @@ from bluepy import btle
 import threading
 import time
 import binascii
+from random import uniform
 
 BATTERY_HANDLE = 0x0018
 TEMP_HUM_WRITE_HANDLE = 0x0010
@@ -139,6 +140,7 @@ class Plugin(plugin.PluginProto):
    prevstate = self.connected
    try:
     misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"BLE connection initiated to "+str(self.taskdevicepluginconfig[0]))
+    time.sleep(uniform(0.4,1.8))
     self.BLEPeripheral = btle.Peripheral(str(self.taskdevicepluginconfig[0]))
     self.connected = True
     self.failures = 0
@@ -196,6 +198,8 @@ class Plugin(plugin.PluginProto):
    self.TARR.append(temp)
    self.HARR.append(hum)
 #   self.lastread = rpieTime.millis()
+   if rpieTime.millis()-self._lastdataservetime>2000:
+    self.plugin_read()
 
  def disconnect(self):
 #  print("disconn")

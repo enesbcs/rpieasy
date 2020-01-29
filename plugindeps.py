@@ -416,7 +416,7 @@ plugindependencies = [
 {"pluginid": "512", # BLE Xiaomi Temp
  "modules":["bluepy"]},
 {"pluginid": "513", # BLE Xiaomi Clock
- "modules":["lywsd"]},
+ "modules":["bluepy"]},
 {"pluginid": "514", # USB-Dallas
  "supported_os_level": [1,2,10],
  "modules":["pyserial","pydigitemp"]},
