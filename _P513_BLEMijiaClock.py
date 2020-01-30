@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/us	r/bin/env python3
 #############################################################################
 ####################### BLE LYWSD plugin for RPIEasy ########################
 #############################################################################
@@ -20,9 +20,11 @@ import binascii
 from random import uniform
 
 BATTERY_HANDLE = 0x003A
+BATTERY_UUID   = 'EBE0CCC4-7A0A-4B0C-8A1A-6FF2997DA3A6'
 TEMP_HUM_WRITE_HANDLE = 0x0038
 TEMP_HUM_READ_HANDLE = [0x36,0x3c,0x4b]
 TEMP_HUM_WRITE_VALUE = bytearray([0x01, 0x00])
+LYWSD02_DATA = 'EBE0CCC1-7A0A-4B0C-8A1A-6FF2997DA3A6'
 
 class Plugin(plugin.PluginProto):
  PLUGIN_ID = 513
@@ -50,7 +52,7 @@ class Plugin(plugin.PluginProto):
   self.battery = 0
   self.lastbatteryreq = 0
 #  self.lastread = 0
-  self.preread = 6000
+  self.preread = 4000
   self._lastdataservetime = 0
   self._nextdataservetime = 0
   self.TARR = []
@@ -61,11 +63,19 @@ class Plugin(plugin.PluginProto):
   webserver.addFormTextBox("Device Address","plugin_513_addr",str(self.taskdevicepluginconfig[0]),20)
   webserver.addFormNote("Enable blueetooth then <a href='blescanner'>scan LYWSD02/03 address</a> first.")
   webserver.addFormCheckBox("Add Battery value for non-Domoticz system","plugin_513_bat",self.taskdevicepluginconfig[1])
+  choice1 = self.taskdevicepluginconfig[2]
+  options = ["LYWSD02","LYWSD03"]
+  optionvalues = [0,1]
+  webserver.addFormSelector("Type","plugin_513_t",len(options),options,optionvalues,None,choice1)
   return True
 
  def webform_save(self,params): # process settings post reply
   self.taskdevicepluginconfig[0] = str(webserver.arg("plugin_513_addr",params)).strip()
   self.taskdevicepluginconfig[1] = (webserver.arg("plugin_513_bat",params)=="on")
+  try:
+   self.taskdevicepluginconfig[2] = int(webserver.arg("plugin_513_t",params).strip())
+  except Exception as e:
+   self.taskdevicepluginconfig[2] = 0
   self.plugin_init()
   return True
 
@@ -81,7 +91,7 @@ class Plugin(plugin.PluginProto):
    if self.preread:
     pass
   except:
-   self.preread = 6000
+   self.preread = 4000
   self.uservar[0] = 0
   self.uservar[1] = 0
   if self.enabled:
@@ -153,6 +163,7 @@ class Plugin(plugin.PluginProto):
    except Exception as e:
     self.connected = False
    self.conninprogress = False
+   time.sleep(0.5)
    self.isconnected()
    if self.connected==False:
     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"BLE connection failed "+str(self.taskdevicepluginconfig[0]))
@@ -170,11 +181,15 @@ class Plugin(plugin.PluginProto):
  def request_temp_hum_value(self,d=None):
   res = False
   try:
-   self.BLEPeripheral.writeCharacteristic(TEMP_HUM_WRITE_HANDLE, TEMP_HUM_WRITE_VALUE)
+   if str(self.taskdevicepluginconfig[2]).strip()!="1":
+    ch = self.BLEPeripheral.getCharacteristics(uuid=LYWSD02_DATA)[0]
+    desc = ch.getDescriptors(forUUID=0x2902)[0]
+    desc.write(0x01.to_bytes(2, byteorder="little"), withResponse=True)
+   else:
+    self.BLEPeripheral.writeCharacteristic(TEMP_HUM_WRITE_HANDLE, TEMP_HUM_WRITE_VALUE)
    res = True
   except Exception as e:
    res = False
-#   print(e)
   return res
 
  def isconnected(self,d=None):
@@ -186,7 +201,9 @@ class Plugin(plugin.PluginProto):
   if ((time.time()-self.lastbatteryreq)>600) or (self.battery<=0):
    battery = 0
    try:
-    battery = self.BLEPeripheral.readCharacteristic(BATTERY_HANDLE)[0]
+    ch = self.BLEPeripheral.getCharacteristics(uuid=BATTERY_UUID)[0]
+    value = ch.read()
+    battery = ord(value) # self.BLEPeripheral.readCharacteristic(BATTERY_HANDLE)[0]
     self.lastbatteryreq = time.time()
    except Exception as e:
     pass
@@ -199,6 +216,7 @@ class Plugin(plugin.PluginProto):
 
  def callbackfunc(self,temp=None,hum=None):
 #  print("cb",temp,hum)
+  self.connected = True
   if self.enabled:
    self.TARR.append(temp)
    self.HARR.append(hum)
@@ -240,7 +258,7 @@ class TempHumDelegate2(btle.DefaultDelegate):
      temp = float(received[1] * 256 + received[0]) / 100
      hum = received[2]
     except Exception as e:
-     print(e)
+     print("Notification error: ",e)
 #    print(temp,hum) # DEBUG
     self.callback(temp,hum)
 
