@@ -132,22 +132,25 @@ class Plugin(plugin.PluginProto):
       self.get_battery_value()
       if self.battery==-1:
        self.get_battery_value()
-      self.set_value(1,self.TARR[-1],False)
-      if self.taskdevicepluginconfig[1]:
-       self.set_value(2,self.HARR[-1],False)
-       self.set_value(3,self.battery,False,susebattery=self.battery)
-      else:
-       self.set_value(2,self.HARR[-1],False,susebattery=self.battery)
-      self.plugin_senddata()
+      try:
+       self.set_value(1,self.TARR[-1],False)
+       if self.taskdevicepluginconfig[1]:
+        self.set_value(2,self.HARR[-1],False)
+        self.set_value(3,self.battery,False,susebattery=self.battery)
+       else:
+        self.set_value(2,self.HARR[-1],False,susebattery=self.battery)
+       self.plugin_senddata()
+       self._lastdataservetime = rpieTime.millis()
+       self._nextdataservetime = self._lastdataservetime + (self.interval*1000) - self.preread
+       self.failures = 0
+      except:
+       pass
       if self.interval>10:
        self.disconnect()
 #      print("b:",self.battery)
       self.TARR = []
       self.HARR = []
-      self._lastdataservetime = rpieTime.millis()
-      self._nextdataservetime = self._lastdataservetime + (self.interval*1000) - self.preread
-      self.failures = 0
-     else:
+     elif (self._nextdataservetime < rpieTime.millis()):
       self.isconnected()
 
  def connectproc(self):
@@ -162,21 +165,28 @@ class Plugin(plugin.PluginProto):
     self.BLEPeripheral.setDelegate( TempHumDelegate2(self.callbackfunc) )
    except Exception as e:
     self.connected = False
-   self.conninprogress = False
    time.sleep(0.5)
    self.isconnected()
    if self.connected==False:
-    misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"BLE connection failed "+str(self.taskdevicepluginconfig[0]))
+    misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"BLE connection failed "+str(self.taskdevicepluginconfig[0]))
+    self.disconnect()
+    time.sleep(uniform(5,10))
     self.failures =  self.failures +1
     if self.failures>5:
-     self._nextdataservetime = rpieTime.millis()+(self.interval*5000)
+     if self.interval<120:
+      skiptime = self.interval*5000
+     else:
+      skiptime = self.interval
+     self._nextdataservetime = rpieTime.millis()+(skiptime)
      self._lastdataservetime = self._nextdataservetime
+    self.conninprogress = False
     return False
    else:
     misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"BLE connected to "+str(self.taskdevicepluginconfig[0]))
     self.waitnotifications = True
     self.get_battery_value()
     rpieTime.addsystemtimer(3,self.isconnected,[-1])
+   self.conninprogress = False
 
  def request_temp_hum_value(self,d=None):
   res = False
