@@ -415,8 +415,8 @@ plugindependencies = [
  "modules":["bluepy"]},
 {"pluginid": "512", # BLE Xiaomi Temp
  "modules":["bluepy"]},
-{"pluginid": "513", # BLE Xiaomi Clock
- "modules":["bluepy"]},
+{"pluginid": "513", # BLE LYWSD02
+ "modules":["lywsd"]},
 {"pluginid": "514", # USB-Dallas
  "supported_os_level": [1,2,10],
  "modules":["pyserial","pydigitemp"]},
@@ -424,6 +424,8 @@ plugindependencies = [
  "modules":["bluepy"]},
 {"pluginid": "516", # BLE EQ3
  "modules":["eq3bt"]},
+{"pluginid": "517", # BLE LYWSD03
+ "modules":["bluepy"]},
 
 ]
 
