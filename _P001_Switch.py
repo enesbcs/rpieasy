@@ -59,19 +59,24 @@ class Plugin(plugin.PluginProto):
   if int(self.taskdevicepin[0])>=0 and self.enabled:
    self.set_value(1,int(gpios.HWPorts.input(int(self.taskdevicepin[0]))),True) # Sync plugin value with real pin state
    try:
+    if int(self.taskdevicepluginconfig[3])<1:
+     self.taskdevicepluginconfig[3] = gpios.BOTH # for compatibility
+   except:
+    self.taskdevicepluginconfig[3] = gpios.BOTH
+   try:
     self.__del__()
     if self.taskdevicepluginconfig[0]:
      misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"Registering 10/sec timer as asked")
      self.timer100ms = True
      return True
     if int(self.taskdevicepluginconfig[1])>0:
-     gpios.HWPorts.add_event_detect(int(self.taskdevicepin[0]),gpios.BOTH,self.p001_handler,int(self.taskdevicepluginconfig[1]))
+     gpios.HWPorts.add_event_detect(int(self.taskdevicepin[0]),int(self.taskdevicepluginconfig[3]),self.p001_handler,int(self.taskdevicepluginconfig[1]))
     else:
-     gpios.HWPorts.add_event_detect(int(self.taskdevicepin[0]),gpios.BOTH,self.p001_handler)
+     gpios.HWPorts.add_event_detect(int(self.taskdevicepin[0]),int(self.taskdevicepluginconfig[3]),self.p001_handler)
     misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"Event registered to pin "+str(self.taskdevicepin[0]))
     self.timer100ms = False
-   except:
-    misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Event can not be added, register backup timer")
+   except Exception as e:
+    misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Event can not be added, register backup timer "+str(e))
     self.timer100ms = True
 
  def webform_load(self):
@@ -83,6 +88,10 @@ class Plugin(plugin.PluginProto):
   optionvalues = [0,1,2]
   webserver.addFormSelector("Switch Button Type","p001_button",len(optionvalues),options,optionvalues,None,self.taskdevicepluginconfig[2])
   webserver.addFormNote("Use only normal switch for output type, i warned you!")
+  options = ["BOTH","RISING","FALLING"]
+  optionvalues = [gpios.BOTH,gpios.RISING,gpios.FALLING]
+  webserver.addFormSelector("Event detection type","p001_det",len(optionvalues),options,optionvalues,None,self.taskdevicepluginconfig[3])
+  webserver.addFormNote("Only valid if event detection activated")
   return True
 
  def webform_save(self,params):
@@ -100,6 +109,12 @@ class Plugin(plugin.PluginProto):
    self.taskdevicepluginconfig[2] = int(par)
   except:
    self.taskdevicepluginconfig[2] = 0
+  par = webserver.arg("p001_det",params)
+  try:
+   self.taskdevicepluginconfig[3] = int(par)
+  except:
+   self.taskdevicepluginconfig[3] = gpios.BOTH
+
   return True
 
  def plugin_read(self):

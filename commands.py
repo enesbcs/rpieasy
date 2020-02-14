@@ -565,6 +565,9 @@ def splitruletoevents(rulestr): # parse rule string into array of events
  evarr = []
  rulearr = rulestr.splitlines()
  for line in rulearr:
+  cs = line.find(' //')
+  if cs>-1:
+   line = line[:cs]
   linelower = line.strip().lower()
   if linelower.startswith("on ") and linelower.endswith(" do"):
    rcount += 1
