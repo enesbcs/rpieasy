@@ -1662,7 +1662,7 @@ def handle_devices(self):
     TXBuffer += "<input type='hidden' name='edit' value='1'>"
     if taskIndex != '':
      TXBuffer += "<input type='hidden' name='index' value='" + str(taskIndex+1) +"'>"
-    TXBuffer += "<input type='hidden' name='page' value='1'>"
+    TXBuffer += "<input type='hidden' name='page' value='"+ str(page) +"'>"
 
     if (tte>0): # if user selected a device, add the delete button
       addSubmitButton("Delete", "del")
@@ -1796,13 +1796,15 @@ def handle_notifications(self):
      if int(protocol)>0:
       addFormCheckBox("Enabled", "nenabled", Settings.Notifiers[nindex].enabled)
       Settings.Notifiers[nindex].webform_load()
-
+      if (arg('test',responsearr) != ''):
+       Settings.Notifiers[nindex].notify("Test message")
     addFormSeparator(2)
     TXBuffer += "<tr><td><td>"
     TXBuffer += "<a class='button link' href=\"notifications\">Close</a>"
     addSubmitButton()
     if nindex != '':
      addSubmitButton("Delete", "del")
+     addSubmitButton("Test", "test")
     TXBuffer += "</table></form>"
 
  sendHeadandTail("TmplStd",_TAIL);
@@ -2832,6 +2834,7 @@ def handle_upload(self):
   TXBuffer += "<p>You can upload JSON settings files one by one or in a single .ZIP archive.<p>"
  else:
   TXBuffer += "<p>Upload selected files into remote directory: <b>"+str(upath)+"</b><p>"
+ TXBuffer += "<p>Please avoid using space in filenames."
  TXBuffer += "<p><form enctype='multipart/form-data' method='post'><p>Upload file:<br><input type='file' name='datafile' size='200'></p><div><input class='button link' type='submit' value='Upload'><input type='hidden' name='path' value='"
  TXBuffer += upath + "'></div></form>"
  sendHeadandTail("TmplStd",_TAIL)
@@ -2847,6 +2850,9 @@ def handle_upload_post(self):
    if upath == "data/":
     fname = ""
     try:
+     if ' ' in self.post['datafile']['filename']:
+      misc.addLog(rpieGlobals.LOG_LEVEL_ERROR, "Please do not use space in filenames...")
+      return self.redirect("/tools")
      if self.post['datafile']['filename']:
       fname = "data/" + self.post['datafile']['filename'].strip()
       fout = open(fname,"wb")
