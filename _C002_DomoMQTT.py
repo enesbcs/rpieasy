@@ -7,7 +7,7 @@
 # plugin_receivedata() function will receive commands if they register the
 # appropriate IDX)
 #
-# Copyright (C) 2018-2019 by Alexander Nagy - https://bitekmindenhol.blog.hu/
+# Copyright (C) 2018-2020 by Alexander Nagy - https://bitekmindenhol.blog.hu/
 #
 import controller
 import paho.mqtt.client as mqtt
@@ -296,8 +296,8 @@ class Controller(controller.ControllerProto):
    domosmsgwb = '{{"command": "switchlight", "idx": {0}, "switchcmd": "Set Level", "level":"{1}", "RSSI": {2}, "Battery": {3} }}'
    if self.isconnected(False):
     try:
-     usebattery = float(usebattery)
-    except:
+     usebattery = float(str(usebattery).strip())
+    except Exception as e:
      usebattery = -1
     if int(idx) > 0:
      if usebattery != -1 and usebattery != 255:

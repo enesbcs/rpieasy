@@ -116,15 +116,13 @@ class Plugin(plugin.PluginProto):
 
  def plugin_read(self):
    result = False
-#   print("read",self.connected)
    if self.enabled:
-#    print(self.TARR)
-#    if (rpieTime.millis()-self.lastread)<=(self.preread*2):
-#     print(self.lastread,self.preread)
      if len(self.TARR)>0 and len(self.HARR)>0:
       self.get_battery_value()
       if self.battery==-1:
        self.get_battery_value()
+       if self.battery==-1:
+        self.get_battery_value()
       try:
        self.set_value(1,self.TARR[-1],False)
        if self.taskdevicepluginconfig[1]:
@@ -132,7 +130,7 @@ class Plugin(plugin.PluginProto):
         self.set_value(3,self.battery,False,susebattery=self.battery)
        else:
         self.set_value(2,self.HARR[-1],False,susebattery=self.battery)
-       self.plugin_senddata()
+       self.plugin_senddata(pusebattery=self.battery)
        self._lastdataservetime = rpieTime.millis()
        self._nextdataservetime = self._lastdataservetime + (self.interval*1000) - self.preread
        self.failures = 0
@@ -140,7 +138,6 @@ class Plugin(plugin.PluginProto):
        pass
       if self.interval>10:
        self.disconnect()
-#      print("b:",self.battery)
       self.TARR = []
       self.HARR = []
      elif (self._nextdataservetime < rpieTime.millis()):
@@ -213,12 +210,10 @@ class Plugin(plugin.PluginProto):
   return self.battery
 
  def callbackfunc(self,temp=None,hum=None):
-#  print("cb",temp,hum)
   self.connected = True
   if self.enabled:
    self.TARR.append(temp)
    self.HARR.append(hum)
-#   self.lastread = rpieTime.millis()
    if rpieTime.millis()-self._lastdataservetime>=2000:
     self.plugin_read()
 

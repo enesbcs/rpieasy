@@ -6,7 +6,7 @@
 # Xiaomi Mijia Bluetooth Temperature Humidity Sensor plugin.
 # Can be used when BLE compatible Bluetooth dongle, and BluePy is installed.
 #
-# Copyright (C) 2019 by Alexander Nagy - https://bitekmindenhol.blog.hu/
+# Copyright (C) 2020 by Alexander Nagy - https://bitekmindenhol.blog.hu/
 #
 import plugin
 import webserver
@@ -108,11 +108,7 @@ class Plugin(plugin.PluginProto):
 
  def plugin_read(self):
    result = False
-#   print("read",self.connected)
    if self.enabled:
-#    print(self.TARR)
-#    if (rpieTime.millis()-self.lastread)<=(self.preread*2):
-#     print(self.lastread,self.preread)
      if len(self.TARR)>0 and len(self.HARR)>0:
       self.get_battery_value()
       if self.battery==-1:
@@ -123,10 +119,9 @@ class Plugin(plugin.PluginProto):
        self.set_value(3,self.battery,False,susebattery=self.battery)
       else:
        self.set_value(2,self.HARR[-1],False,susebattery=self.battery)
-      self.plugin_senddata()
+      self.plugin_senddata(pusebattery=self.battery)
       if self.interval>10:
        self.disconnect()
-#      print("b:",self.battery)
       self.TARR = []
       self.HARR = []
       self._lastdataservetime = rpieTime.millis()

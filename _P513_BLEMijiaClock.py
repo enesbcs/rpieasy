@@ -9,7 +9,7 @@
 # Based on:
 #  https://github.com/h4/lywsd02
 #
-# Copyright (C) 2019 by Alexander Nagy - https://bitekmindenhol.blog.hu/
+# Copyright (C) 2020 by Alexander Nagy - https://bitekmindenhol.blog.hu/
 #
 import plugin
 import webserver
@@ -114,7 +114,6 @@ class Plugin(plugin.PluginProto):
       self.plugin_senddata(pusebattery=self.battery)
       self._lastdataservetime = rpieTime.millis()
       result = True
-#      print(self.uservar)
      except Exception as e:
       misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"BLE read error: "+str(e))
       time.sleep(3)

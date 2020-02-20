@@ -6,7 +6,7 @@
 # Xiaomi Mi Flora Bluetooth plant sensor plugin.
 # Can be used when BLE compatible Bluetooth dongle and BluePy is installed.
 #
-# Copyright (C) 2019 by Alexander Nagy - https://bitekmindenhol.blog.hu/
+# Copyright (C) 2020 by Alexander Nagy - https://bitekmindenhol.blog.hu/
 #
 import plugin
 import webserver
@@ -121,11 +121,11 @@ class Plugin(plugin.PluginProto):
    try:
     batt = self.flora.battery_level()
    except:
-    batt = 100
+    batt = 255
    for v in range(0,4):
     vtype = int(self.taskdevicepluginconfig[v+1])
     if vtype != 0:
-     self.set_value(v+1,self.p515_get_value(vtype),False)
+     self.set_value(v+1,self.p515_get_value(vtype),False,susebattery=batt)
    self.plugin_senddata(pusebattery=batt)
    self._lastdataservetime = rpieTime.millis()
    result = True
