@@ -150,8 +150,8 @@ def CPluginInit():
          if (Settings.Controllers[y].enabled):
           Settings.Tasks[x].controllercb[y] = Settings.Controllers[y].senddata # assign controller callback to plugins that sends data
    except Exception as e:
-    Settings.Tasks[x] = False
-    misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Task" +str(x+1)+ " is malformed, deleted! "+str(e))
+    Settings.Tasks[x].enabled = False
+    misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Task " +str(x+1)+ " disabled! "+str(e))
 
  for y in range(0,len(Settings.Controllers)):
    if (Settings.Controllers[y]):
@@ -160,8 +160,8 @@ def CPluginInit():
        Settings.Controllers[y].controller_init(None) # init controller at startup
        Settings.Controllers[y].setonmsgcallback(Settings.callback_from_controllers) # set global msg callback for 2way comm
     except Exception as e:
-       Settings.Controllers[y] = False
-       misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Controller" +str(y+1)+ " is malformed, deleted! "+str(e))
+       Settings.Controllers[y].enabled = False
+       misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Controller " +str(y+1)+ " disabled! "+str(e))
 
  return 0
 
@@ -190,8 +190,9 @@ def NPluginInit():
    try:
     if (Settings.Notifiers[x].enabled): # device enabled
      Settings.Notifiers[x].plugin_init(None) # init plugin at startup
-   except:
-    pass
+   except Exception as e:
+     Settings.Notifiers[x].enabled = False
+     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Notifier " +str(x+1)+ " disabled! "+str(e))
 
  return 0
 

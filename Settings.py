@@ -258,3 +258,21 @@ def loadnotifiers():
 #  print("Critical Jsonpickle error:",str(e))
   success = 0
  return success
+
+def getTaskValueIndex(taskname, valuename):
+ tid = -1
+ vid = -1
+ global Tasks
+ for x in range(0,len(Tasks)):
+  if (Tasks[x]) and type(Tasks[x]) is not bool:
+    try:
+     if Tasks[x].enabled:
+      if Tasks[x].gettaskname()==taskname:
+       tid = x+1
+       for u in range(0,Tasks[x].valuecount):
+        if Tasks[x].valuenames[u]==valuename:
+         vid = u+1
+         return tid, vid
+    except:
+     pass
+ return tid, vid

@@ -27,7 +27,8 @@ SysVars = ["systime","system_hm","lcltime","syshour","sysmin","syssec","sysday",
 
 def doCleanup():
   rulesProcessing("System#Shutdown",rpieGlobals.RULE_SYSTEM)
-  Settings.savetasks()
+  if (len(Settings.Tasks)>1) or ( (len(Settings.Tasks)==1) and (Settings.Tasks[0] != False) ):
+   Settings.savetasks()
   procarr = []
   for x in range(0,len(Settings.Tasks)):
    if (Settings.Tasks[x]) and type(Settings.Tasks[x]) is not bool: # device exists
@@ -120,6 +121,8 @@ def doExecuteCommand(cmdline,Parse=True):
   except:
    v = 1
   #v=v-1
+  if s == -1:
+   s, v = Settings.getTaskValueIndex(cmdarr[1],cmdarr[2])
   if s >0 and (s<=len(Settings.Tasks)):
    s = s-1 # array is 0 based, tasks is 1 based
    if (type(Settings.Tasks[s])!=bool) and (Settings.Tasks[s]):
@@ -147,6 +150,8 @@ def doExecuteCommand(cmdline,Parse=True):
   except:
    v = 1
   #v=v-1
+  if s == -1:
+   s, v = Settings.getTaskValueIndex(cmdarr[1],cmdarr[2])
   if s >0 and (s<=len(Settings.Tasks)):
    s = s-1 # array is 0 based, tasks is 1 based
    if (type(Settings.Tasks[s])!=bool) and (Settings.Tasks[s]):
@@ -432,7 +437,10 @@ def doExecuteCommand(cmdline,Parse=True):
   commandfound = True
   return commandfound
  elif cmdarr[0] == "reset":
-  os.popen("rm -r data/*.json")
+  try:
+   os.popen("rm -r data/*.json")
+  except:
+   pass
   Settings.Controllers = [False]
   Settings.NetworkDevices = []
   Settings.Pinout = []

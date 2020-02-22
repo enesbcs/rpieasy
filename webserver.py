@@ -1895,7 +1895,7 @@ def handle_tools(self):
  TXBuffer += '"'
  TXBuffer += " href='/?cmd=reboot'>Reboot</a>"
  TXBuffer += "<TD>"
- TXBuffer += "Reboots Device"
+ TXBuffer += "Reboot System"
 
  html_TR_TD_height(30)
  TXBuffer += "<a class='button link wide' onclick="
@@ -1904,7 +1904,7 @@ def handle_tools(self):
  TXBuffer += '"'
  TXBuffer += " href='/?cmd=halt'>Halt</a>"
  TXBuffer += "<TD>"
- TXBuffer += "Halts Device"
+ TXBuffer += "Halt/Shutdown System"
 
  html_TR_TD_height(30)
  TXBuffer += "<a class='button link wide' onclick="
@@ -1970,7 +1970,7 @@ def handle_tools(self):
  html_TR_TD_height(30)
  TXBuffer += "<a class='button link wide red' onclick="
  TXBuffer += '"'
- TXBuffer += "return confirm('Do you really want to Reset all settings?')"
+ TXBuffer += "return confirm('Do you really want to Reset/Erase all settings?')"
  TXBuffer += '"'
  TXBuffer += " href='/?cmd=reset'>Reset device settings</a>"
  TXBuffer += "<TD>"
@@ -2834,7 +2834,7 @@ def handle_upload(self):
   TXBuffer += "<p>You can upload JSON settings files one by one or in a single .ZIP archive.<p>"
  else:
   TXBuffer += "<p>Upload selected files into remote directory: <b>"+str(upath)+"</b><p>"
- TXBuffer += "<p>Please avoid using space in filenames."
+ TXBuffer += "<p>Please avoid using space in filenames, and restart RPIEasy to commit changes. Otherwise you will see empty structures..."
  TXBuffer += "<p><form enctype='multipart/form-data' method='post'><p>Upload file:<br><input type='file' name='datafile' size='200'></p><div><input class='button link' type='submit' value='Upload'><input type='hidden' name='path' value='"
  TXBuffer += upath + "'></div></form>"
  sendHeadandTail("TmplStd",_TAIL)
@@ -2863,7 +2863,14 @@ def handle_upload_post(self):
     if fname.lower().endswith(".zip"):
      misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG, "Unzipping...")
      OS.extractzip(fname,"data/")
-    Settings.loadtasks()
+    try:
+     Settings.loadnetsettings()
+     Settings.loadpinout()
+     Settings.loadtasks()
+     Settings.loadcontrollers()
+     Settings.loadnotifiers()
+    except Exception as e:
+     print(e)
     return self.redirect("/tools")
   if upath:
    if upath.startswith(current_dir)==False:
