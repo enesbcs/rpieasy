@@ -10,12 +10,12 @@
 #  https://github.com/rytilahti/python-eq3bt
 #
 # Available commands:
-#  eq3sync
-#  eq3mode,closed
-#  eq3mode,open
-#  eq3mode,auto
-#  eq3mode,manual
-#  eq3temp,20.5
+#  eq3,taskname,sync
+#  eq3,taskname,mode,closed
+#  eq3,taskname,mode,open
+#  eq3,taskname,mode,auto
+#  eq3,taskname,mode,manual
+#  eq3,taskname,temp,20.5
 #
 # Copyright (C) 2019 by Alexander Nagy - https://bitekmindenhol.blog.hu/
 #
@@ -104,53 +104,60 @@ class Plugin(plugin.PluginProto):
   cmdarr[0] = cmdarr[0].strip().lower()
   if self.initialized==False:
    return False
-  if cmdarr[0] == "eq3sync":
-   if self.thermostat is not None:
-    try:
-     self.thermostat.update()
-     jstruc = {"target temperature": self.thermostat.target_temperature,"mode": self.thermostat.mode_readable}
-     res = str(jstruc).replace("'",'"').replace(', ',',\n')
-     res = res.replace("{","{\n").replace("}","\n}")
-    except Exception as e:
-     print(e)
-   return res
-  elif cmdarr[0]=="eq3mode":
-   mode = ""
+  if cmdarr[0] == "eq3":
    try:
-    mode = str(cmdarr[1].strip()).lower()
+    rname = cmdarr[1].strip()
    except:
+    rname = ""
+   if rname.lower() != self.gettaskname().lower():
+    return False # command arrived to another task, skip it
+   if cmdarr[2] == "sync":
+    if self.thermostat is not None:
+     try:
+      self.thermostat.update()
+      jstruc = {"target temperature": self.thermostat.target_temperature,"mode": self.thermostat.mode_readable}
+      res = str(jstruc).replace("'",'"').replace(', ',',\n')
+      res = res.replace("{","{\n").replace("}","\n}")
+     except Exception as e:
+      print(e)
+    return res
+   elif cmdarr[2]=="mode":
     mode = ""
-   tmode = -1
-   if mode == "closed":
-    tmode = Mode.Closed
-   elif mode == "open":
-    tmode = Mode.Open
-   elif mode == "auto":
-    tmode = Mode.Auto
-   elif mode == "manual":
-    tmode = Mode.Manual
-   elif mode == "away":
-    tmode = Mode.Away
-   elif mode == "boost":
-    tmode = Mode.Boost
-   if (self.thermostat is not None) and int(tmode)>-1:
     try:
-     self.thermostat.mode = tmode
-     misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"EQ3 mode "+str(mode))
-     res = True
-    except Exception as e:
-     print(e)
-  elif cmdarr[0]=="eq3temp":
-   temp = -1
-   try:
-    temp = misc.str2num(cmdarr[1].strip())
-   except:
+     mode = str(cmdarr[3].strip()).lower()
+    except:
+     mode = ""
+    tmode = -1
+    if mode == "closed":
+     tmode = Mode.Closed
+    elif mode == "open":
+     tmode = Mode.Open
+    elif mode == "auto":
+     tmode = Mode.Auto
+    elif mode == "manual":
+     tmode = Mode.Manual
+    elif mode == "away":
+     tmode = Mode.Away
+    elif mode == "boost":
+     tmode = Mode.Boost
+    if (self.thermostat is not None) and int(tmode)>-1:
+     try:
+      self.thermostat.mode = tmode
+      misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"EQ3 mode "+str(mode))
+      res = True
+     except Exception as e:
+      print(e)
+   elif cmdarr[2]=="temp":
     temp = -1
-   if (self.thermostat is not None) and temp>4 and temp<31:
     try:
-     self.thermostat.target_temperature = temp
-     misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"EQ3 target temperature "+str(temp))
-     res = True
-    except Exception as e:
-     print(e)
+     temp = misc.str2num(cmdarr[2].strip())
+    except:
+     temp = -1
+    if (self.thermostat is not None) and temp>4 and temp<31:
+     try:
+      self.thermostat.target_temperature = temp
+      misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"EQ3 target temperature "+str(temp))
+      res = True
+     except Exception as e:
+      print(e)
   return res

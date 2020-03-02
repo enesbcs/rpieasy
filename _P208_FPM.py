@@ -37,6 +37,7 @@ class Plugin(plugin.PluginProto):
   self.fp = None
   self.readinprogress=0
   self.initialized=False
+  self.initcount = 0
 
  def webform_load(self): # create html page for settings
   choice1 = self.taskdevicepluginconfig[0]
@@ -92,6 +93,12 @@ class Plugin(plugin.PluginProto):
   self.taskdevicepluginconfig[0] = str(self.taskdevicepluginconfig[0]).strip()
   self.readinprogress=0
   self.initialized=False
+  try:
+   if self.initcount > 2:
+    self.initcount = 0
+    self.enabled = False
+  except:
+   self.initcount = 0
   if self.valuecount == 1:
     self.vtype = rpieGlobals.SENSOR_TYPE_SINGLE
   elif self.valuecount == 2:
@@ -119,6 +126,7 @@ class Plugin(plugin.PluginProto):
     self.initialized = False
     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"FPM init error: "+str(e))
    if self.initialized==False:
+    self.initcount += 1
     time.sleep(3)
     self.plugin_init()
 
