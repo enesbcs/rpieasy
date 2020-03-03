@@ -150,7 +150,7 @@ class Plugin(plugin.PluginProto):
    elif cmdarr[2]=="temp":
     temp = -1
     try:
-     temp = misc.str2num(cmdarr[2].strip())
+     temp = misc.str2num(cmdarr[3].strip())
     except:
      temp = -1
     if (self.thermostat is not None) and temp>4 and temp<31:
