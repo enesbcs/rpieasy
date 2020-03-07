@@ -442,6 +442,8 @@ plugindependencies = [
  "modules":["eq3bt"]},
 {"pluginid": "517", # BLE LYWSD03
  "modules":["bluepy"]},
+{"pluginid": "518", # BLE CGG1
+ "modules":["bluepy"]},
 
 ]
 
