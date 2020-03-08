@@ -220,6 +220,16 @@ modulelist = [
  "pip": ["pyfingerprint"],
  "testcmd": "import pyfingerprint",
  "installed":-1},
+{"name": "amg",
+ "apt": ["python3-pip", "python3-dev","python3-setuptools"],
+ "pip": ["Adafruit_AMG88xx"],
+ "testcmd": "import Adafruit_AMG88xx",
+ "installed":-1},
+{"name": "pil",
+ "apt": ["python3-pip", "libfreetype6-dev", "libjpeg-dev", "build-essential","python3-dev","libtiff5","libopenjp2-7","python3-setuptools"],
+ "pip": ["Pillow"],
+ "testcmd": "from PIL import Image",
+ "installed":-1},
 
 
 ]
@@ -408,6 +418,9 @@ plugindependencies = [
 {"pluginid": "208", #PFM
  "supported_os_level": [1,2,10],
  "modules":["pyserial","pfm"]},
+{"pluginid": "209", # AMG
+ "supported_os_level": [10],
+ "modules":["i2c","amg","pil"]},
 {"pluginid": "501", # USB relay
  "modules":["hidapi"]},
 {"pluginid": "502", # pygame play wav/mp3
