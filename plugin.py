@@ -55,6 +55,7 @@ class PluginProto: # Skeleton for every plugin! Override necessary functions and
   self.taskname   = ""
   self.taskdevicepluginconfig = []
   self.readinprogress = 0
+  self.writecallback = None
   for x in range(rpieGlobals.PLUGIN_CONFIGVAR_MAX):
    self.taskdevicepluginconfig.append(0)
   self.uservar = []
@@ -130,6 +131,11 @@ class PluginProto: # Skeleton for every plugin! Override necessary functions and
     commands.rulesProcessing(self.taskname+"#"+self.valuenames[valuenum-1]+"="+str(rval),rpieGlobals.RULE_USER)
    if self.senddataoption and publish:
     self.plugin_senddata(puserssi=suserssi,pusebattery=susebattery,pchangedvalue=valuenum)
+   try:
+    if self.writecallback is not None:
+     self.writecallback(self.taskindex,valuenum)
+   except:
+    pass
 
  def webform_load(self): # create html page for settings
   return ""
@@ -144,6 +150,7 @@ class PluginProto: # Skeleton for every plugin! Override necessary functions and
     self.feedpublished = False
   self._lastdataservetime = 0
   self.readinprogress = 0
+  self.writecallback = None
   if self.enabled:
    if self.initialized == False:
     self.initialized = True
@@ -162,7 +169,7 @@ class PluginProto: # Skeleton for every plugin! Override necessary functions and
    self._lastdataservetime = rpieTime.millis()
    result = True
   return result
-  
+
  def is_read_timely(self):
   result = False
   if self.initialized and self.enabled:
@@ -173,7 +180,7 @@ class PluginProto: # Skeleton for every plugin! Override necessary functions and
  def plugin_write(self,cmd): # deal with command from outside
   result = False
   return result
-  
+
  def plugin_receivedata(self,data): # data arrived from controller
   result = False
   return result
@@ -185,6 +192,7 @@ class PluginProto: # Skeleton for every plugin! Override necessary functions and
      if type(self.controllercb[x])==type(self.plugin_senddata):
       self.controllercb[x](self.controlleridx[x],self.vtype,self.uservar,userssi=puserssi,usebattery=pusebattery,tasknum=self.taskindex,changedvalue=pchangedvalue)
     except Exception as e:
+#      print(x,len(self.controllercb),self.controllercb,self.controlleridx)
       print("Plugin SendData Exception: ",e,self.uservar)
 
  def timer_once_per_second(self): # once per sec

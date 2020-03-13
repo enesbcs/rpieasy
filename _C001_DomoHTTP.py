@@ -75,7 +75,7 @@ class Controller(controller.ControllerProto):
      url += formatDomoticzSensorType(sensortype,value)
     url += "&rssi="
     url += mapRSSItoDomoticz(userssi)
-    if usebattery != -1 and usebattery != 255: # battery input 0..100%, 255 means not supported
+    if int(usebattery) != -1 and int(usebattery) != 255: # battery input 0..100%, 255 means not supported
      url += "&battery="
      url += str(usebattery)
     else:

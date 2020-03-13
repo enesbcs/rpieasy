@@ -53,6 +53,7 @@ class Plugin(plugin.PluginProto):
   self.TARR = []
   self.HARR = []
   self.failures = 0
+  self.lastrequest = 0
 
  def webform_load(self): # create html page for settings
   webserver.addFormTextBox("Device Address","plugin_518_addr",str(self.taskdevicepluginconfig[0]),20)
@@ -72,6 +73,7 @@ class Plugin(plugin.PluginProto):
   self.connected = False
   self.conninprogress = False
   self.waitnotifications = False
+  self.lastrequest = 0
   self.TARR = []
   self.HARR = []
   try:
@@ -113,19 +115,10 @@ class Plugin(plugin.PluginProto):
    result = False
    if self.enabled:
      if len(self.TARR)>0 and len(self.HARR)>0:
-      self.get_battery_value()
-      if self.battery==-1:
-       self.get_battery_value()
-       if self.battery==-1:
-        self.get_battery_value()
       try:
        self.set_value(1,self.TARR[-1],False)
-       if self.taskdevicepluginconfig[1]:
-        self.set_value(2,self.HARR[-1],False)
-        self.set_value(3,self.battery,False,susebattery=self.battery)
-       else:
-        self.set_value(2,self.HARR[-1],False,susebattery=self.battery)
-       self.plugin_senddata(pusebattery=self.battery)
+       self.set_value(2,self.HARR[-1],False)
+       self.plugin_senddata()
        self._lastdataservetime = rpieTime.millis()
        self._nextdataservetime = self._lastdataservetime + (self.interval*1000) - self.preread
        self.failures = 0
@@ -175,15 +168,19 @@ class Plugin(plugin.PluginProto):
 
  def request_temp_hum_value(self,d=None):
   res = False
-  try:
-   ch = self.BLEPeripheral.getCharacteristics(uuid=self.CGG_DATA)[0]
-   desc = ch.getDescriptors(forUUID=0x2902)[0]
-   desc.write(0x01.to_bytes(2, byteorder="little"), withResponse=True)
-   res = True
-  except Exception as e:
-   print(e)
-   res = False
-   self.failures+=1
+  if time.time() - self.lastrequest > 2: # make sure to do not make too frequent calls
+   self.lastrequest = time.time()
+   try:
+    ch = self.BLEPeripheral.getCharacteristics(uuid=self.CGG_DATA)[0]
+    desc = ch.getDescriptors(forUUID=0x2902)[0]
+    desc.write(0x01.to_bytes(2, byteorder="little"), withResponse=True)
+    res = True
+   except Exception as e:
+#    print(e)
+    res = False
+    self.failures+=1
+  else:
+   res = True # may be not true, test it!
   return res
 
  def isconnected(self,d=None):
@@ -192,7 +189,7 @@ class Plugin(plugin.PluginProto):
   return self.connected
 
  def get_battery_value(self):
-  return 255
+  return -1
 
  def callbackfunc(self,temp=None,hum=None):
   self.connected = True
