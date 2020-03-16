@@ -272,7 +272,7 @@ class Controller(controller.ControllerProto):
        tval[y] = tval2[y]
    forcesval1 = False
    try:
-    if list['switchType'] == "Selector":
+    if ("Selector" in list['switchType']) or ("Dimmer" in list['switchType']):
      forcesval1 = True
    except:
     forcesval1 = False

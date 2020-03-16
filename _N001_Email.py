@@ -98,7 +98,7 @@ class Plugin(nplugin.NPluginProto):
    if self.security==0:
     smtpObj = smtplib.SMTP(self.server, self.port)
    elif self.security==1:
-    smtpObj = smtplib.SMTP_SSL(self.server, port=self.port, timeout=2)
+    smtpObj = smtplib.SMTP_SSL(self.server, port=self.port, timeout=5)
    if self.login!="" and self.passw!="":
     smtpObj.login(self.login,self.passw)
    smtpObj.sendmail(self.sender, self.receiver, message.encode("utf8"))

@@ -23,7 +23,7 @@ import threading
 
 GlobalRules = []
 SysVars = ["systime","system_hm","lcltime","syshour","sysmin","syssec","sysday","sysmonth",
-"sysyear","sysyears","sysweekday","sysweekday_s","unixtime","uptime","rssi","ip","ip4","sysname","unit","ssid","mac","mac_int","build","sunrise","sunset","sun_altitude","sun_azimuth","sun_radiation"]
+"sysyear","sysyears","sysweekday","sysweekday_s","unixtime","uptime","rssi","ip","ip4","sysname","unit","ssid","mac","mac_int","build","sunrise","sunset","sun_altitude","sun_azimuth","sun_radiation","br"]
 
 def doCleanup():
   rulesProcessing("System#Shutdown",rpieGlobals.RULE_SYSTEM)
@@ -545,7 +545,7 @@ def doExecuteNotification(num,cmdline):
    return False
   try:
    num=int(num)
-   if num>=0 and num<len(Settings.Notifiers) and (Settings.Notifiers[num].enabled):
+   if num>=0 and num<len(Settings.Notifiers) and type(Settings.Notifiers[num]) is not bool and (Settings.Notifiers[num].enabled):
     retvalue = Settings.Notifiers[num].notify(cmdline)
   except Exception as e:
    misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Notification error: "+str(e))
@@ -850,6 +850,9 @@ def getglobalvar(varname):
       print(e)
      return res
 
+   elif svname==SysVars[28]: #%br%
+    return str("\r\n")
+
  return res
 
 def parsevalue(pvalue):
@@ -937,7 +940,7 @@ def parseruleline(linestr,rulenum=-1):
   m = re.findall(r"\%([A-Za-z0-9_#\+\-]+)\%", cline)
   if len(m)>0: # replace with values
    for r in range(len(m)):
-    if m[r] in SysVars:
+    if m[r].lower() in SysVars:
      cline = cline.replace("%"+m[r]+"%",str(getglobalvar(m[r])))
     elif ("-" in m[r]) or ("+" in m[r]):
      val = str(getglobalvar(m[r]))
