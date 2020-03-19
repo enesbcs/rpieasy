@@ -219,72 +219,73 @@ class Controller(controller.ControllerProto):
   return True
 
  def on_message(self, msg):
-  msg2 = msg.payload.decode('utf-8')
-  list = []
-  if ('{' in msg2):
-   try:
-    list = json.loads(msg2)
-   except Exception as e:
-    misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"JSON decode error:"+str(e)+str(msg2))
-    list = []
-  if (list) and (len(list)>0):
-   try:
-    if list['Type'] == "Scene": # not interested in scenes..
-     return False
-   except:
-    pass
-   devidx = -1
-   nvalue = "0"
-   svalue = ""
-   decodeerr = False
-   tval = [-1,-1,-1,-1]
-   try:
-    devidx = str(list['idx']).strip()
-   except:
-    devidx = -1
-    decodeerr = True
-   try:
-    nvalue = str(list['nvalue']).strip()
-   except:
-    nvalue = "0"
-    decodeerr = True
-   try:
-    svalue = str(list['svalue']).strip()
-   except:
-    svalue = ""
-   if (';' in svalue):
-    tval = svalue.split(';')
-   tval2 = []
-   for x in range(1,4):
-    sval = ""
+  if self.enabled:
+   msg2 = msg.payload.decode('utf-8')
+   list = []
+   if ('{' in msg2):
     try:
-     sval = str(list['svalue'+str(x)]).strip()
+     list = json.loads(msg2)
+    except Exception as e:
+     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"JSON decode error:"+str(e)+str(msg2))
+     list = []
+   if (list) and (len(list)>0):
+    try:
+     if list['Type'] == "Scene": # not interested in scenes..
+      return False
     except:
+     pass
+    devidx = -1
+    nvalue = "0"
+    svalue = ""
+    decodeerr = False
+    tval = [-1,-1,-1,-1]
+    try:
+     devidx = str(list['idx']).strip()
+    except:
+     devidx = -1
+     decodeerr = True
+    try:
+     nvalue = str(list['nvalue']).strip()
+    except:
+     nvalue = "0"
+     decodeerr = True
+    try:
+     svalue = str(list['svalue']).strip()
+    except:
+     svalue = ""
+    if (';' in svalue):
+     tval = svalue.split(';')
+    tval2 = []
+    for x in range(1,4):
      sval = ""
-    if sval!="":
-     tval2.append(sval)
-   if len(tval2)==1 and svalue=="":
-    svalue=tval2[0]
-   else:
-    for y in range(len(tval2)):
-      matches = re.findall('[0-9]', tval2[y])
-      if len(matches) > 0:
-       tval[y] = tval2[y]
-   forcesval1 = False
-   try:
-    if ("Selector" in list['switchType']) or ("Dimmer" in list['switchType']):
-     forcesval1 = True
-   except:
-    forcesval1 = False
-   if (tval[0] == -1) or (tval[0] == ""):
-    if (float(nvalue)==0 and svalue.lower()!="off" and svalue!="") or (forcesval1):
-     tval[0] = str(svalue)
+     try:
+      sval = str(list['svalue'+str(x)]).strip()
+     except:
+      sval = ""
+     if sval!="":
+      tval2.append(sval)
+    if len(tval2)==1 and svalue=="":
+     svalue=tval2[0]
     else:
-     tval[0] = str(nvalue)
-   if decodeerr:
-    misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"JSON decode error: "+msg2)
-   else:
-    self.onmsgcallbackfunc(self.controllerindex,devidx,tval)
+     for y in range(len(tval2)):
+       matches = re.findall('[0-9]', tval2[y])
+       if len(matches) > 0:
+        tval[y] = tval2[y]
+    forcesval1 = False
+    try:
+     if ("Selector" in list['switchType']) or ("Dimmer" in list['switchType']):
+      forcesval1 = True
+    except:
+     forcesval1 = False
+    if (tval[0] == -1) or (tval[0] == ""):
+     if (float(nvalue)==0 and svalue.lower()!="off" and svalue!="") or (forcesval1):
+      tval[0] = str(svalue)
+     else:
+      tval[0] = str(nvalue)
+    if decodeerr:
+     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"JSON decode error: "+msg2)
+    else:
+     self.onmsgcallbackfunc(self.controllerindex,devidx,tval)
 
  def senddata(self,idx,sensortype,value,userssi=-1,usebattery=-1,tasknum=-1,changedvalue=-1):
   if self.enabled:
@@ -330,7 +331,8 @@ class Controller(controller.ControllerProto):
      misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"MQTT idx error, sending failed.")
    else:
     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"MQTT not connected, sending failed.")
-    if ((time.time()-self.lastreconnect)>30) and (self.connectinprogress==0):
+    if ((time.time()-self.lastreconnect)>30):
+#    if ((time.time()-self.lastreconnect)>30) and (self.connectinprogress==0):
      self.connect()
 
  def on_connect(self):

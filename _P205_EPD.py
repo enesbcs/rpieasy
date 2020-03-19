@@ -199,9 +199,9 @@ class Plugin(plugin.PluginProto):
   options = ['1.54" (200x200)','1.54"B (200x200)','1.54"C (150x150)','2.13" (250x122)','2.13"B (212x104)','2.7" (264x176)','2.7"B (264x176)','2.9" (296x128)','2.9"B (296x128)','4.2" (400x300)','4.2"B (400x300)','7.5" (800x480)','7.5"B (800x480)']
   optionvalues = ["154","154b","154c","213","213b","270","270b","290","290b","420","420b","750","750b"]
   webserver.addHtml("<tr><td>Display type:<td>")
-  webserver.addSelector_Head("p205_type",True)
+  webserver.addSelector_Head("p205_type",False)
   for d in range(len(options)):
-   webserver.addSelector_Item(options[d],optionvalues[d],(choice1==optionvalues[d]),False)
+   webserver.addSelector_Item(options[d],optionvalues[d],(str(choice1)==str(optionvalues[d])),False)
   webserver.addSelector_Foot()
   webserver.addFormNote("Enable <a href='pinout'>SPI-0</a> first!")
   webserver.addFormNote("Hardware connection (OLED => Raspberry Pi)<br>VCC->3.3V, GND->GND, SDI->MOSI, SCLK->SCLK, CS-> GPIO8/CE0, D/C->GPIO25, RES->GPIO17, BUSY->GPIO2")
@@ -245,8 +245,6 @@ class Plugin(plugin.PluginProto):
 
  def webform_save(self,params): # process settings post reply
    par = webserver.arg("p205_type",params)
-   if par == "":
-    par = 0
    self.taskdevicepluginconfig[0] = str(par)
 
    par = webserver.arg("p205_rotate",params)

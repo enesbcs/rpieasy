@@ -40,10 +40,23 @@ class Plugin(plugin.PluginProto):
      self.set_value(x+1,data[x],False)
 #  print("Data received:",data)
 
+ def getvaluecount(self):
+   if self.vtype in [rpieGlobals.SENSOR_TYPE_SINGLE,rpieGlobals.SENSOR_TYPE_SWITCH,rpieGlobals.SENSOR_TYPE_DIMMER,rpieGlobals.SENSOR_TYPE_LONG,rpieGlobals.SENSOR_TYPE_WIND]:
+    return 1
+   elif self.vtype in [rpieGlobals.SENSOR_TYPE_TEMP_HUM,rpieGlobals.SENSOR_TYPE_TEMP_BARO,rpieGlobals.SENSOR_TYPE_DUAL]:
+    return 2
+   elif self.vtype in [rpieGlobals.SENSOR_TYPE_TEMP_HUM_BARO,rpieGlobals.SENSOR_TYPE_TRIPLE]:
+    return 3
+   elif self.vtype == rpieGlobals.SENSOR_TYPE_QUAD:
+    return 4
+   else:
+    return 0
+
  def plugin_init(self,enableplugin=None):
   plugin.PluginProto.plugin_init(self,enableplugin)
   if self.taskdevicepluginconfig[0]>0:
     self.vtype = self.taskdevicepluginconfig[0]
+    self.valuecount = self.getvaluecount()
 
  def webform_load(self): # create html page for settings
   choice = self.taskdevicepluginconfig[0]
@@ -57,6 +70,7 @@ class Plugin(plugin.PluginProto):
   if par1:
    self.taskdevicepluginconfig[0] = int(par1)
    self.vtype = self.taskdevicepluginconfig[0]
+   self.valuecount = self.getvaluecount()
   return True
 
  def plugin_read(self): # deal with data processing at specified time interval

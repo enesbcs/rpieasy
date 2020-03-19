@@ -417,7 +417,7 @@ plugindependencies = [
  "modules":["i2c","rtimu"]},
 {"pluginid": "208", #PFM
  "supported_os_level": [1,2,10],
- "modules":["pyserial","pfm"]},
+ "modules":["pyserial","pfm","pil"]},
 {"pluginid": "209", # AMG
  "supported_os_level": [10],
  "modules":["i2c","amg","pil"]},
