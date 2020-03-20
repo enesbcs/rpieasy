@@ -48,6 +48,8 @@ class Plugin(plugin.PluginProto):
   self.charwidth   = 8
   self.dispimage = None
   self.redframe  = None
+  self.partialupdate = False
+  self.setframe = False
 
  def plugin_init(self,enableplugin=None):
   plugin.PluginProto.plugin_init(self,enableplugin)
@@ -125,6 +127,13 @@ class Plugin(plugin.PluginProto):
       self.enabled = False
       self.device = None
       return False
+
+     try:
+      if self.device.lut_partial_update:
+       pass
+      self.partialupdate = True
+     except:
+      self.partialupdate = False
      try:
       lc = int(self.taskdevicepluginconfig[4])
      except:
@@ -136,18 +145,29 @@ class Plugin(plugin.PluginProto):
      try:
       #self.device.init(self.device.lut_full_update)
       if self.redframe is None:
-       self.device.init(self.device.lut_partial_update)
+       if self.partialupdate:
+        self.device.init(self.device.lut_partial_update)
+       else:
+        self.device.init()
       self.dispimage = Image.new('1', (self.width,self.height), 255)
+      try:
+       self.device.set_frame_memory(self.dispimage,0,0)
+       self.setframe = True
+      except:
+       self.setframe = False
       if self.redframe is not None:
        self.redframe = self.dispimage
       draw = ImageDraw.Draw(self.dispimage)
 #      self.device.clear_frame_memory(0xFF) # float object error?
-      if self.redframe is None:
+      if self.redframe is None and self.setframe:
        self.device.set_frame_memory(self.dispimage,0,0)
       if self.redframe is not None:
        self.device.display_frame(self.device.get_frame_buffer(self.dispimage),self.device.get_frame_buffer(self.redframe))
       else:
-       self.device.display_frame()
+       if self.setframe:
+        self.device.display_frame()
+       else:
+        self.device.display_frame(self.device.get_frame_buffer(self.dispimage))
      except Exception as e:
       misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"EPD init error: "+str(e))
       return False
@@ -204,7 +224,7 @@ class Plugin(plugin.PluginProto):
    webserver.addSelector_Item(options[d],optionvalues[d],(str(choice1)==str(optionvalues[d])),False)
   webserver.addSelector_Foot()
   webserver.addFormNote("Enable <a href='pinout'>SPI-0</a> first!")
-  webserver.addFormNote("Hardware connection (OLED => Raspberry Pi)<br>VCC->3.3V, GND->GND, SDI->MOSI, SCLK->SCLK, CS-> GPIO8/CE0, D/C->GPIO25, RES->GPIO17, BUSY->GPIO2")
+  webserver.addFormNote("Hardware connection (OLED => Raspberry Pi)<br>VCC->3.3V, GND->GND, SDI->MOSI, SCLK->SCLK, CS-> GPIO8/CE0, D/C->GPIO25 (out), RES->GPIO17 (out), BUSY->GPIO24 (in)")
 
   choice3 = int(float(self.taskdevicepluginconfig[2])) # store rotation state
   options =      ["Normal","Rotate by 90","Rotate by 180","Rotate by 270"]
@@ -311,12 +331,15 @@ class Plugin(plugin.PluginProto):
         dimage = self.dispimage.rotate(180,expand=True, fillcolor=0)
        elif self.taskdevicepluginconfig[2] == 3:
         dimage = self.dispimage.rotate(270,expand=True, fillcolor=0)
-       if self.redframe is None:
-        self.device.set_frame_memory(dimage,0,0) # rotate?
+       if self.redframe is None and self.setframe:
+        self.device.set_frame_memory(dimage,0,0)
        if self.redframe is not None:
         self.device.display_frame(self.device.get_frame_buffer(dimage),self.device.get_frame_buffer(self.redframe))
        else:
-        self.device.display_frame()
+        if self.setframe:
+         self.device.display_frame()
+        else:
+         self.device.display_frame(self.device.get_frame_buffer(dimage))
 
  def plugin_write(self,cmd):
   res = False
@@ -334,13 +357,19 @@ class Plugin(plugin.PluginProto):
      if cmd == "clear":
       self.device.init(self.device.lut_full_update)
       self.dispimage = Image.new('1', (self.width,self.height), 255)
-      if self.redframe is None:
-        self.device.set_frame_memory(self.dispimage,0,0)
+      if self.redframe is None and self.setframe:
+       self.device.set_frame_memory(self.dispimage,0,0)
       if self.redframe is not None:
-        self.device.display_frame(self.device.get_frame_buffer(self.dispimage),self.device.get_frame_buffer(self.redframe))
+       self.device.display_frame(self.device.get_frame_buffer(self.dispimage),self.device.get_frame_buffer(self.redframe))
       else:
+       if self.setframe:
         self.device.display_frame()
-      self.device.init(self.device.lut_partial_update)
+       else:
+        self.device.display_frame(self.device.get_frame_buffer(self.dispimage))
+      if self.partialupdate:
+        self.device.init(self.device.lut_partial_update)
+      else:
+        self.device.init()
       res = True
      elif cmd == "clearline":
       try:
