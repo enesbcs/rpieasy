@@ -21,6 +21,7 @@ import misc
 import gpios
 import commands
 from PIL import ImageFont, ImageDraw, Image
+import threading
 
 class Plugin(plugin.PluginProto):
  PLUGIN_ID = 205
@@ -50,13 +51,37 @@ class Plugin(plugin.PluginProto):
   self.redframe  = None
   self.partialupdate = False
   self.setframe = False
+  self.initprogress = False
 
  def plugin_init(self,enableplugin=None):
   plugin.PluginProto.plugin_init(self,enableplugin)
-  if self.enabled:
+  if self.enabled or enableplugin:
+    try:
+     if self.initprogress==True:
+      misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"EPD init already in progress try again later!")
+      return False
+    except:
+     pass
+    self.initprogress = True
     self.initialized = False
-    self.device = None
-    self.epdbase = None
+#    self.device = None
+#    self.epdbase = None
+    misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"Start EPD background init")
+    bgt = threading.Thread(target=self.display_init)
+    bgt.daemon = False
+    bgt.start()
+  else:
+   self.initialized = False
+   self.initprogress = False
+
+ def display_init(self):
+    try:
+     if self.device is not None:
+      self.device.digital_read(self.device.busy_pin)
+      self.initialized = True
+      misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"EPD already initialized")
+    except:
+     self.initialized = False
     if str(self.taskdevicepluginconfig[0]) != "0" and str(self.taskdevicepluginconfig[0]).strip() != "": # display type
      try:
       if str(self.taskdevicepluginconfig[0])=="154":
@@ -111,23 +136,31 @@ class Plugin(plugin.PluginProto):
        import epd7in5b
        self.epdbase = epd7in5b
        self.redframe = True
+      else:
+       self.epdbase = None
      except Exception as e:
       misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"EPD type unknown! "+str(e))
       self.enabled = False
       self.device = None
+      self.initialized = False
+      self.epdbase = None
+      self.initprogress = False
       return False
     if self.epdbase is not None:
      try:
-      self.device = self.epdbase.EPD()
-      self.width = self.epdbase.EPD_WIDTH
-      self.height = self.epdbase.EPD_HEIGHT
-      self.initialized = True
+      if self.initialized==False:
+       misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"Start EPD init")
+       self.device = self.epdbase.EPD()
+       self.width = self.epdbase.EPD_WIDTH
+       self.height = self.epdbase.EPD_HEIGHT
+       misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"EPD device preinit")
      except Exception as e:
       misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"EPD can not be initialized! "+str(e))
       self.enabled = False
       self.device = None
+      self.initialized = False
+      self.initprogress = False
       return False
-
      try:
       if self.device.lut_partial_update:
        pass
@@ -170,6 +203,8 @@ class Plugin(plugin.PluginProto):
         self.device.display_frame(self.device.get_frame_buffer(self.dispimage))
      except Exception as e:
       misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"EPD init error: "+str(e))
+      self.initialized = False
+      self.initprogress = False
       return False
      if draw:
       maxcols = int(self.taskdevicepluginconfig[5])
@@ -209,10 +244,14 @@ class Plugin(plugin.PluginProto):
      else:
        nextr = 0
      self._lastdataservetime = rpieTime.millis()-(nextr*1000)
+     self.initialized = True
+     misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"EPD device ready")
      if self.interval != 0:
+      misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"Starting first EPD data display")
       self.plugin_read()
     else:
      self.initialized = False
+    self.initprogress = False
 
  def webform_load(self): # create html page for settings
   choice1 = str(self.taskdevicepluginconfig[0]) # store display type
@@ -253,15 +292,9 @@ class Plugin(plugin.PluginProto):
 
   return True
 
- def __del__(self):
-  try:
-   if self.device is not None:
-    self.device.sleep()
-  except:
-   pass
-
  def plugin_exit(self):
-  self.__del__()
+   self.initialized = False
+   self.initprogress = False
 
  def webform_save(self,params): # process settings post reply
    par = webserver.arg("p205_type",params)
@@ -298,7 +331,7 @@ class Plugin(plugin.PluginProto):
    return True
 
  def plugin_read(self): # deal with data processing at specified time interval
-  if self.initialized and self.enabled and self.device:
+  if self.initialized and self.enabled and self.device is not None:
      try:
       if self.taskdevicepluginconfig[6] == False:
        self.dispimage = Image.new('1', (self.width,self.height), 255)
@@ -318,11 +351,13 @@ class Plugin(plugin.PluginProto):
          draw.text( (0,y), resstr, font=self.ufont, fill=0)
          self.dodisplay()
      except Exception as e:
-      misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"EPD write error! "+str(e))
+      if self.initialized:
+       misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"EPD write error! "+str(e))
      self._lastdataservetime = rpieTime.millis()
   return True
 
  def dodisplay(self):
+  if self.initialized and self.device is not None:
        if self.taskdevicepluginconfig[2] == 0:
         dimage = self.dispimage
        elif self.taskdevicepluginconfig[2] == 1:
@@ -345,7 +380,7 @@ class Plugin(plugin.PluginProto):
   res = False
   cmdarr = cmd.split(",")
   cmdarr[0] = cmdarr[0].strip().lower()
-  if cmdarr[0][:3] != "epd":
+  if cmdarr[0][:3] != "epd" or self.initialized==False:
    return False
   if cmdarr[0] == "epdcmd":
    try:
