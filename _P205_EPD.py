@@ -58,7 +58,7 @@ class Plugin(plugin.PluginProto):
   if self.enabled or enableplugin:
     try:
      if self.initprogress==True:
-      misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"EPD init already in progress try again later!")
+      misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"EPD init already in progress!")
       return False
     except:
      pass
@@ -75,13 +75,13 @@ class Plugin(plugin.PluginProto):
    self.initprogress = False
 
  def display_init(self):
-    try:
-     if self.device is not None:
-      self.device.digital_read(self.device.busy_pin)
-      self.initialized = True
-      misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"EPD already initialized")
-    except:
-     self.initialized = False
+#    try:
+#     if self.device is not None:
+#      self.device.digital_read(self.device.busy_pin)
+#      self.initialized = True
+#      misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"EPD already initialized")
+#    except:
+#     self.initialized = False
     if str(self.taskdevicepluginconfig[0]) != "0" and str(self.taskdevicepluginconfig[0]).strip() != "": # display type
      try:
       if str(self.taskdevicepluginconfig[0])=="154":
@@ -148,12 +148,12 @@ class Plugin(plugin.PluginProto):
       return False
     if self.epdbase is not None:
      try:
-      if self.initialized==False:
-       misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"Start EPD init")
-       self.device = self.epdbase.EPD()
-       self.width = self.epdbase.EPD_WIDTH
-       self.height = self.epdbase.EPD_HEIGHT
-       misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"EPD device preinit")
+#      if self.initialized==False:
+      misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"Start EPD init")
+      self.device = self.epdbase.EPD()
+      self.width = self.epdbase.EPD_WIDTH
+      self.height = self.epdbase.EPD_HEIGHT
+      misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"EPD device preinit")
      except Exception as e:
       misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"EPD can not be initialized! "+str(e))
       self.enabled = False
@@ -173,7 +173,10 @@ class Plugin(plugin.PluginProto):
       lc = self.P205_Nlines
      if lc < 1:
       lc = self.P205_Nlines
-     lineheight = int(self.device.height / lc) #  lineheight = int(self.device.height / lc)+1
+     try:
+      lineheight = int(self.height / lc) #  lineheight = int(self.device.height / lc)+1
+     except:
+      lineheight = 8
      self.ufont=ImageFont.truetype('img/UbuntuMono-R.ttf', lineheight)
      try:
       #self.device.init(self.device.lut_full_update)
@@ -206,6 +209,7 @@ class Plugin(plugin.PluginProto):
       self.initialized = False
       self.initprogress = False
       return False
+     misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"EPD background drawed")
      if draw:
       maxcols = int(self.taskdevicepluginconfig[5])
       if maxcols < 1:
