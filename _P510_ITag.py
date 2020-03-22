@@ -53,6 +53,9 @@ class Plugin(plugin.PluginProto):
   webserver.addFormNote("Enable blueetooth then <a href='blescanner'>scan iTag address</a> first.")
   webserver.addFormNumericBox("Reconnect time","plugin_510_reconnect",self.taskdevicepluginconfig[1],5,240)
   webserver.addUnit("s")
+  options = ["Button+Connection","Button","Connection"]
+  optionvalues = [0,1,2]
+  webserver.addFormSelector("Return state of","plugin_510_ret",len(options),options,optionvalues,None,self.taskdevicepluginconfig[2])
   return True
 
  def webform_save(self,params): # process settings post reply
@@ -63,6 +66,11 @@ class Plugin(plugin.PluginProto):
    self.taskdevicepluginconfig[1] = 30
   if self.taskdevicepluginconfig[1] < 5:
    self.taskdevicepluginconfig[1] = 5
+  try:
+   self.taskdevicepluginconfig[2] = int(webserver.arg("plugin_510_ret",params))
+  except Exception as e:
+   print(e)
+   self.taskdevicepluginconfig[2] = 0
   self.plugin_init()
   return True
 
@@ -75,8 +83,15 @@ class Plugin(plugin.PluginProto):
     self.isconnected()
    if (self.connected):
     self.conninprogress = False
-   self.set_value(1,0,False)
-   self.set_value(2,self.connected,False)       # advertise status at startup
+   if self.taskdevicepluginconfig[2]==0:
+    self.vtype = rpieGlobals.SENSOR_TYPE_DUAL
+    self.valuecount = 2
+   else:
+    self.vtype = rpieGlobals.SENSOR_TYPE_SWITCH
+    self.valuecount = 1
+#   self.set_value(1,0,False)
+#   self.set_value(2,self.connected,False)       # advertise status at startup
+   self.handlevalue(0,self.connected)
    self.plugin_senddata()
    if (self.connected == False and self.enabled): # connect if not connected
     self.handshake = False
@@ -87,6 +102,35 @@ class Plugin(plugin.PluginProto):
      self.cproc.start()
   else:
    self.__del__()
+
+ def handlevalue(self,state=0,conn=0,battery=255):
+   if state==-1:
+     state = self.uservar[0]
+   if self.taskdevicepluginconfig[2]==0:
+    if battery != 255:
+     self.set_value(1,state,False,susebattery=battery)
+    else:
+     self.set_value(1,state,False)
+    if conn==0:
+     self.set_value(2,0,False,suserssi=-100,susebattery=0)
+    else:
+     self.set_value(2,conn,False)
+   elif self.taskdevicepluginconfig[2]==1:
+    if conn==0:
+     self.set_value(1,state,False,suserssi=-100,susebattery=0)
+    else:
+     if battery != 255:
+      self.set_value(1,state,False,susebattery=battery)
+     else:
+      self.set_value(1,state,False)
+   elif self.taskdevicepluginconfig[2]==2:
+    if conn==0:
+     self.set_value(1,0,False,suserssi=-100,susebattery=0)
+    else:
+     if battery != 255:
+      self.set_value(1,conn,False,susebattery=battery)
+     else:
+      self.set_value(1,conn,False)
 
  def connectproc(self):
    prevstate = self.connected
@@ -102,10 +146,12 @@ class Plugin(plugin.PluginProto):
    self.isconnected()
    publishchange = (self.connected != prevstate)
    if self.connected:
-    self.set_value(2,self.connected,publishchange)
+#    self.set_value(2,self.connected,publishchange)
+    self.handlevalue(-1,self.connected)
    else:
-    self.set_value(1,0,False)
-    self.set_value(2,0,False,suserssi=-100,susebattery=0)
+    self.handlevalue(0,0)
+#    self.set_value(1,0,False)
+#    self.set_value(2,0,False,suserssi=-100,susebattery=0)
     if publishchange:
      self.plugin_senddata()
     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"BLE connection failed "+str(self.taskdevicepluginconfig[0]))
@@ -171,8 +217,9 @@ class Plugin(plugin.PluginProto):
  def setdisconnectstate(self,tryreconn=True):
   if self.connected:
     self.connected = False
-    self.set_value(1,0,False)
-    self.set_value(2,0,False,suserssi=-100,susebattery=0)
+    self.handlevalue(0,0)
+#    self.set_value(1,0,False)
+#    self.set_value(2,0,False,suserssi=-100,susebattery=0)
     self.plugin_senddata()
   if tryreconn and self.enabled:
    rpieTime.addsystemtimer(int(self.taskdevicepluginconfig[1]),self.reconnect,[-1])
@@ -189,9 +236,10 @@ class Plugin(plugin.PluginProto):
     aval=1
    else:
     aval=0
-   if float(self.uservar[1])!=1:
-    self.set_value(2,1,False)
-   self.set_value(1,aval,False,susebattery=battery)
+#   if float(self.uservar[1])!=1:
+#    self.set_value(2,1,False)
+   self.handlevalue(aval,self.connected,battery)
+#   self.set_value(1,aval,False,susebattery=battery)
    self.plugin_senddata()
 
  def __del__(self):

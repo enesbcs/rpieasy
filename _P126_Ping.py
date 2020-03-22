@@ -37,15 +37,29 @@ class Plugin(plugin.PluginProto):
    self.set_value(1,1,False) # init with 1
    self.initialized = True
    self.readinprogress = 0
+   try:
+    if self.taskdevicepluginconfig[1]<=0:
+     self.taskdevicepluginconfig[1] = 0.1
+   except:
+     self.taskdevicepluginconfig[1] = 0.1
 
  def webform_load(self):
   webserver.addFormTextBox("Remote station address","plugin_126_addr",str(self.taskdevicepluginconfig[0]),128)
+  webserver.addFormFloatNumberBox("Timeout","plugin_126_timeout",float(self.taskdevicepluginconfig[1]),0,20)
+  webserver.addUnit("s")
+  webserver.addFormNote("Ping3 icmp will only work with ROOT rights!")
   return True
 
  def webform_save(self,params):
   self.taskdevicepluginconfig[0] = str(webserver.arg("plugin_126_addr",params)).strip()
   if str(self.taskdevicepluginconfig[0])=="0":
    self.taskdevicepluginconfig[0]=""
+  try:
+   self.taskdevicepluginconfig[1] = float(webserver.arg("plugin_126_timeout",params))
+   if self.taskdevicepluginconfig[1]<=0:
+    self.taskdevicepluginconfig[1] = 0.1
+  except:
+   self.taskdevicepluginconfig[1] = 0.1
   return True
 
  def plugin_read(self):
@@ -53,13 +67,13 @@ class Plugin(plugin.PluginProto):
   if self.initialized and self.enabled and self.readinprogress==0:
    self.readinprogress = 1
    try:
-    reply = ping(self.taskdevicepluginconfig[0],timeout=0.5,unit="ms")
+    reply = ping(self.taskdevicepluginconfig[0],timeout=self.taskdevicepluginconfig[1],unit="ms")
    except Exception as e:
     reply = None
 #    print(e)
    if reply is None or reply == False: # second try
     try:
-     reply = ping(self.taskdevicepluginconfig[0],timeout=1,unit="ms")
+     reply = ping(self.taskdevicepluginconfig[0],timeout=self.taskdevicepluginconfig[1]*2,unit="ms")
     except Exception as e:
      reply = None
 #     print(e)

@@ -52,6 +52,7 @@ class Plugin(plugin.PluginProto):
   self.partialupdate = False
   self.setframe = False
   self.initprogress = False
+  self.readinprogress = False
 
  def plugin_init(self,enableplugin=None):
   plugin.PluginProto.plugin_init(self,enableplugin)
@@ -82,6 +83,7 @@ class Plugin(plugin.PluginProto):
 #      misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"EPD already initialized")
 #    except:
 #     self.initialized = False
+    self.readinprogress = False
     if str(self.taskdevicepluginconfig[0]) != "0" and str(self.taskdevicepluginconfig[0]).strip() != "": # display type
      try:
       if str(self.taskdevicepluginconfig[0])=="154":
@@ -198,7 +200,7 @@ class Plugin(plugin.PluginProto):
       if self.redframe is None and self.setframe:
        self.device.set_frame_memory(self.dispimage,0,0)
       if self.redframe is not None:
-       self.device.display_frame(self.device.get_frame_buffer(self.dispimage),self.device.get_frame_buffer(self.redframe))
+       self.device.display_frame(self.device.get_frame_buffer(self.dispimage),None)
       else:
        if self.setframe:
         self.device.display_frame()
@@ -336,6 +338,8 @@ class Plugin(plugin.PluginProto):
 
  def plugin_read(self): # deal with data processing at specified time interval
   if self.initialized and self.enabled and self.device is not None:
+   if self.readinprogress == False:
+     self.readinprogress = True
      try:
       if self.taskdevicepluginconfig[6] == False:
        self.dispimage = Image.new('1', (self.width,self.height), 255)
@@ -358,10 +362,12 @@ class Plugin(plugin.PluginProto):
       if self.initialized:
        misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"EPD write error! "+str(e))
      self._lastdataservetime = rpieTime.millis()
+     self.readinprogress = False
   return True
 
  def dodisplay(self):
   if self.initialized and self.device is not None:
+      try:
        if self.taskdevicepluginconfig[2] == 0:
         dimage = self.dispimage
        elif self.taskdevicepluginconfig[2] == 1:
@@ -370,15 +376,23 @@ class Plugin(plugin.PluginProto):
         dimage = self.dispimage.rotate(180,expand=True, fillcolor=0)
        elif self.taskdevicepluginconfig[2] == 3:
         dimage = self.dispimage.rotate(270,expand=True, fillcolor=0)
+       else:
+        misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Invalid rotation!")
+        return False
+      except Exception as e:
+       misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"PIL rotate error! "+str(e))
+      try:
        if self.redframe is None and self.setframe:
         self.device.set_frame_memory(dimage,0,0)
        if self.redframe is not None:
-        self.device.display_frame(self.device.get_frame_buffer(dimage),self.device.get_frame_buffer(self.redframe))
+        self.device.display_frame(self.device.get_frame_buffer(dimage),None)
        else:
         if self.setframe:
          self.device.display_frame()
         else:
          self.device.display_frame(self.device.get_frame_buffer(dimage))
+      except Exception as e:
+       misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"EPD display error! "+str(e))
 
  def plugin_write(self,cmd):
   res = False
@@ -399,7 +413,7 @@ class Plugin(plugin.PluginProto):
       if self.redframe is None and self.setframe:
        self.device.set_frame_memory(self.dispimage,0,0)
       if self.redframe is not None:
-       self.device.display_frame(self.device.get_frame_buffer(self.dispimage),self.device.get_frame_buffer(self.redframe))
+       self.device.display_frame(self.device.get_frame_buffer(self.dispimage),None)
       else:
        if self.setframe:
         self.device.display_frame()
