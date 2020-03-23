@@ -60,6 +60,7 @@ class PCFADEntity():
   except Exception as e:
    print(e)
    val = 0
+   self.busy=False
   return val
 
 pcfad_devices = []

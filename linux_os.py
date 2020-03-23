@@ -626,6 +626,13 @@ def get_i2c_state(m=0): # RPI only
           tstr = ""
      except:
       pass
+     if tstr != "":
+      try:
+       if os.path.exists(fname):
+        with open(fname,"a") as f:
+         f.write("\ni2c-dev\n")
+      except:
+       pass
     return tstr
 
 def disable_serialsyslog():

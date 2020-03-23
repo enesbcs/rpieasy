@@ -10,7 +10,7 @@ import webserver
 import rpieGlobals
 import rpieTime
 import misc
-import Adafruit_ADS1x15 as ADS
+import lib.lib_adsrouter as ADS #import Adafruit_ADS1x15 as ADS
 import gpios
 
 class Plugin(plugin.PluginProto):
@@ -57,13 +57,11 @@ class Plugin(plugin.PluginProto):
     self.preread = self.samples*1000
     if int(self.taskdevicepluginconfig[0]) in [10,11]:
      try:
-      if int(self.taskdevicepluginconfig[0])==10:
-       self.adc = ADS.ADS1015(address=int(self.taskdevicepluginconfig[1]),busnum=i2cport)
-      else:
-       self.adc = ADS.ADS1115(address=int(self.taskdevicepluginconfig[1]),busnum=i2cport)
+      self.adc = ADS.request_ads_device(int(self.taskdevicepluginconfig[1]),i2cport,int(self.taskdevicepluginconfig[0]))
+      self.initialized = self.adc.initialized
      except Exception as e:
       misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"ADS can not be initialized! "+str(e))
-      self.enabled = False
+      self.initialized = False
     else:
      self.initialized = False
 
@@ -139,7 +137,7 @@ class Plugin(plugin.PluginProto):
  def p025_get_value(self):
   val = -1
   try:
-   val = self.adc.read_adc(self.taskdevicepluginconfig[3],gain=self.taskdevicepluginconfig[2])
+   val = self.adc.ADread(self.taskdevicepluginconfig[3],self.taskdevicepluginconfig[2])
   except Exception as e:
    val = -1
   if val != -1:
