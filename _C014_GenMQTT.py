@@ -12,6 +12,8 @@
 #  topic: %sysname%/taskname/valuename/set payload value will be forwarded to it!
 # (Two way communication)
 #
+# Variables: %sysname% %tskname% %valname%
+#
 # Commands can be remotely executed through MQTT with writing to:
 #  topic: %sysname%/cmd with payload: command
 #
@@ -66,6 +68,8 @@ class Controller(controller.ControllerProto):
    self.outch = self.outch[:(state+1)]
   else:
    state = self.outch.find('%tskname%')
+   if state < 0:
+    state = self.outch.find('%tskid%')
    if state >-1:
     self.outch = self.outch[:(state)]+"/#"
    else:
@@ -322,7 +326,18 @@ class Controller(controller.ControllerProto):
         v2 = dnames2.index("%valname%")
        except:
         v2 = -1
-       if v1==-1 and v2>-1:
+       try:
+        v3 = dnames2.index("%tskid%")
+       except:
+        v3 = -1
+       if v3>-1:
+        try:
+          t = int(dnames[v3])-1
+          if Settings.Tasks[t] and type(Settings.Tasks[t]) is not bool:
+            ttaskname = Settings.Tasks[t].gettaskname().strip()
+        except:
+         pass
+       elif v1==-1 and v2>-1:
         try:
          for x in range(len(Settings.Tasks)):
           if Settings.Tasks[x] and type(Settings.Tasks[x]) is not bool:
@@ -354,6 +369,7 @@ class Controller(controller.ControllerProto):
         if ('%t' in self.inch) or ('%v' in self.inch):
          gtopic = self.inch.replace('#','')
          gtopic = gtopic.replace('%tskname%',tname)
+         gtopic = gtopic.replace('%tskid%',str(tasknum+1))
          gtopic = gtopic.replace('%valname%',vname)
         else:
          gtopic = self.inch.replace('#',tname+"/"+vname)
@@ -374,6 +390,7 @@ class Controller(controller.ControllerProto):
       if ('%t' in self.inch) or ('%v' in self.inch):
          gtopic = self.inch.replace('#','')
          gtopic = gtopic.replace('%tskname%',tname)
+         gtopic = gtopic.replace('%tskid%',str(tasknum+1))
          gtopic = gtopic.replace('%valname%',vname)
       else:
          gtopic = self.inch.replace('#',tname+"/"+vname)
