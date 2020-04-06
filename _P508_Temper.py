@@ -49,6 +49,7 @@ class Plugin(plugin.PluginProto):
   if len(utemper.get_temper_list())>0:
    if self.enabled or enableplugin:
     self.initialized = True
+    self.ports = str(self.taskdevicepluginconfig[0])
     if self.interval>2:
      nextr = self.interval-2
     else:
@@ -61,6 +62,8 @@ class Plugin(plugin.PluginProto):
     elif self.taskdevicepluginconfig[1] in [2,3]:
      self.vtype = rpieGlobals.SENSOR_TYPE_TEMP_HUM
      self.valuecount = 2
+   else:
+    self.ports = ""
   else:
    self.enabled = False
 

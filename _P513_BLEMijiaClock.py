@@ -19,6 +19,7 @@ import misc
 import time
 from lywsd02 import Lywsd02Client
 from datetime import datetime
+import lib.lib_blehelper as BLEHelper
 
 class Plugin(plugin.PluginProto):
  PLUGIN_ID = 513
@@ -35,7 +36,7 @@ class Plugin(plugin.PluginProto):
   self.senddataoption = True
   self.recdataoption = False
   self.timeroption = True
-  self.timeroptional = False
+  self.timeroptional = True
   self.connected = False
   self.formulaoption = True
   self.BLEPeripheral = False
@@ -45,10 +46,12 @@ class Plugin(plugin.PluginProto):
   self.lastbatteryreq = 0
   self._lastdataservetime = 0
   self._nextdataservetime = 0
+  self.blestatus = None
 
  def webform_load(self): # create html page for settings
   webserver.addFormTextBox("Device Address","plugin_513_addr",str(self.taskdevicepluginconfig[0]),20)
   webserver.addFormNote("Enable blueetooth then <a href='blescanner'>scan LYWSD02 address</a> first.")
+  webserver.addFormNote("This plugin may not work well with ble scanner plugin.")
   webserver.addFormCheckBox("Add Battery value for non-Domoticz system","plugin_513_bat",self.taskdevicepluginconfig[1])
   webserver.addFormCheckBox("Set LYWSD time at startup","plugin_513_t",self.taskdevicepluginconfig[2])
   return True
@@ -77,6 +80,11 @@ class Plugin(plugin.PluginProto):
     self.connect()
   if self.connected:
     self.initialized = True
+    self.ports = str(self.taskdevicepluginconfig[0])
+    try:
+     self.blestatus  = BLEHelper.BLEStatus[0] # 0 is hardwired in LYWSD02 library
+    except:
+     pass
     if self.taskdevicepluginconfig[2]:
      try:
       misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"Sync LWSD02 time")
@@ -86,9 +94,17 @@ class Plugin(plugin.PluginProto):
     self._lastdataservetime = rpieTime.millis() - ((self.interval-1)*1000)
 #    self.plugin_read()
   else:
+    self.ports = ""
     self.initialized = False
 
  def connect(self):
+   try:
+    if self.blestatus.isscaninprogress():
+     self.blestatus.requeststopscan(self.taskindex)
+     return False
+   except Exception as e:
+    return False
+   self.blestatus.registerdataprogress(self.taskindex)
    try:
     self.BLEPeripheral = Lywsd02Client(str(self.taskdevicepluginconfig[0]),data_request_timeout=int(self.interval))
     self.connected = True
@@ -97,6 +113,7 @@ class Plugin(plugin.PluginProto):
    except:
     self.connected = False
     self.initialized = False
+    self.blestatus.unregisterdataprogress(self.taskindex)
     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"BLE connection failed "+str(self.taskdevicepluginconfig[0]))
 
  def plugin_read(self):
@@ -111,10 +128,12 @@ class Plugin(plugin.PluginProto):
        self.set_value(3,self.battery,False,susebattery=self.battery)
       else:
        self.set_value(2,float(self.BLEPeripheral.humidity),False,susebattery=self.battery)
+      self.blestatus.unregisterdataprogress(self.taskindex)
       self.plugin_senddata(pusebattery=self.battery)
       self._lastdataservetime = rpieTime.millis()
       result = True
      except Exception as e:
+      self.blestatus.unregisterdataprogress(self.taskindex)
       misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"BLE read error: "+str(e))
       time.sleep(3)
       self.connect()

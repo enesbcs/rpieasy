@@ -18,6 +18,7 @@ import threading
 import time
 import binascii
 from random import uniform
+import lib.lib_blehelper as BLEHelper
 
 BATTERY_HANDLE = 0x0018
 TEMP_HUM_WRITE_HANDLE = 0x0010
@@ -39,7 +40,7 @@ class Plugin(plugin.PluginProto):
   self.senddataoption = True
   self.recdataoption = False
   self.timeroption = True
-  self.timeroptional = False
+  self.timeroptional = True
   self.connected = False
   self.formulaoption = True
   self.BLEPeripheral = False
@@ -56,8 +57,20 @@ class Plugin(plugin.PluginProto):
   self.TARR = []
   self.HARR = []
   self.failures = 0
+  self.blestatus = None
 
  def webform_load(self): # create html page for settings
+  bledevs = BLEHelper.find_hci_devices()
+  options = []
+  optionvalues = []
+  if bledevs:
+   for bd in bledevs:
+    options.append(bd)
+    try:
+     optionvalues.append(int(bd[3:]))
+    except:
+     optionvalues.append(bd[3:])
+  webserver.addFormSelector("Local Device","plugin_512_dev",len(options),options,optionvalues,None,int(self.taskdevicepluginconfig[2]))
   webserver.addFormTextBox("Device Address","plugin_512_addr",str(self.taskdevicepluginconfig[0]),20)
   webserver.addFormNote("Enable blueetooth then <a href='blescanner'>scan MJ_HT_ address</a> first.")
   webserver.addFormCheckBox("Add Battery value for non-Domoticz system","plugin_512_bat",self.taskdevicepluginconfig[1])
@@ -66,6 +79,10 @@ class Plugin(plugin.PluginProto):
  def webform_save(self,params): # process settings post reply
   self.taskdevicepluginconfig[0] = str(webserver.arg("plugin_512_addr",params)).strip()
   self.taskdevicepluginconfig[1] = (webserver.arg("plugin_512_bat",params)=="on")
+  try:
+   self.taskdevicepluginconfig[2] = int(webserver.arg("plugin_512_dev",params))
+  except:
+   self.taskdevicepluginconfig[2] = 0
   self.plugin_init()
   return True
 
@@ -81,6 +98,7 @@ class Plugin(plugin.PluginProto):
   self.uservar[1] = 0
   if self.enabled:
    self.timer1s = True
+   self.ports = str(self.taskdevicepluginconfig[0])
    self.battery = -1
    self._nextdataservetime = rpieTime.millis()-self.preread
    self._lastdataservetime = 0
@@ -92,7 +110,13 @@ class Plugin(plugin.PluginProto):
    else:
     self.valuecount = 2
     self.vtype = rpieGlobals.SENSOR_TYPE_TEMP_HUM
+   try:
+     devnum = int(self.taskdevicepluginconfig[2])
+     self.blestatus  = BLEHelper.BLEStatus[devnum]
+   except:
+     pass
   else:
+   self.ports = ""
    self.timer1s = False
  
  def timer_once_per_second(self):
@@ -131,12 +155,19 @@ class Plugin(plugin.PluginProto):
       self.isconnected()
 
  def connectproc(self):
+   try:
+    if self.blestatus.isscaninprogress():
+     self.blestatus.requeststopscan(self.taskindex)
+     return False
+   except Exception as e:
+    return False
    self.conninprogress = True
+   self.blestatus.registerdataprogress(self.taskindex)
    prevstate = self.connected
    try:
     misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"BLE connection initiated to "+str(self.taskdevicepluginconfig[0]))
     time.sleep(uniform(0.4,1.8))
-    self.BLEPeripheral = btle.Peripheral(str(self.taskdevicepluginconfig[0]))
+    self.BLEPeripheral = btle.Peripheral(str(self.taskdevicepluginconfig[0]),iface=self.taskdevicepluginconfig[2])
     self.connected = True
     self.failures = 0
     self.BLEPeripheral.setDelegate( TempHumDelegate(self.callbackfunc) )
@@ -146,6 +177,7 @@ class Plugin(plugin.PluginProto):
    self.isconnected()
    if self.connected==False:
     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"BLE connection failed "+str(self.taskdevicepluginconfig[0]))
+    self.blestatus.unregisterdataprogress(self.taskindex)
     self.failures =  self.failures +1
     if self.failures>5:
      self._nextdataservetime = rpieTime.millis()+(self.interval*5000)
@@ -189,6 +221,7 @@ class Plugin(plugin.PluginProto):
 
  def callbackfunc(self,temp=None,hum=None):
 #  print("cb",temp,hum)
+  self.blestatus.unregisterdataprogress(self.taskindex)
   if self.enabled:
    self.TARR.append(temp)
    self.HARR.append(hum)
@@ -204,6 +237,7 @@ class Plugin(plugin.PluginProto):
    try:
     self.BLEPeripheral.disconnect()
     self.cproc._stop()
+    self.blestatus.unregisterdataprogress(self.taskindex)
    except:
     pass
 

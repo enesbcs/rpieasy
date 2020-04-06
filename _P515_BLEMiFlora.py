@@ -14,6 +14,7 @@ import rpieGlobals
 import rpieTime
 import misc
 import lib.lib_miflora as MiFloraMonitor
+import lib.lib_blehelper as BLEHelper
 
 class Plugin(plugin.PluginProto):
  PLUGIN_ID = 515
@@ -28,14 +29,26 @@ class Plugin(plugin.PluginProto):
   self.senddataoption = True
   self.recdataoption = False
   self.timeroption = True
-  self.timeroptional = False
+  self.timeroptional = True
   self.formulaoption = True
   self.flora = None
   self.readinprogress=0
   self.initialized=False
   self.failures = 0
+  self.blestatus = None
 
  def webform_load(self): # create html page for settings
+  bledevs = BLEHelper.find_hci_devices()
+  options = []
+  optionvalues = []
+  if bledevs:
+   for bd in bledevs:
+    options.append(bd)
+    try:
+     optionvalues.append(int(bd[3:]))
+    except:
+     optionvalues.append(bd[3:])
+  webserver.addFormSelector("Local Device","plugin_515_dev",len(options),options,optionvalues,None,int(self.taskdevicepluginconfig[5]))
   webserver.addFormTextBox("Device Address","plugin_515_addr",str(self.taskdevicepluginconfig[0]),20)
   webserver.addFormNote("Enable blueetooth then <a href='blescanner'>scan 'Flower care' address</a> first.")
   choice1 = self.taskdevicepluginconfig[1]
@@ -76,6 +89,10 @@ class Plugin(plugin.PluginProto):
     self.vtype = rpieGlobals.SENSOR_TYPE_QUAD
   except Exception as e:
    misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,+str(e))
+  try:
+   self.taskdevicepluginconfig[5] = int(webserver.arg("plugin_515_dev",params))
+  except:
+   self.taskdevicepluginconfig[5] = 0
   return True
 
  def plugin_init(self,enableplugin=None):
@@ -93,11 +110,17 @@ class Plugin(plugin.PluginProto):
     self.vtype = rpieGlobals.SENSOR_TYPE_QUAD
   if self.enabled and self.taskdevicepluginconfig[0]!="" and self.taskdevicepluginconfig[0]!="0":
    try:
+     devnum = int(self.taskdevicepluginconfig[5])
+     self.blestatus  = BLEHelper.BLEStatus[devnum]
+   except:
+     pass
+   self.ports = str(self.taskdevicepluginconfig[0])
+   try:
     if self.interval<60:
      to = self.interval
     else:
      to = 60
-    self.flora = MiFloraMonitor.request_flora_device(str(self.taskdevicepluginconfig[0]),to)
+    self.flora = MiFloraMonitor.request_flora_device(str(self.taskdevicepluginconfig[0]),to,self.taskdevicepluginconfig[5])
     fv = self.flora.firmware_version()
     if fv!="":
      misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"MiFlora v"+str(fv)+" connected, address: "+str(self.taskdevicepluginconfig[0]))
@@ -113,10 +136,19 @@ class Plugin(plugin.PluginProto):
     self.failures += 1
     self.flora = None
     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"MiFlora error: "+str(e))
+  else:
+   self.ports = ""
 
  def plugin_read(self): # deal with data processing at specified time interval
   result = False
   if self.initialized and self.readinprogress==0 and self.enabled:
+   try:
+    if self.blestatus.isscaninprogress():
+     self.blestatus.requeststopscan(self.taskindex)
+     return False
+   except Exception as e:
+    return False
+   self.blestatus.registerdataprogress(self.taskindex)
    self.readinprogress = 1
    try:
     batt = self.flora.battery_level()
@@ -126,6 +158,7 @@ class Plugin(plugin.PluginProto):
     vtype = int(self.taskdevicepluginconfig[v+1])
     if vtype != 0:
      self.set_value(v+1,self.p515_get_value(vtype),False,susebattery=batt)
+   self.blestatus.unregisterdataprogress(self.taskindex)
    self.plugin_senddata(pusebattery=batt)
    self._lastdataservetime = rpieTime.millis()
    result = True

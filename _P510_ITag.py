@@ -16,6 +16,7 @@ import misc
 from bluepy import btle
 import threading
 import time
+import lib.lib_blehelper as BLEHelper
 
 class Plugin(plugin.PluginProto):
  PLUGIN_ID = 510
@@ -47,10 +48,23 @@ class Plugin(plugin.PluginProto):
   self.cproc = False
   self.waitnotifications = False
   self.conninprogress = False
+  self.blestatus = None
 
  def webform_load(self): # create html page for settings
+  bledevs = BLEHelper.find_hci_devices()
+  options = []
+  optionvalues = []
+  if bledevs:
+   for bd in bledevs:
+    options.append(bd)
+    try:
+     optionvalues.append(int(bd[3:]))
+    except:
+     optionvalues.append(bd[3:])
+  webserver.addFormSelector("Local Device","plugin_510_dev",len(options),options,optionvalues,None,int(self.taskdevicepluginconfig[3]))
   webserver.addFormTextBox("Device Address","plugin_510_itagaddr",str(self.taskdevicepluginconfig[0]),20)
   webserver.addFormNote("Enable blueetooth then <a href='blescanner'>scan iTag address</a> first.")
+  webserver.addFormNote("This plugin needs continous connection so WILL NOT WORK WITH scanner plugin on the same dongle!")
   webserver.addFormNumericBox("Reconnect time","plugin_510_reconnect",self.taskdevicepluginconfig[1],5,240)
   webserver.addUnit("s")
   options = ["Button+Connection","Button","Connection"]
@@ -71,6 +85,10 @@ class Plugin(plugin.PluginProto):
   except Exception as e:
    print(e)
    self.taskdevicepluginconfig[2] = 0
+  try:
+   self.taskdevicepluginconfig[3] = int(webserver.arg("plugin_510_dev",params))
+  except:
+   self.taskdevicepluginconfig[3] = 0
   self.plugin_init()
   return True
 
@@ -79,6 +97,7 @@ class Plugin(plugin.PluginProto):
   self.decimals[0]=0
   self.decimals[1]=0
   if self.enabled:
+   self.ports = str(self.taskdevicepluginconfig[0])
    if (self.connected): # check status at startup
     self.isconnected()
    if (self.connected):
@@ -91,6 +110,11 @@ class Plugin(plugin.PluginProto):
     self.valuecount = 1
 #   self.set_value(1,0,False)
 #   self.set_value(2,self.connected,False)       # advertise status at startup
+   try:
+     devnum = int(self.taskdevicepluginconfig[3])
+     self.blestatus  = BLEHelper.BLEStatus[devnum]
+   except:
+     pass
    self.handlevalue(0,self.connected)
    self.plugin_senddata()
    if (self.connected == False and self.enabled): # connect if not connected
@@ -101,6 +125,7 @@ class Plugin(plugin.PluginProto):
      self.cproc.daemon = True
      self.cproc.start()
   else:
+   self.ports = ""
    self.__del__()
 
  def handlevalue(self,state=0,conn=0,battery=255):
@@ -133,11 +158,18 @@ class Plugin(plugin.PluginProto):
       self.set_value(1,conn,False)
 
  def connectproc(self):
+   try:
+    if self.blestatus.isscaninprogress():
+     self.blestatus.requeststopscan(self.taskindex)
+     return False
+   except Exception as e:
+    return False
+   self.blestatus.registerdataprogress(self.taskindex)    
    prevstate = self.connected
    self.conninprogress = True
    try:
     misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"BLE connection initiated to "+str(self.taskdevicepluginconfig[0]))
-    self.BLEPeripheral = btle.Peripheral(str(self.taskdevicepluginconfig[0]))
+    self.BLEPeripheral = btle.Peripheral(str(self.taskdevicepluginconfig[0]),iface=self.taskdevicepluginconfig[3])
     self.connected = True
     self.afterconnection()
    except:
@@ -215,6 +247,7 @@ class Plugin(plugin.PluginProto):
        self.BLEPeripheral.setDelegate( BLEEventHandler(self.callbackfunc,self.keypressedhandle) )
 
  def setdisconnectstate(self,tryreconn=True):
+  self.blestatus.unregisterdataprogress(self.taskindex)
   if self.connected:
     self.connected = False
     self.handlevalue(0,0)
@@ -245,6 +278,7 @@ class Plugin(plugin.PluginProto):
  def __del__(self):
   self.waitnotifications = False
   try:
+   self.blestatus.unregisterdataprogress(self.taskindex)
    self.BLEPeripheral.disconnect()
    self.cproc._stop()
   except:

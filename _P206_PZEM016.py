@@ -121,6 +121,7 @@ class Plugin(plugin.PluginProto):
   elif self.valuecount == 4:
     self.vtype = rpieGlobals.SENSOR_TYPE_QUAD
   if self.enabled and self.taskdevicepluginconfig[0]!="" and self.taskdevicepluginconfig[0]!="0":
+   self.ports = str(self.taskdevicepluginconfig[0])+"/"+str(self.taskdevicepluginconfig[1])
    try:
     self.pzem = uPZEM.request_pzem_device(self.taskdevicepluginconfig[0],self.taskdevicepluginconfig[1])
     if self.pzem != None and self.pzem.initialized:
@@ -132,6 +133,8 @@ class Plugin(plugin.PluginProto):
    except Exception as e:
     self.pzem = None
     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"PZEM init error: "+str(e))
+  else:
+   self.ports = ""
 
  def plugin_read(self): # deal with data processing at specified time interval
   result = False

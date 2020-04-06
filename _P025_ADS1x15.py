@@ -55,6 +55,7 @@ class Plugin(plugin.PluginProto):
       nextr = self.interval
     self._lastdataservetime = rpieTime.millis()-(nextr*1000)
     self.preread = self.samples*1000
+    self.ports = str(self.taskdevicepluginconfig[3])
     if int(self.taskdevicepluginconfig[0]) in [10,11]:
      try:
       self.adc = ADS.request_ads_device(int(self.taskdevicepluginconfig[1]),i2cport,int(self.taskdevicepluginconfig[0]))

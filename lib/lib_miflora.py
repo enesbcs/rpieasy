@@ -22,7 +22,7 @@ _DATA_MODE_CHANGE = bytes([0xA0, 0x1F])
 
 class MiFlora():
 
-    def __init__(self, address,cachetimeout=60): # timeout in seconds
+    def __init__(self, address,cachetimeout=60,intf=0): # timeout in seconds
      self.timeout = cachetimeout
      if self.timeout<5:
       self.timeout=5
@@ -36,17 +36,18 @@ class MiFlora():
      self._moisture = None
      self._conductivity = None
      self._last_read = self._fw_last_read
+     self.interface = intf
 
     def battery_level(self):
         self.firmware_version()
         return self.battery
 
     def firmware_version(self):
-        if (self._firmware_version=="") or (datetime.now() - timedelta(hours=1) > self._fw_last_read) and (self.busy==False): # 1 hour timeout fixed
+        if (self.battery==0) or (self._firmware_version=="") or (datetime.now() - timedelta(hours=1) > self._fw_last_read) and (self.busy==False): # 1 hour timeout fixed
           self._fw_last_read = datetime.now()
           try:
             self.busy = True
-            peripheral = btle.Peripheral(self.address)
+            peripheral = btle.Peripheral(self.address,iface=self.interface)
             received_bytes = bytearray(peripheral.readCharacteristic(_HANDLE_READ_VERSION_BATTERY))
             self.battery = received_bytes[0]
             self._firmware_version = "".join(map(chr, received_bytes[2:]))
@@ -63,7 +64,7 @@ class MiFlora():
         self._last_read = datetime.now()
         try:
             self.busy = True
-            peripheral = btle.Peripheral(self.address)
+            peripheral = btle.Peripheral(self.address,iface=self.interface)
             peripheral.writeCharacteristic(_HANDLE_WRITE_MODE_CHANGE, _DATA_MODE_CHANGE, withResponse=True)
 
             received_bytes = bytearray(peripheral.readCharacteristic(_HANDLE_READ_SENSOR_DATA))
@@ -74,31 +75,42 @@ class MiFlora():
             self.busy = False
             return True
         except Exception as e:
-            print(e)
+#            print(e)
+            self.battery = 0
             self.busy = False
             return False
+       else:
+        return True
 
     def get_temperature(self):
-        self.read()
-        return self._temperature
+        if self.read():
+         return self._temperature
+        else:
+         raise Exception('Miflora read failed')
 
     def get_light(self):
-        self.read()
-        return self._light
+        if self.read():
+         return self._light
+        else:
+         raise Exception('Miflora read failed')
 
     def get_moisture(self):
-        self.read()
-        return self._moisture
+        if self.read():
+         return self._moisture
+        else:
+         raise Exception('Miflora read failed')
 
     def get_conductivity(self):
-        self.read()
-        return self._conductivity
+        if self.read():
+         return self._conductivity
+        else:
+         raise Exception('Miflora read failed')
 
 flora_devices = []
 
-def request_flora_device(address,timeout=60):
+def request_flora_device(address,timeout=60,iint=0):
  for i in range(len(flora_devices)):
   if (str(flora_devices[i].address).lower().strip() == str(address).lower().strip()):
    return flora_devices[i]
- flora_devices.append(MiFlora(address,timeout))
+ flora_devices.append(MiFlora(address,timeout,iint))
  return flora_devices[-1]

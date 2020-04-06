@@ -56,6 +56,9 @@ class Plugin(plugin.PluginProto):
    misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Unable to init USB relay!")
 #   self.enabled = False
    self.set_value(1,0,True)
+   self.ports = ""
+  else:
+   self.ports = str(self.taskdevicepluginconfig[0]) + "/" + str(self.taskdevicepluginconfig[1])
 
  def webform_load(self):
   choosendev = self.taskdevicepluginconfig[0]

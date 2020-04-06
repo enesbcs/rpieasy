@@ -1617,7 +1617,7 @@ def handle_devices(self):
       addFormSeparator(2)
 
       if (Settings.Tasks[taskIndex].timeroption):
-        addFormNumericBox( "Interval", "TDT", Settings.Tasks[taskIndex].interval, 0, 65535)
+        addFormNumericBox( "Interval", "TDT", Settings.Tasks[taskIndex].interval, 0, INT_MAX)
         addUnit("sec")
         if (Settings.Tasks[taskIndex].timeroptional):
           TXBuffer += " (Optional for this Device)"

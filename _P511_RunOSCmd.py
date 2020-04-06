@@ -34,6 +34,7 @@ class Plugin(plugin.PluginProto):
   plugin.PluginProto.plugin_init(self,enableplugin)
   self.decimals[0] = 0
   if self.enabled:
+   self.initialized = True
    self.set_value(1,0,False) # init with 0 cmd!
 
  def webform_load(self):
@@ -81,6 +82,9 @@ class Plugin(plugin.PluginProto):
      res = False
   if res!=False:
     misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG_MORE,str(res))
+    misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"OS command executed succesfully")
+  else:
+    misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"OS command execution failed")
   plugin.PluginProto.set_value(self,valuenum,value,publish,suserssi,susebattery)
 
  def plugin_receivedata(self,data):                        # set value based on mqtt input

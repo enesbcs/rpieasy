@@ -26,6 +26,7 @@ import rpieTime
 import misc
 import time
 from eq3bt import Thermostat, Mode
+import lib.lib_blehelper as BLEHelper
 
 class Plugin(plugin.PluginProto):
  PLUGIN_ID = 516
@@ -49,10 +50,12 @@ class Plugin(plugin.PluginProto):
   self.battery = 0
   self._lastdataservetime = 0
   self._nextdataservetime = 0
+  self.blestatus = None
 
  def webform_load(self): # create html page for settings
   webserver.addFormTextBox("Device Address","plugin_516_addr",str(self.taskdevicepluginconfig[0]),20)
   webserver.addFormNote("Enable blueetooth then <a href='blescanner'>scan EQ3 address</a> first.")
+  webserver.addFormNote("This plugin WILL NOT work with ble scanner plugin.")
   return True
 
  def webform_save(self,params): # process settings post reply
@@ -65,6 +68,12 @@ class Plugin(plugin.PluginProto):
   self.readinprogress = 0
   if self.enabled:
    try:
+     self.blestatus  = BLEHelper.BLEStatus[0] # 0 is hardwired in library
+     self.blestatus.registerdataprogress(self.taskindex) # needs continous access
+   except:
+     pass
+   self.ports = str(self.taskdevicepluginconfig[0])
+   try:
     self.thermostat = Thermostat(str(self.taskdevicepluginconfig[0]))
     self.initialized = True
     time.sleep(1)
@@ -75,6 +84,8 @@ class Plugin(plugin.PluginProto):
    else:
     nextr = 0
    self._lastdataservetime = rpieTime.millis()-(nextr*1000)
+  else:
+   self.ports = ""
 
  def plugin_read(self):
    result = False
