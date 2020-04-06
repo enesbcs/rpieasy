@@ -17,7 +17,6 @@ def find_hci_devices():
      resarr.append(res[0])
   except:
    pass
-  resarr.append("hci1") #DEBUG ONLY!!!
   return resarr
 
 class BLEStatusSemaphore():
