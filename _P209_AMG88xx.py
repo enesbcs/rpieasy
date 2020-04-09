@@ -104,7 +104,7 @@ class Plugin(plugin.PluginProto):
   optionvalues = [0x69,0x68]
   webserver.addFormSelector("I2C address","plugin_209_addr",len(optionvalues),options,optionvalues,None,int(choice1))
   webserver.addFormNote("Enable <a href='pinout'>I2C bus</a> first, than <a href='i2cscanner'>search for the used address</a>!")
-  options = ["None","Min","Max","Average","Temp range","Thermistor","# of greater values than reference temp","Deviance from reference temp","Temp median","Heatsource detection"]
+  options = ["None","Min","Max","Average","Temp range","Thermistor","# of greater values than reference temp","Avg deviance from reference temp","Temp median","Heatsource detection"]
   optionvalues = [0,1,2,3,4,5,6,7,8,9]
   webserver.addFormSelector("Value1","plugin_209_func0",len(optionvalues),options,optionvalues,None,int(self.taskdevicepluginconfig[1]))
   webserver.addFormSelector("Value2","plugin_209_func1",len(optionvalues),options,optionvalues,None,int(self.taskdevicepluginconfig[2]))
@@ -254,6 +254,8 @@ class Plugin(plugin.PluginProto):
          self._dev += (self.heatdata[d] - self._reftemp)
       dsum += self.heatdata[d]
      self._avg = dsum / len(self.heatdata)
+     if self._devc>0:
+      self._dev = (self._dev / self._devc)
     except:
      pass
     self.readinprogress = 0
@@ -271,19 +273,16 @@ class Plugin(plugin.PluginProto):
   elif val==5:
    res=self.therm
   elif val==6:
-   res=self._dev
+   res=self._devc
   elif val==7:
-   if self._devc>0:
-    res= (self._dev / self._devc)
-   else:
-    res = 0
+   res=self._dev
   elif val==8:
    tarr = sorted(self.heatdata)
    midx = round(len(self.heatdata)/2)
    res = tarr[midx]
   elif val==9: # human/heatsource detection
    if self.detdev > 0:
-    if self._dev >= self.detdev:
+    if self._devc >= self.detdev:
      res = 1
    if self.detrange > 0:
     if (self._max - self._min)>=self.detrange:

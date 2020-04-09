@@ -230,6 +230,11 @@ modulelist = [
  "pip": ["Pillow"],
  "testcmd": "from PIL import Image",
  "installed":-1},
+{"name":"gtts",
+ "apt": ["python3-pip","python3-setuptools"],
+ "pip": ["gtts"],
+ "testcmd": "import gtts",
+ "installed":-1},
 
 
 ]
@@ -457,6 +462,14 @@ plugindependencies = [
  "modules":["bluepy"]},
 {"pluginid": "518", # BLE CGG1
  "modules":["bluepy"]},
+{"pluginid": "519", #Volume
+ "supported_os_level": [1,2,10],
+ "modules":["linux-kernel"]},
+{"pluginid": "520", # BLE Scan
+ "modules":["bluepy"]},
+{"pluginid": "521", # GoogleTTS
+ "supported_os_level": [1,2,10],
+ "modules":["gtts","pygame"]},
 
 ]
 
