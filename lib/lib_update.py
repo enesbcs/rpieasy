@@ -64,26 +64,44 @@ def update_pip():
   htm = ""
   if sys.version_info.major <= 3 and sys.version_info.minor < 5:
    oldpy = True
-   htm += "<p><b>WARNING: Latest PIP3 depends on Python 3.5, so either <http://forums.debian.net/viewtopic.php?f=8&t=125904>install it</a>, or forget pip upgrades!</b><p>"
+   htm += "<p><b>WARNING: Latest PIP3 depends on Python 3.5, so either <a href='http://forums.debian.net/viewtopic.php?f=8&t=125904'>install it</a>, or forget pip upgrades!</b><p>"
   htm += "<form method='post' action='/update' enctype='multipart/form-data'>"
   htm += "<center><input type='hidden' name='mode' value='pipupgrade'><input type='submit' value='Upgrade selected'><table>"
   pnum = 0
+  oldpip = False
   try:
-     output = os.popen(OS.cmdline_rootcorrect('sudo -H pip3 list --outdated --format columns'))
+     output = os.popen(OS.cmdline_rootcorrect('sudo -H pip3 list --outdated')) #  --format columns not supported in v19
      for line in output:
       lc = line.split()
+      if oldpip==False and len(lc)==5:
+       if 'Current' in line and 'Latest' in line:
+        oldpip = True
       valid = False
-      if len(lc)==4:
-       try:
-        if int(lc[1][0])>=0:
-         valid = True
-       except:
-        pass
-      if lc[0]=="pip" and oldpy:
-        valid = False
-      if valid:
-       htm += "<tr><td><input type='checkbox' name='p_"+str(pnum)+"' value='"+lc[0]+"' checked>"+lc[0]+"<td>"+lc[1]+"<td>"+lc[2]+"<td>"+lc[3]+"</tr>"
-       pnum += 1
+      if oldpip:
+       if len(lc)==5:
+        try:
+         if int(lc[2][0])>=0:
+          valid = True
+        except:
+         pass
+       if lc[0]=="pip" and oldpy:
+         valid = False
+       if valid:
+        htm += "<tr><td><input type='checkbox' name='p_"+str(pnum)+"' value='"+lc[0]+"' checked>"+lc[0]+"<td>"+lc[2]+"<td>"+lc[4]+"</tr>"
+        pnum += 1
+      else:
+       if len(lc)==4:
+        try:
+         if int(lc[1][0])>=0:
+          valid = True
+        except:
+         pass
+       if lc[0]=="pip" and oldpy:
+         valid = False
+       if valid:
+        htm += "<tr><td><input type='checkbox' name='p_"+str(pnum)+"' value='"+lc[0]+"' checked>"+lc[0]+"<td>"+lc[1]+"<td>"+lc[2]+"<td>"+lc[3]+"</tr>"
+        pnum += 1
+
      if pnum==0 and oldpy==False:
        htm += "<tr><td><input type='checkbox' name='p_pip' value='pip' checked>pip<td>Either everything is up to date or outdated parameter failed<td><td></tr>"
      Settings.UpdateString = htm + "</table></center></form>"
