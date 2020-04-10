@@ -65,7 +65,7 @@ class DB_MySQL():
    return False
   if self.datasetchanged==False:
    st = sqlstr.strip()
-   if (st[:4].lower()) in ["inse","upda","drop","upda","crea"]:
+   if (st[:4].lower()) in ["inse","upda","drop","crea"]:
     self.datasetchanged = True
   try:
    self.cur.execute(sqlstr)

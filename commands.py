@@ -455,19 +455,19 @@ def doExecuteCommand(cmdline,Parse=True):
 #  os.kill(os.getpid(), signal.SIGINT)
   commandfound = True
   return commandfound
- elif cmdarr[0] == "update":
-  misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"Starting git clone")
-  os.popen("cp -rf run.sh run.sh.bak && rm -rf update && git clone https://github.com/enesbcs/rpieasy.git update").read()
-  time.sleep(2)
-  if os.path.isdir("update"):
-   misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"Download successful, starting to overwrite files")
-   os.popen("rm -rf .git && rm -rf update/data update/files && mv -f update/.git .git && cp -rf update/lib/* lib/ && cp -rf update/img/* img/ && rm -rf update/lib update/img && mv -f update/* . && rm -rf update && cp -rf run.sh.bak run.sh").read()
-   time.sleep(0.5)
-   os.kill(os.getpid(), signal.SIGINT)
-  else:
-   misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Update failed")
-  commandfound = True
-  return commandfound
+# elif cmdarr[0] == "update":
+#  misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"Starting git clone")
+#  os.popen("cp -rf run.sh run.sh.bak && rm -rf update && git clone https://github.com/enesbcs/rpieasy.git update").read()
+#  time.sleep(2)
+#  if os.path.isdir("update"):
+#   misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"Download successful, starting to overwrite files")
+#   os.popen("rm -rf .git && rm -rf update/data update/files && mv -f update/.git .git && cp -rf update/lib/* lib/ && cp -rf update/img/* img/ && rm -rf update/lib update/img && mv -f update/* . && rm -rf update && cp -rf run.sh.bak run.sh").read()
+#   time.sleep(0.5)
+#   os.kill(os.getpid(), signal.SIGINT)
+#  else:
+#   misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Update failed")
+#  commandfound = True
+#  return commandfound
  elif cmdarr[0] == "exit":
   os.kill(os.getpid(), signal.SIGINT)
   commandfound = True

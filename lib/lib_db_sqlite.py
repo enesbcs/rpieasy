@@ -45,7 +45,7 @@ class DB_SQLite3():
   if self.connected==False or sqlstr=="":
    return False
   st = sqlstr.strip()
-  if (st[:4].lower()) in ["inse","upda","drop","upda","crea"]:
+  if (st[:4].lower()) in ["inse","upda","drop","crea"]:
    self.datasetchanged = True
    if self.writeinprogress:
      for i in range(0,5):
@@ -54,10 +54,11 @@ class DB_SQLite3():
        break
    self.writeinprogress = True
   try:
-   self.writeinprogress = False
    self.cur.execute(sqlstr)
    succ = True
+   self.writeinprogress = False
   except:
+   self.writeinprogress = False
    succ = False
 
  def sqlget(self):

@@ -25,6 +25,7 @@ import commands
 import linux_network as Network
 import urllib
 import hashlib
+import threading
 
 HTML_SYMBOL_WARNING = "&#9888;"
 TASKS_PER_PAGE = 16
@@ -1055,8 +1056,14 @@ def handle_plugins(self):
  else:
   responsearr = self.post
  moduletoinstall = arg('installmodule',responsearr).strip()
+
  if moduletoinstall:
-  plugindeps.installdeps(moduletoinstall)
+  try:
+   res = plugindeps.installdeps(moduletoinstall)
+   if res==False:
+    return self.redirect('/update')
+  except Exception as e:
+    misc.addLog(rpieGlobals.LOG_LEVEL_ERROR, "Module install: "+str(e))
 
  if OS.check_permission()==False:
    TXBuffer += "Installation WILL NOT WORK without root permission!<p>"
@@ -1941,13 +1948,9 @@ def handle_tools(self):
  TXBuffer += "Show all system variables"
 
  html_TR_TD_height(30)
- TXBuffer += "<a class='button link wide' onclick="
- TXBuffer += '"'
- TXBuffer += "return confirm('Do you really want to Update device?')"
- TXBuffer += '"'
- TXBuffer += " href='/?cmd=update'>Update</a>"
+ addWideButton("update", "System Updates", "")
  TXBuffer += "<TD>"
- TXBuffer += "Pulls new version from Github then restart. (Manual backup is recommended, and restart will not work if you not use run.sh or autostart)"
+ TXBuffer += "RPIEasy/OS/PIP updates"
 
  addFormSubHeader("Settings")
  html_TR_TD_height(30)
@@ -3552,3 +3555,98 @@ def sendHeadandTail(tmplName, Tail = False):
 
 def getErrorNotifications():
  return False
+
+@WebServer.route('/update')
+def handle_update(self):
+ global TXBuffer, navMenuIndex
+ try:
+  import lib.lib_update as Updater
+ except Exception as e:
+  print(e)
+  return False
+
+ TXBuffer=""
+ navMenuIndex=7
+ if (rpieGlobals.wifiSetup):
+  return self.redirect('/setup')
+ if (not isLoggedIn(self.get,self.cookie)):
+  return self.redirect('/login')
+ sendHeadandTail("TmplStd",_HEAD); 
+
+ if Settings.UpdateString != "": # custom string provided
+  if Settings.UpdateString[0] == "!": #update in progress
+   TXBuffer += "<center><img src='img/loading.gif'></center>"
+   TXBuffer += "<p style='font-size:24px;font-weight:bold;text-align:center'>"+Settings.UpdateString[1:]+"</p>"
+
+   TXBuffer += '<script type="text/javascript">var rtimer; function refreshpage() {window.location.reload(true);}</script>'
+   TXBuffer += "<script defer>rtimer = setInterval(refreshpage,10000);</script>"
+  elif Settings.UpdateString[0] == "=": #update ended
+   TXBuffer += "<form>"
+   TXBuffer += "<br><p style='font-size:24px;font-weight:bold;text-align:center'>"+Settings.UpdateString[1:]+"</p>"
+   if ("dependency" in Settings.UpdateString):
+    addWideButton("plugins", "Back to dependency page", "")
+   else:
+    addWideButton("update", "Back to update page", "")
+   Settings.UpdateString = ""
+  else:
+   TXBuffer += Settings.UpdateString
+   Settings.UpdateString = ""
+ else:
+  if self.type == "GET":
+   responsearr = self.get
+  else:
+   responsearr = self.post
+  updmode = arg("mode",responsearr)
+
+  if updmode == "":
+   TXBuffer += "<form><table class='normal'>"
+   addFormHeader("Update")
+
+   html_TR_TD_height(30)
+   addWideButton("update?mode=rpi", "RPIEasy git update", "")
+   TXBuffer += "<TD>"
+   TXBuffer += "Update RPIEasy from GIT (restart will not work, unless autostart enabled at Hardware menu!)"
+
+   html_TR_TD_height(30)
+   addWideButton("update?mode=apt", "APT update", "")
+   TXBuffer += "<TD>"
+   TXBuffer += "Update and upgrade OS"
+
+   html_TR_TD_height(30)
+   addWideButton("update?mode=pip", "PIP update", "")
+   TXBuffer += "<TD>"
+   TXBuffer += "Update and upgrade Python libraries"
+
+   TXBuffer += "</table></form>"
+  else:
+   if updmode == "rpi":
+    t = threading.Thread(target=Updater.upgrade_rpi)
+    t.daemon = True
+    t.start()
+   elif updmode == "pip":
+    t = threading.Thread(target=Updater.update_pip)
+    t.daemon = True
+    t.start()
+   elif updmode == "pipupgrade":
+    packages = []
+    for r in responsearr:
+     if r[:2] == "p_":
+      packages.append(arg(r,responsearr))
+    t = threading.Thread(target=Updater.upgrade_pip, args=(packages,))
+    t.daemon = True
+    t.start()
+   elif updmode == "apt":
+    t = threading.Thread(target=Updater.update_apt)
+    t.daemon = True
+    t.start()
+   elif updmode == "aptupgrade":
+    print("apt upgrade")#debug
+    t = threading.Thread(target=Updater.upgrade_apt)
+    t.daemon = True
+    t.start()
+   time.sleep(0.5)
+   return self.redirect('/update')
+#   TXBuffer += '<script type="text/javascript">var rtimer; function refreshpage() {window.location.reload(true);}</script>'
+#   TXBuffer += "<script defer>rtimer = setInterval(refreshpage,1000);</script>"
+ sendHeadandTail("TmplStd",_TAIL);
+ return TXBuffer

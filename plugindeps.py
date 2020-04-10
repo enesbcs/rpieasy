@@ -13,6 +13,8 @@ try:
  import linux_os as OS
 except:
  print("Linux OS import error!")
+import Settings
+import threading
 
 modulelist = [
 {"name":"paho-mqtt",
@@ -54,13 +56,13 @@ modulelist = [
  "testcmd":"import subprocess\nsubprocess.Popen(['/usr/bin/cvlc', '--version'])",
  "installed":-1},
 {"name":"wiegand_io",
- "apt": ["wiringpi","build-essential"],
+ "apt": ["build-essential"],
  "pip": ["setuptools"],
  "testcmd": "import wiegand_io",
  "installcmd" : "cd lib/wiegand_io && sudo python3 wiegand_setup.py install && cd ../..",
  "installed":-1},
 {"name":"wiegand_io2",
- "apt": ["wiringpi","build-essential","python3-pip","python3-setuptools"],
+ "apt": ["build-essential","python3-pip","python3-setuptools"],
  "testcmd": "import wiegand_io2",
  "installcmd" : "cd lib/wiegand_io2 && sudo python3 wiegand_setup.py install && cd ../..",
  "installed":-1},
@@ -98,7 +100,7 @@ modulelist = [
  "testcmd": "import lib.MCP230XX.MCP230XX",
  "installed":-1},
 {"name":"rcswitch",
- "apt": ["wiringpi","python3-pip","build-essential","python3-setuptools"],
+ "apt": ["python3-pip","build-essential","python3-setuptools"],
  "pip": ["setuptools"],
  "testcmd": "import py_rcswitch",
  "installcmd" : "cd lib/py_rcswitch && sudo python3 py_rcswitch_setup.py install && cd ../..",
@@ -119,7 +121,7 @@ modulelist = [
  "testcmd": "from pca9685_driver import Device",
  "installed":-1},
 {"name": "tm1637",
- "apt": ["python3-pip", "python3-dev", "wiringpi","python3-setuptools"],
+ "apt": ["python3-pip", "python3-dev", "python3-setuptools"],
  "pip": ["raspberrypi-python-tm1637","wiringpi"],
  "testcmd": "import tm1637",
  "installed":-1},
@@ -235,7 +237,12 @@ modulelist = [
  "pip": ["gtts"],
  "testcmd": "import gtts",
  "installed":-1},
-
+{"name":"wpi",
+ "apt": [],
+ "pip": [],
+ "testcmd" : "if (os.path.exists('/usr/local/include/wiringPi.h')==False and os.path.exists('/usr/include/wiringPi.h')==False):\n raise Exception('Wiringpi-dev not found')",
+ "installcmd" : "cd lib && wget https://project-downloads.drogon.net/wiringpi-latest.deb && sudo dpkg -i wiringpi-latest.deb && cd ..",
+ "installed":-1},
 
 ]
 
@@ -281,7 +288,7 @@ plugindependencies = [
  "modules":["Adafruit_DHT"]},
 {"pluginid": "8", # Wiegand GPIO
  "supported_os_level": [10],
- "modules":["GPIO","wiegand_io2"]},
+ "modules":["GPIO","wpi","wiegand_io2"]},
 {"pluginid": "7", # PCF8591
  "supported_os_level": [10],
  "modules":["i2c"]},
@@ -377,13 +384,13 @@ plugindependencies = [
  "modules":["i2c"]},
 {"pluginid": "73", # 7DGT
  "supported_os_level": [10],
- "modules":["tm1637"]},
+ "modules":["wpi","tm1637"]},
 {"pluginid": "82", #GPS
  "supported_os_level": [1,2,10],
  "modules":["pyserial"]},
 {"pluginid": "111", #RF433 receiver
  "supported_os_level": [10],
- "modules":["GPIO","rcswitch"]},
+ "modules":["GPIO","wpi","rcswitch"]},
 {"pluginid": "112", #RF433 sender
  "supported_os_level": [10],
  "modules":["GPIO","rcswitch"]},
@@ -495,7 +502,18 @@ def ismoduleusable(modulename):
  return usable
 
 def installdeps(modulename):
+ if len(Settings.UpdateString)>0:
+  if Settings.UpdateString[0]=="!":
+   misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"Update already in progress!")
+   return False
+ t = threading.Thread(target=installdeps2, args=(modulename,))
+ t.daemon = True
+ t.start()
+ return True
+
+def installdeps2(modulename):
  global modulelist
+ Settings.UpdateString = "!Installing "+modulename+" dependencies"
  for i in range(len(modulelist)):
   if modulelist[i]["name"]==modulename and modulelist[i]["installed"]!=1:
    modulelist[i]["installed"] = -1
@@ -511,7 +529,9 @@ def installdeps(modulename):
       installprog = OS.cmdline_rootcorrect("sudo apt-get update && sudo apt-get install -y "+ installprog.strip())
      elif rpieGlobals.ossubtype==2:
       installprog = OS.cmdline_rootcorrect("yes | sudo pacman -S "+ installprog.strip())
-     misc.addLog(rpieGlobals.LOG_LEVEL_INFO,installprog)
+     ustr = "apt: "+installprog
+     Settings.UpdateString = "!"+ustr
+     misc.addLog(rpieGlobals.LOG_LEVEL_INFO,ustr)
      proc = subprocess.Popen(installprog, shell=True, stdin=None, stdout=open(os.devnull,"wb"), executable="/bin/bash")
      proc.wait()
    except Exception as e:
@@ -524,7 +544,9 @@ def installdeps(modulename):
      installprog = "sudo -H pip3 install "+ installprog.strip()
      if OS.is_command_found("sudo")==False: # if sudo is installed use it because -H option is important
       installprog = OS.cmdline_rootcorrect("sudo -H pip3 install "+ installprog.strip())
-     misc.addLog(rpieGlobals.LOG_LEVEL_INFO,installprog)
+     ustr = "pip3: "+installprog
+     Settings.UpdateString = "!"+ustr
+     misc.addLog(rpieGlobals.LOG_LEVEL_INFO,ustr)
      proc = subprocess.Popen(installprog, shell=True, stdin=None, stdout=open(os.devnull,"wb"), executable="/bin/bash")
      proc.wait()
    except Exception as e:
@@ -532,10 +554,14 @@ def installdeps(modulename):
    try:
     if modulelist[i]["installcmd"]:
      installprog = OS.cmdline_rootcorrect(modulelist[i]["installcmd"].strip())
-     misc.addLog(rpieGlobals.LOG_LEVEL_INFO,installprog)
+     ustr = "exec: "+installprog
+     Settings.UpdateString = "!"+ustr
+     misc.addLog(rpieGlobals.LOG_LEVEL_INFO,ustr)
      proc = subprocess.Popen(installprog, shell=True, stdin=None, stdout=open(os.devnull,"wb"), executable="/bin/bash")
      proc.wait()
    except Exception as e:
      if e!='installcmd':
       misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,str(e))
    break
+ Settings.UpdateString = "="+modulename+" dependency install finished<br>" #<a class='button link wide' href='plugins'>Back to dependencies</a><br>"
+ return True

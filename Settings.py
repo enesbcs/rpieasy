@@ -50,6 +50,8 @@ Notifiers = [False]
 NetworkDevices = []
 NetMan = None
 
+UpdateString = ""
+
 SoundSystem = { # do not save, filled on startup!
 "usable":False,
 "inuse":False,
