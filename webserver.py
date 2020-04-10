@@ -1212,7 +1212,6 @@ def handle_devices(self):
  setpage = arg("setpage",responsearr)
  taskIndex = arg("index",responsearr)
  runIndex = arg("run",responsearr)
-
  if page=='':
   page=0
  else:
@@ -1370,13 +1369,17 @@ def handle_devices(self):
              TXBuffer += "<BR>"+i2cpins[1]
             except:
              TXBuffer += "NO-I2C"
-        for tp in range(0,len(Settings.Tasks[x].taskdevicepin)):
+        try:
+         for tp in range(0,len(Settings.Tasks[x].taskdevicepin)):
           if int(Settings.Tasks[x].taskdevicepin[tp])>=0:
             TXBuffer += "<br>GPIO-"
             TXBuffer += str(Settings.Tasks[x].taskdevicepin[tp])
+        except:
+         pass
         TXBuffer += "<TD>"
         customValues = False
 #        customValues = PluginCall(PLUGIN_WEBFORM_SHOW_VALUES, &TempEvent,TXBuffer.buf);
+
         if not(customValues):
           if (Settings.Tasks[x].vtype == rpieGlobals.SENSOR_TYPE_LONG):
            try:
@@ -1439,7 +1442,7 @@ def handle_devices(self):
         TXBuffer += "<TD><TD><TD><TD><TD><TD>"
       TXBuffer += "<tr><TD colspan=2><div class='button' id='clock'>00:00:00</div><TD><TD><TD><TD><TD><TD><TD></tr>"
       TXBuffer += "</table></form>"
-      
+ 
  else: #Show edit form if a specific entry is chosen with the edit button
 
     TXBuffer += "<form name='frmselect' method='post'><table class='normal'>"
