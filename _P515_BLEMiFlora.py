@@ -154,19 +154,25 @@ class Plugin(plugin.PluginProto):
     batt = self.flora.battery_level()
    except:
     batt = 255
+   failed = False
    for v in range(0,4):
     vtype = int(self.taskdevicepluginconfig[v+1])
     if vtype != 0:
-     self.set_value(v+1,self.p515_get_value(vtype),False,susebattery=batt)
+     tvalue = self.p515_get_value(vtype)
+     if (tvalue != -100):
+      self.set_value(v+1,tvalue,False,susebattery=batt)
+     else:
+      failed = True
    self.blestatus.unregisterdataprogress(self.taskindex)
-   self.plugin_senddata(pusebattery=batt)
-   self._lastdataservetime = rpieTime.millis()
+   if failed==False:
+    self.plugin_senddata(pusebattery=batt)
+    self._lastdataservetime = rpieTime.millis()
    result = True
    self.readinprogress = 0
   return result
 
  def p515_get_value(self,ptype):
-  value = 0
+  value = -100
   try: 
    if ptype == 1:
     value = self.flora.get_temperature()

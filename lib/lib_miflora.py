@@ -28,7 +28,7 @@ class MiFlora():
       self.timeout=5
      self.address = address
      self.busy = False
-     self.battery = 0
+     self.battery = 255
      self._firmware_version = ""
      self._fw_last_read = (datetime.now() - timedelta(hours=24))
      self._temperature = None
@@ -43,7 +43,7 @@ class MiFlora():
         return self.battery
 
     def firmware_version(self):
-        if (self.battery==0) or (self._firmware_version=="") or (datetime.now() - timedelta(hours=1) > self._fw_last_read) and (self.busy==False): # 1 hour timeout fixed
+        if (self.battery==255) or (self._firmware_version=="") or (datetime.now() - timedelta(hours=1) > self._fw_last_read) and (self.busy==False): # 1 hour timeout fixed
           self._fw_last_read = datetime.now()
           try:
             self.busy = True
@@ -55,7 +55,7 @@ class MiFlora():
             self.busy = False
           except:
             self.busy = False
-            self.battery = 0
+            self.battery = 255
             self._firmware_version = ""
         return self._firmware_version
 
@@ -76,7 +76,6 @@ class MiFlora():
             return True
         except Exception as e:
 #            print(e)
-            self.battery = 0
             self.busy = False
             return False
        else:
