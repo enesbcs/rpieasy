@@ -132,5 +132,35 @@ def serial_portlist():
   ports = []
   for port in serial.tools.list_ports.comports():
    ports.append(str(port.device))
+  if len(ports)<1:
+          import glob
+          try:
+           devlist1 = glob.glob('/dev/ttyS*')
+          except:
+           pass
+          try:
+           devlist2 = glob.glob('/dev/ttyUSB*')
+          except:
+           pass
+          sports = []
+          for p in devlist1:
+           pexist = True
+           try:
+            with open(p,"rb") as f:
+             byte = f.read(1)
+           except:
+            pexist = False
+           if pexist:
+            sports.append(p)
+          for p in devlist2:
+           pexist = True
+           try:
+            with open(p,"rb") as f:
+             byte = f.read(1)
+           except:
+            pexist = False
+           if pexist:
+            sports.append(p)
+          ports = sorted(sports)
   return ports
 
