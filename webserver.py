@@ -369,13 +369,16 @@ def handle_config(self):
 
  TXBuffer += "<TR><TD style='width:150px;' align='left'><TD>"
  addSubmitButton()
-
+ netmanager = OS.detectNM()
  oslvl = misc.getsupportlevel(1)
  if oslvl in [1,2,3,10]: # maintain supported system list!!!
   addFormSeparator(2)
   if oslvl != 2:
-   addFormCheckBox("I have root rights and i really want to manage network settings below","netman", netmanage)
-  addFormNote("<font color=red><b>If not enabled, OS config files will not be overwritten!</b></font>")
+   if netmanager:
+    addFormNote("<font color=red><b><a href='https://wiki.debian.org/NetworkManager'>NetworkManager</a> is currently not supported!</b></font>")
+   else:
+    addFormCheckBox("I have root rights and i really want to manage network settings below","netman", netmanage)
+  addFormNote("<font color=red><b>If this checkbox not enabled, OS config files will not be overwritten!</b></font>")
  
   addFormSubHeader("Wifi Settings") #/etc/wpa_supplicant/wpa_supplicant.conf
   addFormTextBox( "SSID", "ssid", Settings.NetMan.WifiSSID, 32)
@@ -461,7 +464,8 @@ def handle_config(self):
    addFormNote("If DHCP enabled these fields will not be saved or used!")
 
   TXBuffer += "<TR><TD style='width:150px;' align='left'><TD>"
-  addSubmitButton()
+  if netmanager==False:
+   addSubmitButton()
  TXBuffer += "</table></form>"
   
  sendHeadandTail("TmplStd",_TAIL);
@@ -709,18 +713,21 @@ def handle_hardware(self):
    rstr = "<font color=red>"+rstr+"</font> (system-wide settings are only for root)"
   TXBuffer += "<TR><TD>Root access:<TD>"+rstr
   TXBuffer += "<TR><TD>Sound playback device:<TD>"
-  sounddevs = OS.getsounddevs()
-  defaultdev = OS.getsoundsel()
+  try:
+   sounddevs = OS.getsounddevs()
+   defaultdev = OS.getsoundsel()
+  except Exception as e:
+   print("Sound device:",e)
   if len(sounddevs)>0: 
    addSelector_Head('snddev',False)
-   for i in range(0,len(sounddevs)):    
+   for i in range(0,len(sounddevs)):
     addSelector_Item(sounddevs[i][1],int(sounddevs[i][0]),(int(sounddevs[i][0])==int(defaultdev)),False)
    addSelector_Foot()
    vol = 100
    try:
     vol = OS.getvolume()
    except Exception as e:
-    print(e)
+    print("GetVolume:",e)
    TXBuffer += '<TR><TD>Sound volume:<TD><input type="range" id="volume" name="volume" min="0" max="100" value="'+str(vol)+'">'
   else:
    TXBuffer += "No device"
@@ -785,6 +792,13 @@ def handle_pinout(self):
   except Exception as e:
    misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Config read error="+str(e))
 
+ if ((rpieGlobals.ossubtype!=10) and (submit=="Submit") or (setbtn!='')):
+   try:
+    gpios.HWPorts.webform_save(responsearr)
+   except Exception as e:
+    print(e)
+   submit=""
+   setbtn=""
  if (submit=="Submit") or (setbtn!=''):
   try:
    stat = arg("i2c0",responsearr)
@@ -889,7 +903,7 @@ def handle_pinout(self):
   except Exception as e:
    misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,str(e))
 
- if (len(Settings.Pinout)>1):
+ if ((rpieGlobals.ossubtype==10) and (len(Settings.Pinout)>1)): # RPI only
   TXBuffer += "<form name='frmselect' method='post'><table class='normal'>"
   TXBuffer += "<tr><th colspan=10>GPIO pinout</th></tr>"
   addHtml("<tr><th>Detected function</th><th>Requested function</th><th>Pin name</th><th>#</th><th>Value</th><th>Value</th><th>#</th><th>Pin name</th><th>Requested function</th><th>Detected function</th></tr>")
@@ -1029,7 +1043,11 @@ def handle_pinout(self):
   addFormNote("WARNING: Some changes needed to reboot after submitting changes! And most changes requires root permission.")
   addHtml("</table></form>")
  else:
-  addHtml('This hardware is currently not supported!')
+  try:
+   gpios.HWPorts.webform_load()
+  except Exception as e:
+   addHtml("<p>This hardware has unknown GPIO.")
+   misc.addLog(rpieGlobals.LOG_LEVEL_ERROR, str(e))
 
  sendHeadandTail("TmplStd",_TAIL)
  return TXBuffer
@@ -2017,13 +2035,14 @@ def handle_i2cscanner(self):
  i2cenabled = 0
  i2cdevs = 0
  for i in range(0,2):
+  try:
    if gpios.HWPorts.is_i2c_usable(i) and gpios.HWPorts.is_i2c_enabled(i):
     i2cenabled += 1
     addFormSubHeader("I2C-"+str(i))
     TXBuffer += "</td></tr>"
-    i2cl = gpios.is_i2c_lib_available()
+    i2cl = gpios.HWPorts.is_i2c_lib_available()
     if i2cl:
-     i2ca = gpios.i2cscan(i)
+     i2ca = gpios.HWPorts.i2cscan(i)
      for d in range(len(i2ca)):
       i2cdevs += 1
       TXBuffer += "<TR><TD>"+str(hex(i2ca[d]))+"</td><td>"
@@ -2031,6 +2050,8 @@ def handle_i2cscanner(self):
       TXBuffer += "</td></tr>"
     else:
      TXBuffer += "<tr><td colspan=2>I2C supporting SMBus library not found. Please install <a href='plugins?installmodule=i2c'>smbus</a>.</td></tr>"
+  except Exception as e:
+   print(e) # debug
  if i2cenabled==0:
   TXBuffer += "<tr><td colspan=2>Usable I2C bus not found</td></tr>"
  elif i2cdevs==0:
@@ -3643,7 +3664,7 @@ def handle_update(self):
     t.daemon = True
     t.start()
    elif updmode == "aptupgrade":
-    print("apt upgrade")#debug
+#    print("apt upgrade")#debug
     t = threading.Thread(target=Updater.upgrade_apt)
     t.daemon = True
     t.start()

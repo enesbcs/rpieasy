@@ -66,7 +66,7 @@ class autorun:
         f.write(self.ENABLE_RPIAUTOSTART+"\n")
        else:
         f.write(self.ENABLE_RPIAUTOSTART2+"\n") 
-      if self.hdmienabled == False:
+      if self.hdmienabled == False and rpieGlobals.ossubtype==10:
        f.write(self.DISABLE_HDMI+"\n")
       f.write(self.RC_ENDMARKER+"\n")
     except:
@@ -191,7 +191,7 @@ def gethardware():
     return rs.strip()
 
 def is_package_installed(pkgname):
-   if rpieGlobals.ossubtype in [1,10]:
+   if rpieGlobals.ossubtype in [1,3,10]:
     output = os.popen('dpkg -s {}'.format(pkgname) +' 2>/dev/null').read()
     match = re.search(r'Status: (\w+.)*', output)
     if match and 'installed' in match.group(0).lower():
@@ -673,7 +673,10 @@ def checkOPI():
 def getarmbianinfo():
     hwarr = { 
       "name": "Unknown model",
-      "pins": ""
+      "shortname":"unknown",
+      "version":"0.0",
+      "pinout":"",
+      "pins": "0"
     }
     try:
      with open('/etc/armbian-release') as f:
@@ -682,8 +685,39 @@ def getarmbianinfo():
        if line.startswith('BOARD_NAME'):
         pname = line.split('"')
         hwarr["name"] = pname[1]
+       if line.startswith('BOARD='):
+        pname = line.split('=')
+        hwarr["shortname"] = pname[1]
+       if line.startswith('VERSION='):
+        pname = line.split('=')
+        hwarr["version"] = pname[1]
     except:
      pass
+    if "orangepi" in hwarr["shortname"]:
+     if "zeroplus2" in hwarr["shortname"]:
+      hwarr["pinout"] = "zeroplus2"
+      hwarr["pins"] = "26z+2"
+     elif ("zeroplus" in hwarr["shortname"]) or ("pizero" in hwarr["shortname"]) or ("r1" in hwarr["shortname"]):
+      hwarr["pinout"] = "zeroplus"
+      hwarr["pins"] = "26z+"
+     elif "pi3" in hwarr["shortname"]:
+      hwarr["pinout"] = "pi3"
+      hwarr["pins"] = "26pi3"
+     elif ("oneplus" in hwarr["shortname"]) or ("pilite2" in hwarr["shortname"]):
+      hwarr["pinout"] = "oneplus"
+      hwarr["pins"] = "26o+"
+     elif "winplus" in hwarr["shortname"]:
+      hwarr["pinout"] = "winplus"
+      hwarr["pins"] = "40w+"
+     elif "prime" in hwarr["shortname"]:
+      hwarr["pinout"] = "prime"
+      hwarr["pins"] = "40pr"
+     elif "pc2" in hwarr["shortname"]:
+      hwarr["pinout"] = "pc2"
+      hwarr["pins"] = "40pc2"
+     elif ("pipc" in hwarr["shortname"]) or ("pilite" in hwarr["shortname"]) or ("pione" in hwarr["shortname"]) or ("piplus2" in hwarr["shortname"]):
+      hwarr["pinout"] = "pc"
+      hwarr["pins"] = "40pc"
     return hwarr
 
 soundmixer = ""
@@ -701,7 +735,7 @@ def getsoundmixer():
        cc = 1
        return soundmixer
    except Exception as e:
-    print(e)
+    print("Sound mixer error:",e)
   return soundmixer
 
 def getvolume(): # volume in percentage
@@ -714,8 +748,8 @@ def getvolume(): # volume in percentage
       lc = line2.split("%")
       vol = str(lc[1]).strip()
       return vol
-  except:
-   pass
+  except Exception as e:
+   print("GetVolume:",e)
   return vol
 
 def setvolume(volume): # volume in percentage
@@ -728,3 +762,18 @@ def setvolume(volume): # volume in percentage
     pass
   except:
    pass
+
+def detectNM():
+   nm = False
+   nmpath = "/etc/NetworkManager/NetworkManager.conf"
+   if os.path.exists(nmpath):
+    try:
+     with open(nmpath) as f:
+      for line in f:
+       line = line.strip().lower()
+       if line.startswith("managed"):
+        if "true" in line:
+         nm = True
+    except:
+     pass
+   return nm

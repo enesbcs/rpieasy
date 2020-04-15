@@ -29,7 +29,10 @@ def signal_handler(signal, frame):
   init_ok = False
   commands.doCleanup()
   webserver.WebServer.stop()
-  gpios.HWPorts.cleanup()
+  try:
+   gpios.HWPorts.cleanup()
+  except:
+   pass
   time.sleep(1)
   print("\nProgram exiting gracefully")
   sys.exit(0)
@@ -56,11 +59,16 @@ def hardwareInit():
   Settings.NetMan = Network.NetworkManager()
   if len(OS.getsounddevs())>0:
     Settings.SoundSystem["usable"]=True
-  if rpieGlobals.ossubtype == 10:
+  if rpieGlobals.ossubtype == 10: # rpi
    rpv = OS.getRPIVer()
    if rpv:
      pinout = rpv["pins"]
      misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,str(rpv["name"])+" "+str(rpv["pins"])+" pins")
+  elif rpieGlobals.ossubtype == 3: # opi
+   opv = OS.getarmbianinfo()
+   if opv:
+    pinout = opv["pins"]
+    misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,str(opv["name"])+" "+str(opv["pins"])+" pins")
  print("Load network settings...")
  Settings.loadnetsettings()
  Settings.NetMan.networkinit()
@@ -68,26 +76,23 @@ def hardwareInit():
  print("Load GPIO settings...")
  if pinout != "0":
   Settings.loadpinout()
-  if pinout == "40" and len(Settings.Pinout)!=41:
-     Settings.Pinout=gpios.PINOUT40
-  elif pinout == "26R1" and len(Settings.Pinout)!=27:
-     for p in range(27):
-      Settings.Pinout.append(gpios.PINOUT40[p])
-     for p in range(len(gpios.PINOUT26R1_DELTA)):
-      pi = int(gpios.PINOUT26R1_DELTA[p]["ID"])
-      Settings.Pinout[pi] = gpios.PINOUT26R1_DELTA[p]
-  elif pinout == "26R2" and len(Settings.Pinout)!=27:
-     for p in range(27):
-      Settings.Pinout.append(gpios.PINOUT40[p])
-     for p in range(len(gpios.PINOUT26R2_DELTA)):
-      pi = int(gpios.PINOUT26R2_DELTA[p]["ID"])
-      Settings.Pinout[pi] = gpios.PINOUT26R2_DELTA[p]
+  try:
+   gpios.preinit(rpieGlobals.ossubtype) # create HWPorts variable
+  except Exception as e:
+   print("init",e)
+  if (("40" in pinout) and (len(Settings.Pinout)<41)) or (("26" in pinout) and (len(Settings.Pinout)<27)):
+   print("Creating new pinout")
+   try:
+    gpios.HWPorts.createpinout(pinout)
+   except Exception as e:
+    print("cp:",e)
   perror = False
   try:
    gpios.HWPorts.readconfig()
-  except:
+  except Exception as e:
+#   print(e) # debug
    perror = True
-  if perror or len(Settings.Pinout)<26:
+  if perror or len(Settings.Pinout)<8:
    misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Your GPIO can not be identified!")
    Settings.Pinout = []
   else:

@@ -140,10 +140,12 @@ def loadsettings():
 def loadtasks():
  global Tasks, tasksfile
  success = 1
+ tTasks = [False]
  try:
   f = open(tasksfile)
   settingjson = f.read()
-  Tasks = jsonpickle.decode(settingjson)
+  tTasks = jsonpickle.decode(settingjson)
+  Tasks = tTasks
  except:
   success = 0
  return success
