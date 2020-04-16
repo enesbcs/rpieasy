@@ -44,6 +44,6 @@ Other dependencies can be reached and installed through the webGUI after startin
 # Update
 There are an external updater and command line manager script by [haraldtux](/haraldtux):
 
-https://github.com/haraldtux/rpieasy-cli-tools
+https://github.com/haraldtux/rpieasy-update
 
 Or you can use the integrated updater at Tools->System Updates, but be warned: save your "data" directory before update if it is containing data that you can't or won't readd manually!
