@@ -76,15 +76,16 @@ class Plugin(plugin.PluginProto):
 #  self.connected = False
 #  self.uservar[0] = 0
 #  self.uservar[1] = 0
+  self.connected = False
+  try:
+     self.blestatus  = BLEHelper.BLEStatus[0] # 0 is hardwired in LYWSD02 library
+  except:
+     pass
   if self.enabled:
     self.connect()
   if self.connected:
     self.initialized = True
     self.ports = str(self.taskdevicepluginconfig[0])
-    try:
-     self.blestatus  = BLEHelper.BLEStatus[0] # 0 is hardwired in LYWSD02 library
-    except:
-     pass
     if self.taskdevicepluginconfig[2]:
      try:
       misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"Sync LWSD02 time")
@@ -106,11 +107,11 @@ class Plugin(plugin.PluginProto):
     return False
    self.blestatus.registerdataprogress(self.taskindex)
    try:
-    self.BLEPeripheral = Lywsd02Client(str(self.taskdevicepluginconfig[0]),data_request_timeout=int(self.interval))
+    self.BLEPeripheral = Lywsd02Client(str(self.taskdevicepluginconfig[0]),int(self.interval))
     self.connected = True
     misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"BLE connected "+str(self.taskdevicepluginconfig[0]))
     time.sleep(1)
-   except:
+   except Exception as e:
     self.connected = False
     self.initialized = False
     self.blestatus.unregisterdataprogress(self.taskindex)

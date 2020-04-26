@@ -96,6 +96,11 @@ class Plugin(plugin.PluginProto):
   plugin.PluginProto.plugin_init(self,enableplugin)
   self.decimals[0]=0
   self.decimals[1]=0
+  try:
+     devnum = int(self.taskdevicepluginconfig[3])
+     self.blestatus  = BLEHelper.BLEStatus[devnum]
+  except:
+     pass
   if self.enabled:
    self.ports = str(self.taskdevicepluginconfig[0])
    if (self.connected): # check status at startup
@@ -110,11 +115,6 @@ class Plugin(plugin.PluginProto):
     self.valuecount = 1
 #   self.set_value(1,0,False)
 #   self.set_value(2,self.connected,False)       # advertise status at startup
-   try:
-     devnum = int(self.taskdevicepluginconfig[3])
-     self.blestatus  = BLEHelper.BLEStatus[devnum]
-   except:
-     pass
    self.handlevalue(0,self.connected)
    self.plugin_senddata()
    if (self.connected == False and self.enabled): # connect if not connected
