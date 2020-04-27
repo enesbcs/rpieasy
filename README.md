@@ -13,12 +13,6 @@ Easy MultiSensor device based on Raspberry PI
 Based on Python 3.x and Raspberry PI (Raspbian Linux) this project tries to mimic the magnificent [ESPEasy](https://www.letscontrolit.com/wiki/index.php/ESPEasy) project functions.
 Main goal is to create a multisensor device, that can be install and setup quickly. 
 
-:warning:THIS IS A BETA TEST VERSION!:warning:
-
-Expect major changes in later versions that may cause incompatibility with earlier versions!
-
-Currently feedbacks and test results needed to fix core functions. New plugins and controllers may be added to expose hidden bugs. :)
-
 # Requirements
 - Debian/Ubuntu/Raspbian Linux
 - Python3

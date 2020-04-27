@@ -203,7 +203,7 @@ class Plugin(plugin.PluginProto):
   if time.time() - self.lastrequest > 2: # make sure to do not make too frequent calls
    self.lastrequest = time.time()
    try:
-    ch = self.BLEPeripheral.getCharacteristics(uuid=self.CGG_DATA)[0]
+    ch = self.BLEPeripheral.getCharacteristics(uuid=CGG_DATA)[0]
     desc = ch.getDescriptors(forUUID=0x2902)[0]
     desc.write(0x01.to_bytes(2, byteorder="little"), withResponse=True)
     res = True

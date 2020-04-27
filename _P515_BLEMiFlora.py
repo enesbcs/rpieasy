@@ -184,9 +184,10 @@ class Plugin(plugin.PluginProto):
     value = self.flora.get_conductivity()
    elif ptype == 5:
     value = self.flora.battery_level()
+   self.failures = 0
   except Exception as e:
     self.failures += 1
     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"MiFlora error: "+str(e))
-    if self.failures>5:
+    if self.failures>10:
      self.enabled=False
   return value
