@@ -174,5 +174,12 @@ def preinit(gpiotype):
   RISING=GPIOHW.RISING
   FALLING=GPIOHW.FALLING
   HWPorts = hwports()
+ elif gpiotype==19: # FTDI
+  import lib.lib_ftdigpios as GPIOHW
+  from lib.lib_ftdigpios import hwports
+  BOTH=GPIOHW.BOTH
+  RISING=GPIOHW.RISING
+  FALLING=GPIOHW.FALLING
+  HWPorts = hwports()
 
 #HWPorts = None

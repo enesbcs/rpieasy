@@ -47,7 +47,7 @@ class Plugin(plugin.PluginProto):
    self.__del__()
    return False
   if self.enabled:
-   if int(self.taskdevicepin[0])>=0:
+   if int(self.taskdevicepin[0])>0:
     try:
      gpios.HWPorts.remove_event_detect(int(self.taskdevicepin[0]))
     except:

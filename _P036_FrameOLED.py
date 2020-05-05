@@ -169,6 +169,8 @@ class Plugin(plugin.PluginProto):
     if self.device is not None:
      try:
       lc = int(self.taskdevicepluginconfig[4])
+      self.width = self.device.width
+      self.height = self.device.height
      except:
       lc = 1
      if lc < 1:

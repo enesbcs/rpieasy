@@ -785,13 +785,6 @@ def handle_pinout(self):
  submit = arg("Submit",responsearr)
  setbtn = arg("set",responsearr).strip()
 
- if arg("reread",responsearr) != '':
-  submit = ''
-  try:
-   gpios.HWPorts.readconfig()
-  except Exception as e:
-   misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Config read error="+str(e))
-
  if ((rpieGlobals.ossubtype!=10) and (submit=="Submit") or (setbtn!='')):
    try:
     gpios.HWPorts.webform_save(responsearr)
@@ -799,6 +792,14 @@ def handle_pinout(self):
     print(e)
    submit=""
    setbtn=""
+
+ if arg("reread",responsearr) != '':
+  submit = ''
+  try:
+   gpios.HWPorts.readconfig()
+  except Exception as e:
+   misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Config read error="+str(e))
+
  if (submit=="Submit") or (setbtn!=''):
   try:
    stat = arg("i2c0",responsearr)
@@ -1167,8 +1168,13 @@ def handle_plugins(self):
      if oslvl in plugindeps.plugindependencies[depfound]["supported_os_level"]:
       TXBuffer += "Supported"
      else:
-      TXBuffer += "NOT Supported"
+      supstr = "NOT Supported"
       usable = False
+      if "ext" in plugindeps.plugindependencies[depfound]:
+       if rpieGlobals.extender >= plugindeps.plugindependencies[depfound]["ext"]:
+        supstr = "Supported with extender"
+        usable = True
+      TXBuffer += supstr
     except:
       TXBuffer += "Supported"
     TXBuffer += "</td><td>"
@@ -1462,7 +1468,6 @@ def handle_devices(self):
       TXBuffer += "</table></form>"
  
  else: #Show edit form if a specific entry is chosen with the edit button
-
     TXBuffer += "<form name='frmselect' method='post'><table class='normal'>"
     addFormHeader("Task Settings")
     TXBuffer += "<TR><TD style='width:150px;' align='left'>Device:<TD>"
@@ -1609,7 +1614,6 @@ def handle_devices(self):
           addFormPinSelect("3rd GPIO", "taskdevicepin3", Settings.Tasks[taskIndex].taskdevicepin[2])
         if (Settings.Tasks[taskIndex].dtype==rpieGlobals.DEVICE_TYPE_QUAD):
           addFormPinSelect("4th GPIO", "taskdevicepin4", Settings.Tasks[taskIndex].taskdevicepin[3])
-
       try:
        Settings.Tasks[taskIndex].webform_load() # call plugin function to fill TXBuffer
       except Exception as e:
@@ -1641,7 +1645,6 @@ def handle_devices(self):
               TXBuffer += "<input type='hidden' name='"+sid+ "' value='0'>" # no id, set to 0
             else:
              TXBuffer += "<input type='hidden' name='"+sid+ "' value='-1'>" # disabled set to -1
-
       addFormSeparator(2)
 
       if (Settings.Tasks[taskIndex].timeroption):
@@ -3065,18 +3068,21 @@ def addPinSelect(fori2c,name,choice):
   global TXBuffer
   addSelector_Head(name,False)
   for x in range(len(Settings.Pinout)):
-   if Settings.Pinout[x]["altfunc"]==0 and Settings.Pinout[x]["canchange"]>0:
-    oname = Settings.Pinout[x]["name"][0]
-    if Settings.Pinout[x]["canchange"]==1:
-     onum=0
-     try:
-      onum = int(Settings.Pinout[x]["startupstate"])
-      if onum<1:
-       onum=0
-     except:
-      pass
-     oname += " ("+Settings.PinStates[onum]+")"
-    addSelector_Item(oname,Settings.Pinout[x]["BCM"],(str(choice)==str(Settings.Pinout[x]["BCM"])),False,"")
+   try:
+    if int(Settings.Pinout[x]["altfunc"]==0) and int(Settings.Pinout[x]["canchange"])>0 and int(Settings.Pinout[x]["BCM"]>-1):
+     oname = Settings.Pinout[x]["name"][0]
+     if Settings.Pinout[x]["canchange"]==1:
+      onum=0
+      try:
+       onum = int(Settings.Pinout[x]["startupstate"])
+       if onum<1 or onum>len(Settings.PinStates):
+        onum=0
+      except:
+       pass
+      oname += " ("+Settings.PinStates[onum]+")"
+     addSelector_Item(oname,Settings.Pinout[x]["BCM"],(str(choice)==str(Settings.Pinout[x]["BCM"])),False,"")
+   except:
+    pass
   addSelector_Foot()
 
 def addSelector(fid, optionCount, options, indices, attr, selectedIndex, reloadonchange):

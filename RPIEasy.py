@@ -69,6 +69,15 @@ def hardwareInit():
    if opv:
     pinout = opv["pins"]
     misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,str(opv["name"])+" "+str(opv["pins"])+" pins")
+ hwtype = rpieGlobals.ossubtype
+ if pinout=="0":
+  try:
+   import lib.lib_ftdigpios as ftdigpio # check for ftdi hwtype?
+   if ftdigpio.get_ftdi_devices(0)>0:
+    hwtype = 19
+    pinout = "ftdi"
+  except Exception as e:
+   print(e)
  print("Load network settings...")
  Settings.loadnetsettings()
  Settings.NetMan.networkinit()
@@ -77,22 +86,22 @@ def hardwareInit():
  if pinout != "0":
   Settings.loadpinout()
   try:
-   gpios.preinit(rpieGlobals.ossubtype) # create HWPorts variable
+   gpios.preinit(hwtype) # create HWPorts variable
   except Exception as e:
    print("init",e)
-  if (("40" in pinout) and (len(Settings.Pinout)<41)) or (("26" in pinout) and (len(Settings.Pinout)<27)):
+  if (("40" in pinout) and (len(Settings.Pinout)<41)) or (("26" in pinout) and (len(Settings.Pinout)<27)) or (pinout=="ftdi" and len(Settings.Pinout)<1):
    print("Creating new pinout")
    try:
     gpios.HWPorts.createpinout(pinout)
    except Exception as e:
-    print("cp:",e)
+    print("Pinout creation error:",e)
   perror = False
   try:
    gpios.HWPorts.readconfig()
   except Exception as e:
 #   print(e) # debug
    perror = True
-  if perror or len(Settings.Pinout)<8:
+  if perror or len(Settings.Pinout)<1:
    misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Your GPIO can not be identified!")
    Settings.Pinout = []
   else:

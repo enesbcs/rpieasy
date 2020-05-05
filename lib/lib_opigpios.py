@@ -819,8 +819,6 @@ class hwports:
        plugindeps.modulelist[i]["pip"] = [""] # only RPI supported!
       elif plugindeps.modulelist[i]['name']=="ws2812":
        plugindeps.modulelist[i]["pip"] = [""] # only RPI supported!
-      elif plugindeps.modulelist[i]['name']=="LCD":
-       plugindeps.modulelist[i]["pip"] = [""] # only RPI supported!
       elif plugindeps.modulelist[i]['name']=="tm1637":
        plugindeps.modulelist[i]["pip"] = [""] # only RPI supported!
       elif plugindeps.modulelist[i]['name']=="ina219":

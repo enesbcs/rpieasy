@@ -22,9 +22,13 @@ import rpieGlobals
 import rpieTime
 import time
 import misc
-import gpios
 import lib.lib_gpiohelper as gpiohelper
 import webserver
+try:
+ import gpios
+ gpioinit = True
+except:
+ gpioinit = False
 
 class Plugin(plugin.PluginProto):
  PLUGIN_ID = 1
@@ -56,8 +60,16 @@ class Plugin(plugin.PluginProto):
  def plugin_init(self,enableplugin=None):
   plugin.PluginProto.plugin_init(self,enableplugin)
   self.decimals[0]=0
-  if int(self.taskdevicepin[0])>=0 and self.enabled:
-   self.set_value(1,int(gpios.HWPorts.input(int(self.taskdevicepin[0]))),True) # Sync plugin value with real pin state
+  self.initialized = False
+  try:
+   gpioinit = gpios.HWPorts is not None
+  except:
+   gpioinit = False
+  if int(self.taskdevicepin[0])>=0 and self.enabled and gpioinit:
+   try:
+    self.set_value(1,int(gpios.HWPorts.input(int(self.taskdevicepin[0]))),True) # Sync plugin value with real pin state
+   except:
+    pass
    try:
     if int(self.taskdevicepluginconfig[3])<1:
      self.taskdevicepluginconfig[3] = gpios.BOTH # for compatibility
@@ -78,6 +90,7 @@ class Plugin(plugin.PluginProto):
    except Exception as e:
     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Event can not be added, register backup timer "+str(e))
     self.timer100ms = True
+   self.initialized = True
 
  def webform_load(self):
   webserver.addFormNote("Please make sure to select <a href='pinout'>pin configured</a> for input for default (or output to report back its state)!")
@@ -88,10 +101,13 @@ class Plugin(plugin.PluginProto):
   optionvalues = [0,1,2]
   webserver.addFormSelector("Switch Button Type","p001_button",len(optionvalues),options,optionvalues,None,self.taskdevicepluginconfig[2])
   webserver.addFormNote("Use only normal switch for output type, i warned you!")
-  options = ["BOTH","RISING","FALLING"]
-  optionvalues = [gpios.BOTH,gpios.RISING,gpios.FALLING]
-  webserver.addFormSelector("Event detection type","p001_det",len(optionvalues),options,optionvalues,None,self.taskdevicepluginconfig[3])
-  webserver.addFormNote("Only valid if event detection activated")
+  try:
+   options = ["BOTH","RISING","FALLING"]
+   optionvalues = [gpios.BOTH,gpios.RISING,gpios.FALLING]
+   webserver.addFormSelector("Event detection type","p001_det",len(optionvalues),options,optionvalues,None,self.taskdevicepluginconfig[3])
+   webserver.addFormNote("Only valid if event detection activated")
+  except:
+   pass
   return True
 
  def webform_save(self,params):

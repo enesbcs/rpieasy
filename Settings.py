@@ -91,9 +91,11 @@ def get_i2c_pins():                    # get list of enabled i2c pin numbers
   gplist = []
   try:
    for p in range(len(Pinout)):
-    if int(Pinout[p]["altfunc"])==1:
-     if "I2C" in Pinout[p]["name"][1]:
-      gplist.append(Pinout[p]["name"][0]+"/"+Pinout[p]["name"][1])
+    if int(Pinout[p]["altfunc"])!=0:
+     n = Pinout[p]["name"]
+     for i in range(len(n)):
+      if "I2C" in Pinout[p]["name"][i]:
+       gplist.append(Pinout[p]["name"][0]+"/"+Pinout[p]["name"][i])
   except:
    pass
   return gplist
@@ -105,7 +107,7 @@ def savesettings():
   f = open(settingsfile,'w')
   settingjson = jsonpickle.encode(Settings)
   f.write(settingjson)
- except:
+ except Exception as e:
   success = 0
  return success
 
@@ -113,10 +115,33 @@ def savetasks():
  global Tasks, tasksfile
  success = 1
  try:
+  import copy
+  Tasks_Shadow = copy.copy(Tasks) # make a copy of original tasks
+ except Exception as e:
+  Tasks_Shadow = Tasks.copy() # this method is not working well
+ tasktoinit = []
+ try:
+  if len(Tasks)>0: # debug
+   for T in range(len(Tasks_Shadow)):
+    try:
+     for i in Tasks_Shadow[T].__dict__:
+      try:
+       test = jsonpickle.encode(Tasks_Shadow[T].__dict__[i]) # check if jsonpickle is needed
+      except:
+       Tasks_Shadow[T].__dict__[i]=None
+       if not T in tasktoinit:
+        tasktoinit.append(T)
+    except Exception as e:
+     pass
   f = open(tasksfile,'w')
-  settingjson = jsonpickle.encode(Tasks)
+  settingjson = jsonpickle.encode(Tasks_Shadow)
   f.write(settingjson)
- except:
+  for t in tasktoinit:
+   try:
+    Tasks[t].plugin_init()
+   except:
+    pass
+ except Exception as e:
   success = 0
  return success
 

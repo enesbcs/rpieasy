@@ -268,12 +268,14 @@ notifierdependencies = [
 plugindependencies = [
 {"pluginid": "1", #Switch
  "supported_os_level": [3,10],
+ "ext":128,
  "modules":["GPIO"]},
 {"pluginid": "2", #PiAnalog
- "supported_os_level": [3,10],
+ "supported_os_level": [10],
  "modules":["GPIO"]},
 {"pluginid": "3", #Pulse
  "supported_os_level": [3,10],
+ "ext":128,
  "modules":["GPIO"]},
 {"pluginid": "4", #DS18b20
  "supported_os_level": [1,2,3,10],
@@ -286,27 +288,32 @@ plugindependencies = [
  "modules":["GPIO","wpi","wiegand_io2"]},
 {"pluginid": "7", # PCF8591
  "supported_os_level": [3,10],
+ "ext":256,
  "modules":["i2c"]},
 {"pluginid": "9", # MCP
- "supported_os_level": [3,10],
+ "supported_os_level": [10],
  "modules":["GPIO","i2c","MCP"]},
 {"pluginid": "10", # BH1750
  "supported_os_level": [3,10],
+ "ext":256,
  "modules":["i2c"]},
 {"pluginid": "11", # PME
  "supported_os_level": [3,10],
  "modules":["i2c"]},
 {"pluginid": "12", # LCD
  "supported_os_level": [10],
+ "ext":256,
  "modules":["i2c","LCD"]},
 {"pluginid": "13", #SR04
  "supported_os_level": [3,10],
+ "ext":128,
  "modules":["GPIO"]},
 {"pluginid": "14", # Si7021
  "supported_os_level": [3,10],
  "modules":["i2c"]},
 {"pluginid": "15", # tsl2561
  "supported_os_level": [3,10],
+ "ext":256,
  "modules":["i2c"]},
 {"pluginid": "16", #IR
  "supported_os_level": [1,2,10],
@@ -316,15 +323,18 @@ plugindependencies = [
  "modules":["GPIO","i2c"]},
 {"pluginid": "19", # PCF8574
  "supported_os_level": [3,10],
+ "ext":256,
  "modules":["GPIO","i2c"]},
 {"pluginid": "22", # PCA9685
  "supported_os_level": [3,10],
  "modules":["GPIO","i2c","pca9685"]},
 {"pluginid": "23", # OLED
  "supported_os_level": [3,10],
+ "ext":256,
  "modules":["i2c","OLED"]},
 {"pluginid": "24", # mlx90614
  "supported_os_level": [3,10],
+ "ext":256,
  "modules":["i2c"]},
 {"pluginid": "25", # ADS1x15
  "supported_os_level": [10],
@@ -337,45 +347,56 @@ plugindependencies = [
  "modules":["i2c","ina219"]},
 {"pluginid": "28", # BMP280
  "supported_os_level": [3,10],
+ "ext":256,
  "modules":["i2c"]},
 {"pluginid": "29", # DomoOutput nem csak gpio??
  "supported_os_level": [3,10],
+ "ext":128,
  "modules":["GPIO"]},
 {"pluginid": "35", #IRTrans
  "supported_os_level": [1,2,10],
  "modules":["irkey"]},
 {"pluginid": "36", # FramedOLED
  "supported_os_level": [3,10],
+ "ext":256,
  "modules":["i2c","OLED"]},
 {"pluginid": "38", # Neopixel
  "supported_os_level": [10],
  "modules":["GPIO","ws2812"]},
 {"pluginid": "45", # MPU6050
  "supported_os_level": [3,10],
+ "ext":256,
  "modules":["i2c","mpu6050"]},
 {"pluginid": "49", #MH-Z19
  "supported_os_level": [1,2,3,10],
  "modules":["pyserial"]},
 {"pluginid": "51", # AM2320
  "supported_os_level": [3,10],
+ "ext":256,
  "modules":["i2c"]},
 {"pluginid": "57", # HT16K33 LED
  "supported_os_level": [3,10],
+ "ext":256,
  "modules":["i2c"]},
 {"pluginid": "58", # HT16K33 Key
  "supported_os_level": [3,10],
+ "ext":256,
  "modules":["i2c"]},
 {"pluginid": "59", #Rotary
  "supported_os_level": [3,10],
+ "ext":128,
  "modules":["GPIO"]},
 {"pluginid": "62", # MPR121
  "supported_os_level": [3,10],
+ "ext":256,
  "modules":["GPIO","i2c"]},
 {"pluginid": "64", # APDS9960
  "supported_os_level": [3,10],
+ "ext":256,
  "modules":["i2c","apds"]},
 {"pluginid": "69", # LM75
  "supported_os_level": [3,10],
+ "ext":256,
  "modules":["i2c"]},
 {"pluginid": "73", # 7DGT
  "supported_os_level": [10],
@@ -394,9 +415,11 @@ plugindependencies = [
  "modules":["ping"]},
 {"pluginid": "133", # VL53L0X
  "supported_os_level": [3,10],
+ "ext":256,
  "modules":["i2c"]},
 {"pluginid": "153", # MAX44009
  "supported_os_level": [3,10],
+ "ext":256,
  "modules":["i2c"]},
 {"pluginid": "200", #Dual Switch
  "supported_os_level": [3,10],
@@ -406,12 +429,15 @@ plugindependencies = [
  "modules":["pyserial"]},
 {"pluginid": "202", # MCP9808
  "supported_os_level": [3,10],
+ "ext":256,
  "modules":["i2c"]},
 {"pluginid": "203", # MCP4725
  "supported_os_level": [3,10],
+ "ext":256,
  "modules":["i2c"]},
 {"pluginid": "204", #Stepper motor
  "supported_os_level": [3,10],
+ "ext":128,
  "modules":["GPIO"]},
 {"pluginid": "205", #E-paper SPI
  "supported_os_level": [10],
@@ -421,6 +447,7 @@ plugindependencies = [
  "modules":["pyserial","modbus"]},
 {"pluginid": "207", # MPU9250
  "supported_os_level": [3,10],
+ "ext":256,
  "modules":["i2c","rtimu"]},
 {"pluginid": "208", #PFM
  "supported_os_level": [1,2,3,10],

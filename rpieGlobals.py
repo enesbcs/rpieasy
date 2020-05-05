@@ -6,7 +6,7 @@
 # Copyright (C) 2018-2020 by Alexander Nagy - https://bitekmindenhol.blog.hu/
 # 
 PROGNAME = "RPIEasy"
-BUILD   = 20118
+BUILD   = 20126
 PROGVER = str(BUILD)[:1]+"."+str(BUILD)[1:2]+"."+str(BUILD)[2:]
 
 gpMenu = []
@@ -22,6 +22,7 @@ gpMenu.append(['\U0001f527 Tools','tools'])
 webLoggedIn = False
 osinuse = ""
 ossubtype = ""
+extender  = 0
 wifiSetup = False
 
 deviceselector = [[0,0,"- None -"]]
