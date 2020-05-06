@@ -422,7 +422,10 @@ def initprogram():
  t = threading.Thread(target=mainloop)  # starting sensors and background functions
  t.daemon = True
  t.start()
- ports = [80,8080,8008] # check for usable ports
+ try:
+  ports = Settings.AdvSettings["portlist"]
+ except:
+  ports = [80,8080,8008,591] # check for usable ports
  up = 0
  for p in ports:
   up = p

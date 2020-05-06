@@ -17,7 +17,7 @@ import re
 import rpieGlobals
 import Settings
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 import rpieTime
 import linux_os as OS
 import misc
@@ -1236,6 +1236,8 @@ def handle_devices(self):
  setpage = arg("setpage",responsearr)
  taskIndex = arg("index",responsearr)
  runIndex = arg("run",responsearr)
+ toggleIndex = arg("toggle",responsearr)
+
  if page=='':
   page=0
  else:
@@ -1288,6 +1290,22 @@ def handle_devices(self):
   except Exception as e:
     print(e)
 
+ if toggleIndex != "":
+  if len(Settings.Tasks)<1:
+   return False
+  try:
+   s = int(toggleIndex)
+  except:
+   s = -1
+  try:
+   if s >0 and (s<=len(Settings.Tasks)):
+    s = s-1 # array is 0 based, tasks is 1 based
+    if (type(Settings.Tasks[s])!=bool) and (Settings.Tasks[s]):
+     if (Settings.Tasks[s].enabled):
+      Settings.Tasks[s].set_value(1,(1-int(Settings.Tasks[s].uservar[0])),publish=True)
+  except Exception as e:
+    print(e)
+
  if taskIndexNotSet: # show all tasks as table
     if True:
      TXBuffer += "<script> (function(){ var max_tasknumber = "+ str(rpieGlobals.TASKS_MAX) +"; var max_taskvalues = "+ str(rpieGlobals.VARS_PER_TASK) +"; var timeForNext = 2000; var c; var k; var err = ''; var i = setInterval(function(){ var url = '/json?view=sensorupdate';"
@@ -1330,6 +1348,12 @@ def handle_devices(self):
          TXBuffer += "&page="
          TXBuffer += str(page)
          TXBuffer += "'>Run</a>"
+         if Settings.Tasks[x].recdataoption and Settings.Tasks[x].vtype==rpieGlobals.SENSOR_TYPE_SWITCH:
+          TXBuffer += "<a class='button link' href='devices?toggle="
+          TXBuffer += str(x + 1)
+          TXBuffer += "&page="
+          TXBuffer += str(page)
+          TXBuffer += "'>Toggle</a>"
        except:
         pass
        TXBuffer += "<TD>"
@@ -1462,6 +1486,13 @@ def handle_devices(self):
                 TXBuffer += "</div>"
             except Exception as e:
              print(e)
+          try:
+           if int(Settings.AdvSettings["webloglevel"])>=rpieGlobals.LOG_LEVEL_DEBUG_MORE:
+            if Settings.Tasks[x].enabled:
+              lds = rpieTime.start_time + timedelta(seconds=(Settings.Tasks[x]._lastdataservetime / 1000))
+              TXBuffer += "<div><p align=left><br><i>"+ lds.strftime('%Y-%m-%d %H:%M:%S')+"</i></div>"
+          except Exception as e:
+           print(e)
        else:
         TXBuffer += "<TD><TD><TD><TD><TD><TD>"
       TXBuffer += "<tr><TD colspan=2><div class='button' id='clock'>00:00:00</div><TD><TD><TD><TD><TD><TD><TD></tr>"
@@ -2273,6 +2304,17 @@ def handle_advanced(self):
   except:
    Settings.AdvSettings["Latitude"]  = 0
    Settings.AdvSettings["Longitude"] = 0
+  portlist = []
+  for p in range(0,9):
+   try:
+    d = int(arg("_p"+str(p),responsearr))
+   except:
+    d = 0
+   if d > 0:
+    portlist.append(d)
+  if len(portlist)<1:
+   portlist = [80,8080,8008,591]
+  Settings.AdvSettings["portlist"] = portlist
   Settings.saveadvsettings()
 
  TXBuffer += "<form  method='post'><table class='normal'>"
@@ -2288,6 +2330,24 @@ def handle_advanced(self):
   val = ""
   Settings.AdvSettings["syslogip"] = val
  addFormTextBox("Syslog IP", "syslogip", val,64)
+
+ addFormSubHeader("WebGUI Settings")
+ defports = [80,8080,8008,591]
+ try:
+  ports = Settings.AdvSettings["portlist"]
+ except:
+  ports = defports
+ TXBuffer += "<tr><td>Enabled GUI ports:<td><fieldset>"
+ for p in range(len(defports)):
+   try:
+    cn = "_p"+str(p)
+    TXBuffer += "<input type='checkbox' name='"+cn+"' id='"+cn+"' value='"+str(defports[p])+"' "
+    if defports[p] in ports:
+     TXBuffer += "checked"
+    TXBuffer += "><label for='"+cn+"'>"+str(defports[p])+"</label> "
+   except:
+    pass
+ TXBuffer += "</fieldset>"
 
  addFormSubHeader("Location Settings")
  try:

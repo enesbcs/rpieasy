@@ -36,6 +36,7 @@ AdvSettings = {
 "fileloglevel":0,
 "sysloglevel":0,
 "syslogip":"",
+"portlist":[80,8080,8008,591],
 "battery": { "enabled":0,"tasknum":0,"taskvaluenum":0}
 }
 
