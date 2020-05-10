@@ -38,6 +38,8 @@ class Plugin(plugin.PluginProto):
     misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"Dallas device can not be initialized!")
   else:
    self.ports = str(self.taskdevicepluginconfig[0])
+   self.initialized = True
+   self.readinprogress = 0
 
  def webform_load(self):
   choice1 = self.taskdevicepluginconfig[0]

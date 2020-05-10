@@ -17,6 +17,7 @@ try:
  from pyftdi.spi import SpiController
 except:
  print("pyFTDI not installed!")
+from logging import getLogger, DEBUG, ERROR
 
 import webserver
 import threading
@@ -852,6 +853,7 @@ class hwports:
  def readconfig(self):
     Settings.PinStatesMax = 7
     Settings.PinStates = ["Default","Input","Reserved","Reserved","Output","Output-Low","Output-High","Special","Reserved"]
+    getLogger('pyftdi.i2c').setLevel(ERROR)
     for b in range(len(Settings.Pinout)):
      if Settings.Pinout[b]["altfunc"] != 0 and Settings.Pinout[b]["startupstate"]>0 and Settings.Pinout[b]["startupstate"]<7:
       Settings.Pinout[b]["startupstate"] = -1 # set to default
@@ -1002,8 +1004,6 @@ class hwports:
 #          self.pinhandlers.append(None)
 #         else:
           self.pinhandlers.append(self.gpios[d]["o"])
-#     print(self.pinhandlers,len(self.pinhandlers))
-#     print(Settings.Pinout,len(Settings.Pinout))
      if self.get_first_i2c()>-1:
       rpieGlobals.extender = 256
      else:
@@ -1050,7 +1050,10 @@ class hwports:
     for device in range(3, 125): 
         try:
             port = bus.get_port(device)
-            port.read(0)
+            if (device>=0x30 and device<=0x37) or (device>=0x50 and device<=0x5f):
+             port.read(0)
+            else:
+             port.write([])
             devices.append(device)  # hex(number)?
         except:
             pass
@@ -1091,17 +1094,6 @@ class hwports:
    fi.close()
   except Exception as e:
    gpionum = 0
-#  print(gpionum,lismpsse,lportindex)
-#  rarr = []
-#  for r in range(gpionum):
-#   rarr.append(-1)
-#  g = 0
-#  for r in range(0,gpionum,2):
-#   rarr[r] = g
-#   g+=1
-#  for r in range(1,gpionum,2):
-#   rarr[r] = g
-#   g+=1
   if gpionum>0:
    for g in range(0,gpionum):
     pname = get_ftdi_pinnames(g,lportindex,lismpsse)
@@ -1130,7 +1122,6 @@ class hwports:
   if len(Settings.Pinout)<1:
    Settings.Pinout = PINOUT
   return True
-#  print(Settings.Pinout)
 
  def webform_load(self):
   try:
@@ -1143,11 +1134,9 @@ class hwports:
   conflist = get_ftdi_configured_devices()
   webserver.TXBuffer += "<form name='frmselect' method='post'>"
   if len(devlist)>0:
-#   webserver.addFormSubHeader("Add USB FTDI devices to pins")
    webserver.TXBuffer += "<fieldset style='padding:5px;margin:5px;border:2px solid green;-moz-border-radius:8px;-webkit-border-radius:8px;border-radius:8px;'><legend>Add USB FTDI devices to pins</legend>"
    for d in range(len(devlist)):
     if not(devlist[d][0] in conflist):
-#     print(devlist[d][0],devlist[d][1])
      webserver.TXBuffer += "<input type='radio' name='newdev' value='"+str(d)+"' id='newdev"+str(d)+"'><label for='newdev"+str(d)+"'>"+str(devlist[d][0])+"/"+str(devlist[d][1])+"</label>  "
    webserver.TXBuffer += "</fieldset>"
    webserver.TXBuffer += "<BR>"
@@ -1156,7 +1145,6 @@ class hwports:
   webserver.TXBuffer += "<table class='normal'><tr><th colspan=10>GPIO pinout</th></tr>"
   webserver.addHtml("<tr><th>Detected function</th><th>Requested function</th><th>Pin name</th><th>#</th><th>Value</th><th>Value</th><th>#</th><th>Pin name</th><th>Requested function</th><th>Detected function</th></tr>")
   devs = get_ftdi_configured_devices()
-#  print(devs)#debug
   if len(devs)>0:
     for d in range(len(devs)):
      webserver.TXBuffer += "<TR><th colspan=10><strong>FTDI"+str(d)+": "+str(devs[d])+"</strong></td></tr>"
@@ -1170,14 +1158,11 @@ class hwports:
           firstp = p
          lastp = p
      halfpins = int(allpins/2)
-#     print(devs[d],firstp,lastp,allpins)
-#     for p in range(int(len(Settings.Pinout)/2)+1):
      for p in range(firstp,firstp+halfpins):
       if Settings.Pinout[p]["canchange"] != 2:
        idnum = int(Settings.Pinout[p]["ID"])
 
        webserver.TXBuffer += "<TR><td>"
-#     if Settings.Pinout[p]["canchange"]==1 and Settings.Pinout[p]["altfunc"]==0:
        if Settings.Pinout[p]["canchange"]==1 and Settings.Pinout[p]["BCM"]>0:
       # print pin setup infos
         astate = Settings.Pinout[p]["actualstate"]
@@ -1202,10 +1187,12 @@ class hwports:
         funcorder = int(Settings.Pinout[p]["altfunc"])
        except:
         funcorder = 0
+       pname = ""
        if funcorder>0 and len(Settings.Pinout[p]["name"])>funcorder:
-        webserver.TXBuffer += "<td>"+ Settings.Pinout[p]["name"][funcorder] +"</td>"
+        pname = Settings.Pinout[p]["name"][funcorder]
        else:
-        webserver.TXBuffer += "<td>"+ Settings.Pinout[p]["name"][0] +"</td>"
+        pname = Settings.Pinout[p]["name"][0]
+       webserver.TXBuffer += "<td>"+ pname +"</td>"
        webserver.TXBuffer += "<td>"+ str(Settings.Pinout[p]["ID"]) +"</td>"
        webserver.TXBuffer += "<td style='{border-right: solid 1px #000;}'>"
        if Settings.Pinout[p]["canchange"]==1 and pinfunc in [0,1] and (astate in ["Input","Output"]):
@@ -1241,10 +1228,12 @@ class hwports:
          funcorder = int(Settings.Pinout[q]["altfunc"])
         except:
          funcorder = 0
+        pname = ""
         if funcorder>0 and len(Settings.Pinout[q]["name"])>funcorder:
-         webserver.TXBuffer += "<td>"+ Settings.Pinout[q]["name"][funcorder] +"</td>"
+         pname = Settings.Pinout[q]["name"][funcorder]
         else:
-         webserver.TXBuffer += "<td>"+ Settings.Pinout[q]["name"][0] +"</td>"
+         pname = Settings.Pinout[q]["name"][0]
+        webserver.TXBuffer += "<td>"+ pname +"</td>"
         webserver.TXBuffer += "<td>"
         if Settings.Pinout[q]["canchange"]==1 and Settings.Pinout[q]["altfunc"]==0:
        # print pin setup infos
@@ -1270,7 +1259,6 @@ class hwports:
   webserver.TXBuffer += "<table class='normal'><TR>"
   webserver.addFormHeader("Advanced features")
   devcount = len(get_ftdi_configured_devices())
-#  devcount = get_ftdi_devices(0)
   for i in range(0,devcount):
    if self.is_i2c_usable(i):
     webserver.addFormCheckBox("Enable I2C-"+str(i),"i2c"+str(i),self.is_i2c_enabled(i))
@@ -1294,22 +1282,15 @@ class hwports:
    setbtn = webserver.arg("set",params)
 
    devlist = get_ftdi_devices(2)
-#   print(devlist)
    if len(devlist)>0:
     try:
      d = int(webserver.arg("newdev",params))
     except:
      d = -1
     if d>-1 and d<len(devlist):
-#       print(devlist[d][0],devlist[d][1])
        devcount = len(get_ftdi_configured_devices())
        self.createdevpinout(devlist[d][0],devlist[d][1],devcount)
-#       try:
-#        Settings.savepinout()
-#       except Exception as e:
-#        misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,str(e))
    if (submit=='Submit'):
-#    devcount = get_ftdi_devices(0)
     devcount = len(get_ftdi_configured_devices())
     for i in range(0,devcount):
      wset = webserver.arg("i2c"+str(i),params)
@@ -1325,13 +1306,11 @@ class hwports:
       self.disable_spi(i) # revert to gpio mode
     for p in range(len(Settings.Pinout)):
      pins = webserver.arg("pinstate"+str(p),params).strip()
-#     print(p,pins)
      if pins and pins!="" and p!= "":
       try:
        self.setpinstate(p,int(pins))
       except Exception as e:
        misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"Pin "+str(p)+" "+str(e))
-#    print("pins after save: ",Settings.Pinout)#debug
     try:
      Settings.savepinout()
     except Exception as e:
@@ -1339,7 +1318,3 @@ class hwports:
 
    return True
 
-#Init Hardware GLOBAL ports
-#HWPorts = hwports()
-#if os.path.exists("/DietPi/config.txt"): # DietPi FIX!
-# HWPorts.config_file_name = "/DietPi/config.txt"

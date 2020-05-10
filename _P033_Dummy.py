@@ -57,6 +57,7 @@ class Plugin(plugin.PluginProto):
   if self.taskdevicepluginconfig[0]>0:
     self.vtype = self.taskdevicepluginconfig[0]
     self.valuecount = self.getvaluecount()
+    self.initialized = True
 
  def webform_load(self): # create html page for settings
   choice = self.taskdevicepluginconfig[0]

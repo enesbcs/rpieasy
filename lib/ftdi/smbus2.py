@@ -15,9 +15,13 @@ class SMBus:
     self.bus = gpios.HWPorts.get_i2c_ctrl(busnum)
    except:
     self.bus = None
-    
+
  def write_quick(self,addr):
-     pass # not supported
+     try:
+      i2c = self.bus.get_port(addr)
+      i2c.write([])
+     except:
+      pass
 
  def read_byte(self,addr):
      try:

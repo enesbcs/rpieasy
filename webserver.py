@@ -1489,8 +1489,9 @@ def handle_devices(self):
           try:
            if int(Settings.AdvSettings["webloglevel"])>=rpieGlobals.LOG_LEVEL_DEBUG_MORE:
             if Settings.Tasks[x].enabled:
-              lds = rpieTime.start_time + timedelta(seconds=(Settings.Tasks[x]._lastdataservetime / 1000))
-              TXBuffer += "<div><p align=left><br><i>"+ lds.strftime('%Y-%m-%d %H:%M:%S')+"</i></div>"
+              if Settings.Tasks[x]._lastdataservetime != 0:
+               lds = rpieTime.start_time + timedelta(seconds=(Settings.Tasks[x]._lastdataservetime / 1000))
+               TXBuffer += "<div><p align=left><br><i>"+ lds.strftime('%Y-%m-%d %H:%M:%S')+"</i></div>"
           except Exception as e:
            print(e)
        else:
@@ -3140,6 +3141,8 @@ def addPinSelect(fori2c,name,choice):
       except:
        pass
       oname += " ("+Settings.PinStates[onum]+")"
+     if Settings.Pinout[x]["BCM"] == Settings.Pinout[x]["ID"]:
+      oname = str(Settings.Pinout[x]["BCM"]) + "-" + oname
      addSelector_Item(oname,Settings.Pinout[x]["BCM"],(str(choice)==str(Settings.Pinout[x]["BCM"])),False,"")
    except:
     pass
