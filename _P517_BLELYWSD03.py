@@ -76,6 +76,8 @@ class Plugin(plugin.PluginProto):
   webserver.addFormTextBox("Device Address","plugin_517_addr",str(self.taskdevicepluginconfig[0]),20)
   webserver.addFormNote("Enable blueetooth then <a href='blescanner'>scan LYWSD03 address</a> first.")
   webserver.addFormCheckBox("Add Battery value for non-Domoticz system","plugin_517_bat",self.taskdevicepluginconfig[1])
+  webserver.addFormCheckBox("Connect only if BLE local device free","plugin_517_free",self.taskdevicepluginconfig[3])
+  webserver.addFormNote("Check if you are using multiple devices and interferences occurs between them.")
   return True
 
  def webform_save(self,params): # process settings post reply
@@ -85,6 +87,7 @@ class Plugin(plugin.PluginProto):
    self.taskdevicepluginconfig[2] = int(webserver.arg("plugin_517_dev",params))
   except:
    self.taskdevicepluginconfig[2] = 0
+  self.taskdevicepluginconfig[3] = str(webserver.arg("plugin_517_free",params)).strip()
   self.plugin_init()
   return True
 
@@ -94,6 +97,7 @@ class Plugin(plugin.PluginProto):
   self.connected = False
   self.conninprogress = False
   self.waitnotifications = False
+  self.connectcount = 0
   self.TARR = []
   self.HARR = []
   try:
@@ -107,11 +111,10 @@ class Plugin(plugin.PluginProto):
    self.ports = str(self.taskdevicepluginconfig[0])
    self.timer1s = True
    self.battery = -1
-   self._nextdataservetime = rpieTime.millis()-self.preread
    self._lastdataservetime = 0
 #   self.lastread = 0
    self.failures = 0
-   self._lastdataservetime = rpieTime.millis() - ((self.interval-2)*1000)
+   self._nextdataservetime = rpieTime.millis() + (self.interval*1000)
    if self.taskdevicepluginconfig[1]:
     self.valuecount = 3
     self.vtype = rpieGlobals.SENSOR_TYPE_TRIPLE
@@ -156,7 +159,7 @@ class Plugin(plugin.PluginProto):
         self.set_value(2,self.HARR[-1],False,susebattery=self.battery)
        self.plugin_senddata(pusebattery=self.battery)
        self._lastdataservetime = rpieTime.millis()
-       self._nextdataservetime = self._lastdataservetime + (self.interval*1000) - self.preread
+       self._nextdataservetime = self._lastdataservetime + (self.interval*1000)
        self.failures = 0
       except:
        pass
@@ -174,6 +177,12 @@ class Plugin(plugin.PluginProto):
      return False
    except Exception as e:
     return False
+   if self.taskdevicepluginconfig[3]: # exclusive mode
+    if self.blestatus.nodataflows()==False:
+     self.connectcount += 1
+     if self.connectcount > 3:
+      self.blestatus.unregisterdataprogress(self.taskindex)
+     return False
    self.conninprogress = True
    self.blestatus.registerdataprogress(self.taskindex)
    prevstate = self.connected
@@ -183,17 +192,18 @@ class Plugin(plugin.PluginProto):
     self.BLEPeripheral = btle.Peripheral(str(self.taskdevicepluginconfig[0]),iface=self.taskdevicepluginconfig[2])
     self.connected = True
     self.failures = 0
+    self.connectcount = 0
     self.BLEPeripheral.setDelegate( TempHumDelegate2(self.callbackfunc) )
    except Exception as e:
     print(e) # debug
     self.connected = False
-   time.sleep(0.5)
+#   time.sleep(0.5)
    self.isconnected()
    if self.connected==False:
     misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"BLE connection failed "+str(self.taskdevicepluginconfig[0]))
     self.disconnect()
     self.blestatus.unregisterdataprogress(self.taskindex)
-    time.sleep(uniform(5,10))
+    time.sleep(uniform(0.5,1.2))
     self.failures =  self.failures +1
     if self.failures>5:
      if self.interval<120:
@@ -201,7 +211,7 @@ class Plugin(plugin.PluginProto):
      else:
       skiptime = self.interval
      self._nextdataservetime = rpieTime.millis()+(skiptime)
-     self._lastdataservetime = self._nextdataservetime
+#     self._lastdataservetime = self._nextdataservetime
     self.conninprogress = False
     return False
    else:
