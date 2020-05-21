@@ -431,7 +431,7 @@ class hwports:
    self.gpumax = 192
   elif "512m" in iram.lower():
    self.gpumax = 448
-  elif "1m" in iram.lower():
+  else:
    self.gpumax = 944
   self.gpumem = self.gpumin
 

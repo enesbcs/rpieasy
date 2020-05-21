@@ -168,6 +168,7 @@ class Plugin(plugin.PluginProto):
       self.TARR = []
       self.HARR = []
      elif (self._nextdataservetime < rpieTime.millis()):
+      self._nextdataservetime = self._lastdataservetime + uniform(self.preread,self.preread*2.5)
       self.isconnected()
 
  def connectproc(self):

@@ -238,6 +238,11 @@ modulelist = [
  "testcmd" : "if (os.path.exists('/usr/local/include/wiringPi.h')==False and os.path.exists('/usr/include/wiringPi.h')==False):\n raise Exception('Wiringpi-dev not found')",
  "installcmd" : "cd lib && wget https://project-downloads.drogon.net/wiringpi-latest.deb && sudo dpkg -i wiringpi-latest.deb && cd ..",
  "installed":-1},
+{"name":"opencv",
+ "apt": ["python3-opencv"],
+ "pip": [],
+ "testcmd": "import cv2",
+ "installed":-1},
 
 ]
 
@@ -499,6 +504,9 @@ plugindependencies = [
 {"pluginid": "521", # GoogleTTS
  "supported_os_level": [1,2,3,10],
  "modules":["gtts","pygame"]},
+{"pluginid": "522", # RTSP
+ "supported_os_level": [1,2,3,10],
+ "modules":["opencv","pil"]},
 
 ]
 
