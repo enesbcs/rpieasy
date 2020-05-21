@@ -18,7 +18,7 @@ Main goal is to create a multisensor device, that can be install and setup quick
 - Python3
 
 Tested with Raspberry Pi Zero W/Raspbian Stretch and PC/Ubuntu 18.04. (may work with other Debian/Ubuntu derivatives)
-For obvious reasons GPIO based devices needs GPIO support, which only works with Raspberry Pi. Some basic devices and controllers will work on a normal PC.
+For obvious reasons GPIO based devices needs GPIO support, mainly targeted for Raspberry Pi. (However experimental Orange Pi and USB FTDI GPIO support also added) Some basic devices and controllers will work on a normal PC.
 
 # Installation
 
