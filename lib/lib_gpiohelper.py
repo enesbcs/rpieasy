@@ -15,6 +15,8 @@ import commands
 import lib.lib_rtttl as rtttllib
 import threading
 
+commandlist = ["gpio","pwm","pulse","longpulse","tone","rtttl","status","servo"]
+
 def syncvalue(bcmpin,value):
  for x in range(0,len(Settings.Tasks)):
   if (Settings.Tasks[x]) and type(Settings.Tasks[x]) is not bool: # device exists
@@ -216,6 +218,36 @@ def gpio_commands(cmd):
      misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,str(e))
      suc = False
    res = True
+
+  elif cmdarr[0]=="servo":
+   snr  = -1
+   pin  = -1
+   pos = -1
+   gi = -1
+   logline = ""
+   try:
+    snr = int(cmdarr[1].strip())
+    pin = int(cmdarr[2].strip())
+    pos = int(cmdarr[3].strip())
+   except:
+    snr = -1
+    pin = -1
+    pos = 0
+   if snr>-1 and pin>-1 and pos>0:
+    suc = False
+    try:
+     suc = True
+     logline = "BCM"+str(pin)+" to servo "+str(pos)+" angle"
+     misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,logline)
+     setservoangle(pin,pos)
+     gi = gpios.GPIO_refresh_status(pin,pstate=0,pluginid=1,pmode="servo",logtext=logline)
+    except Exception as e:
+     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"BCM"+str(pin)+" Servo "+str(e))
+     suc = False
+   if gi>-1:
+     return gpios.GPIO_get_status(gi)
+   res = True
+
   elif cmdarr[0] == "status":
    pin = -1
    subcmd = ""
@@ -232,6 +264,13 @@ def gpio_commands(cmd):
    res = True
 
   return res
+
+def setservoangle(servopin,angle):
+    if angle>= 0 and angle<= 180:
+     try:
+      gpios.HWPorts.servo_pwm(servopin,angle)
+     except:
+      misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Servo command is not supported on this hardware!")
 
 def play_tone(pin,freq,delay):
   gpios.HWPorts.output_pwm(pin,50,freq) # generate 'freq' sound

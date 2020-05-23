@@ -3128,6 +3128,7 @@ def addFormPinSelect(label,fid,choice):
 def addPinSelect(fori2c,name,choice):
   global TXBuffer
   addSelector_Head(name,False)
+  addSelector_Item("None",-1,(str(choice)==str(-1)),False,"")
   for x in range(len(Settings.Pinout)):
    try:
     if int(Settings.Pinout[x]["altfunc"]==0) and int(Settings.Pinout[x]["canchange"])>0 and int(Settings.Pinout[x]["BCM"]>-1):

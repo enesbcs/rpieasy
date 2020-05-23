@@ -786,6 +786,55 @@ class hwports:
     self.pwmo[p]["o"].start(prop)
    return True
 
+ def servo_pwm(self,bcmpin,angle):
+  pin = int(bcmpin)
+  freq = 50
+  startprop = 8
+  prop = angle / 18. + 3.
+  if pin in self.pwm: # hardpwm
+   pid = 0
+   if self.pwm[0] == pin:
+    pid = 0
+   else:
+    pid = 1
+   if prop<=0:
+    self.pwmo[pid]["o"].stop()
+   else:
+    self.pwmo[pid]["pin"]=pin
+    self.pwmo[pid]["o"].set_frequency(freq)
+    self.pwmo[pid]["o"].set_duty_prop(prop)
+    self.pwmo[pid]["o"].enable()
+    time.sleep(0.3)
+    self.pwmo[pid]["o"].stop()
+   return True
+  else: # softpwm
+   pfound = False
+   for p in range(len(Settings.Pinout)):
+     if int(Settings.Pinout[p]["BCM"])==pin :
+      if (int(Settings.Pinout[p]["startupstate"]) not in [4,5,6]):
+       return False # if not output skip
+
+   if len(self.pwmo)>2:
+    for p in range(2,len(self.pwmo)):
+     if int(self.pwmo[p]["pin"])==pin:
+      if (self.pwmo[p]["o"]):
+       if prop<=0:
+        self.pwmo[p]["o"].stop()
+       else:
+        self.pwmo[p]["o"].start(startprop)
+        self.pwmo[p]["o"].ChangeFrequency(freq)
+        self.pwmo[p]["o"].ChangeDutyCycle(prop)
+      pfound = True
+      break
+   if pfound==False:
+    self.pwmo[p]["pin"] = pin
+    self.pwmo[p]["o"] = GPIO.PWM(pin,freq)
+    self.pwmo[p]["o"].start(startprop)
+    self.pwmo[p]["o"].ChangeDutyCycle(prop)
+   time.sleep(0.3)
+   self.pwmo[p]["o"].stop()
+   return True
+
  def pwm_get_func(self,pin):
   func = 0
   if pin==12 or pin==13:

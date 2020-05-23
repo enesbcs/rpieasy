@@ -411,6 +411,7 @@ def initprogram():
   CPluginInit()
   NPluginInit()
   RulesInit()
+  signal.signal(signal.SIGINT, signal_handler) # avoid stoling by a plugin
   timer100ms = millis()
   timer20ms  = timer100ms
   timer1s    = timer100ms
@@ -427,11 +428,15 @@ def initprogram():
  except:
   ports = [80,8080,8008,591] # check for usable ports
  up = 0
+ try:
+  ownaddr = socket.gethostname()
+ except:
+  ownaddr = '127.0.0.1'
  for p in ports:
   up = p
   try:
    serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
-   serversocket.bind((socket.gethostname(), up))
+   serversocket.bind((ownaddr, up))
    serversocket.close()
   except:
    up = 0
