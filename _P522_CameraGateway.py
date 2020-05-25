@@ -20,6 +20,7 @@ from PIL import Image, ImageDraw
 from io import BytesIO
 from threading import Thread
 import cv2
+import os
 
 class Plugin(plugin.PluginProto):
  PLUGIN_ID = 522
@@ -54,6 +55,8 @@ class Plugin(plugin.PluginProto):
   self.readinprogress = 0
   if self.enabled:
 #   rtsp_stream_link = 'rtsp://wowzaec2demo.streamlock.net/vod/mp4:BigBuckBunny_115k.mov'
+   if self.taskdevicepluginconfig[4]:
+    os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "rtsp_transport;udp"
    rtsp_stream_link = str(self.taskdevicepluginconfig[0])
    try:
     self.videostream = VideoGrab(rtsp_stream_link)
@@ -81,6 +84,9 @@ class Plugin(plugin.PluginProto):
   webserver.addFormNumericBox("Width to resize","plugin_522_w",self.taskdevicepluginconfig[2],0,4096)
   webserver.addFormNumericBox("Height to resize","plugin_522_h",self.taskdevicepluginconfig[3],0,2160)
   webserver.addFormNote("Resize is a bit resource hungry, use only if really needed")
+  webserver.addFormCheckBox("Force FFMPEG UDP","plugin_522_udp",self.taskdevicepluginconfig[4])
+  webserver.addFormNote("Certain cheap cameras only knows UDP, and OpenCV >3.0 defaults to TCP. OpenCV >4.0 accepts override.")
+  webserver.addFormNote("In case the installed opencv is too old, upgrade manually: 'sudo apt remove python3-opencv && sudo pip3 install opencv-python'")
   try:
    if self.initialized and self.enabled:
     try:
@@ -105,6 +111,7 @@ class Plugin(plugin.PluginProto):
    self.taskdevicepluginconfig[1] = (webserver.arg("plugin_522_resize",params)=="on")
    self.taskdevicepluginconfig[2] = int(webserver.arg("plugin_522_w",params))
    self.taskdevicepluginconfig[3] = int(webserver.arg("plugin_522_h",params))
+   self.taskdevicepluginconfig[4] = (webserver.arg("plugin_522_udp",params)=="on")
    self.capture_start(self.taskdevicepluginconfig[0])
    return True
 
