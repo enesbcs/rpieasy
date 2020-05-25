@@ -33,6 +33,7 @@ except:
 
 def getCachedRSSI(urssi=-1):
  global _lastRSSIval, _lastRSSItime 
+ rssi = urssi
  if ((time.time()-_lastRSSItime)>=3) and (urssi==-1):
   _lastRSSIval = OS.get_rssi()
   _lastRSSItime = time.time()
