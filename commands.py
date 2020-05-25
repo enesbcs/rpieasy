@@ -23,7 +23,7 @@ import threading
 
 GlobalRules = []
 SysVars = ["systime","system_hm","lcltime","syshour","sysmin","syssec","sysday","sysmonth",
-"sysyear","sysyears","sysweekday","sysweekday_s","unixtime","uptime","rssi","ip","ip4","sysname","unit","ssid","mac","mac_int","build","sunrise","sunset","sun_altitude","sun_azimuth","sun_radiation","br","lf"]
+"sysyear","sysyears","sysweekday","sysweekday_s","unixtime","uptime","rssi","ip","ip4","sysname","unit","ssid","mac","mac_int","build","sunrise","sunset","sun_altitude","sun_azimuth","sun_radiation","br","lf","tab"]
 
 def doCleanup():
   rulesProcessing("System#Shutdown",rpieGlobals.RULE_SYSTEM)
@@ -855,6 +855,9 @@ def getglobalvar(varname):
 
    elif svname==SysVars[29]: #%lf%
     return str("\n")
+
+   elif svname==SysVars[30]: #%tab%
+    return str("	")
 
  return res
 
