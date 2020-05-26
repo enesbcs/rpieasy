@@ -55,25 +55,30 @@ class Plugin(plugin.PluginProto):
   if Settings.SoundSystem["usable"]==False:
    webserver.addHtml("<tr><td><td><font color='red'>The sound system can not be used!</font>")
   else:
+   misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"Getting language list")
    if len(self.languages)<1:
     try:
      self.languages = gtts.lang.tts_langs()
     except Exception as e:
+     self.languages = []
      misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,str(e))
-   options = []
-   optionvalues = []
-   if len(self.languages)>0:
-    for l in self.languages:
-     options.append(l+" "+self.languages[l])
-     optionvalues.append(l)
-   webserver.addHtml("<tr><td>Language:<td>")
-   webserver.addSelector_Head("p521_lang",False)
-   for o in range(len(options)):
-    try:
-     webserver.addSelector_Item(options[o],optionvalues[o],(str(optionvalues[o])==str(self.lang)),False)
-    except Exception as e:
-     print(e)
-   webserver.addSelector_Foot()
+   try:
+    options = []
+    optionvalues = []
+    if len(self.languages)>0:
+     for l in self.languages:
+      options.append(l+" "+self.languages[l])
+      optionvalues.append(l)
+    webserver.addHtml("<tr><td>Language:<td>")
+    webserver.addSelector_Head("p521_lang",False)
+    for o in range(len(options)):
+     try:
+      webserver.addSelector_Item(options[o],optionvalues[o],(str(optionvalues[o])==str(self.lang)),False)
+     except Exception as e:
+      print(e)
+    webserver.addSelector_Foot()
+   except Exception as e:
+    print(e)
    webserver.addFormNote("Either taskvalueset or say command can be used to speak text.")
   return True
 

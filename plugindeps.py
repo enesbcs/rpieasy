@@ -33,7 +33,8 @@ modulelist = [
  "testcmd":"import RPi.GPIO as GPIO\ntest = GPIO.getmode()",
 "installed":-1},
 { "name":"i2c",
- "apt": ["python3-smbus","i2c-tools"],
+ "apt": ["i2c-tools"], #python3-smbus not works >python3.6!
+ "pip":["smbus"],
  "testcmd":"import smbus",
  "installed":-1},
 {"name":"apds",

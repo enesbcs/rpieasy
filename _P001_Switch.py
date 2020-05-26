@@ -111,26 +111,44 @@ class Plugin(plugin.PluginProto):
   return True
 
  def webform_save(self,params):
+  changed = False
+  prevval = self.taskdevicepluginconfig[0]
   if (webserver.arg("p001_per",params)=="on"):
    self.taskdevicepluginconfig[0] = True
   else:
    self.taskdevicepluginconfig[0] = False
+  if prevval != self.taskdevicepluginconfig[0]:
+   changed = True
+
+  prevval = self.taskdevicepluginconfig[1]
   par = webserver.arg("p001_debounce",params)
   try:
    self.taskdevicepluginconfig[1] = int(par)
   except:
    self.taskdevicepluginconfig[1] = 0
+  if prevval != self.taskdevicepluginconfig[1]:
+   changed = True
+
+  prevval = self.taskdevicepluginconfig[2]
   par = webserver.arg("p001_button",params)
   try:
    self.taskdevicepluginconfig[2] = int(par)
   except:
    self.taskdevicepluginconfig[2] = 0
   par = webserver.arg("p001_det",params)
+  if prevval != self.taskdevicepluginconfig[2]:
+   changed = True
+
+  prevval = self.taskdevicepluginconfig[3]
   try:
    self.taskdevicepluginconfig[3] = int(par)
   except:
    self.taskdevicepluginconfig[3] = gpios.BOTH
+  if prevval != self.taskdevicepluginconfig[3]:
+   changed = True
 
+  if changed:
+   self.plugin_init()
   return True
 
  def plugin_read(self):
