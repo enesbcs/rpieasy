@@ -59,6 +59,41 @@ def set_bit(v, index, x):
     v |= mask         # If x was True, set the bit indicated by the mask.
   return v
 
+def correctdependencies():
+    try:
+     import plugindeps
+     for i in range(len(plugindeps.modulelist)):
+      if plugindeps.modulelist[i]['name']=="GPIO":
+       plugindeps.modulelist[i]["pip"] = ["pyftdi"]
+       plugindeps.modulelist[i]["testcmd"] = "from pyftdi.ftdi import Ftdi"
+      elif plugindeps.modulelist[i]['name']=="i2c":
+       try:
+        plugindeps.modulelist[i]["pip"] = ["pyftdi"]
+        plugindeps.modulelist[i]["installcmd"] = "cp lib/ftdi/smbus.py smbus.py && cp lib/ftdi/smbus2.py smbus2.py"
+        del plugindeps.modulelist[i]["apt"]
+       except Exception as e:
+        pass
+      elif plugindeps.modulelist[i]['name']=="Adafruit_DHT":
+       plugindeps.modulelist[i]["pip"] = [""] # only RPI supported!
+      elif plugindeps.modulelist[i]['name']=="ws2812":
+       plugindeps.modulelist[i]["pip"] = [""] # only RPI supported!
+#      elif plugindeps.modulelist[i]['name']=="OLED":
+#       plugindeps.modulelist[i]["pip"] = [""] # only real i2c supported!
+      elif plugindeps.modulelist[i]['name']=="tm1637":
+       plugindeps.modulelist[i]["pip"] = [""] # only RPI supported!
+      elif plugindeps.modulelist[i]['name']=="ina219":
+       plugindeps.modulelist[i]["pip"] = [""] # only RPI supported!
+      elif plugindeps.modulelist[i]['name']=="pylora":
+       plugindeps.modulelist[i]["pip"] = [""] # only RPI supported!
+      elif plugindeps.modulelist[i]['name']=="epd":
+       plugindeps.modulelist[i]["pip"] = [""] # only RPI supported!
+      elif plugindeps.modulelist[i]['name']=="amg":
+       plugindeps.modulelist[i]["pip"] = [""] # only RPI supported!
+      elif plugindeps.modulelist[i]['name']=="wpi":
+       plugindeps.modulelist[i]["installcmd"] = [""] # only RPI supported!
+    except:
+     pass
+
 def is_serialnumber(devname):
     ser = False
     u1 = devname.split("/")
@@ -850,6 +885,7 @@ class hwports:
         if int(Settings.Pinout[b]["startupstate"])<7 and int(Settings.Pinout[b]["startupstate"])>=0:
          self.setpinstate(b,Settings.Pinout[b]["startupstate"],True)
 
+
  def readconfig(self):
     Settings.PinStatesMax = 7
     Settings.PinStates = ["Default","Input","Reserved","Reserved","Output","Output-Low","Output-High","Special","Reserved"]
@@ -857,39 +893,7 @@ class hwports:
     for b in range(len(Settings.Pinout)):
      if Settings.Pinout[b]["altfunc"] != 0 and Settings.Pinout[b]["startupstate"]>0 and Settings.Pinout[b]["startupstate"]<7:
       Settings.Pinout[b]["startupstate"] = -1 # set to default
-    try:
-     import plugindeps
-     for i in range(len(plugindeps.modulelist)):
-      if plugindeps.modulelist[i]['name']=="GPIO":
-       plugindeps.modulelist[i]["pip"] = ["pyftdi"]
-       plugindeps.modulelist[i]["testcmd"] = "from pyftdi.ftdi import Ftdi"
-      elif plugindeps.modulelist[i]['name']=="i2c":
-       try:
-        plugindeps.modulelist[i]["pip"] = ["pyftdi"]
-        plugindeps.modulelist[i]["installcmd"] = "cp lib/ftdi/smbus.py smbus.py && cp lib/ftdi/smbus2.py smbus2.py"
-        del plugindeps.modulelist[i]["apt"]
-       except Exception as e:
-        pass
-      elif plugindeps.modulelist[i]['name']=="Adafruit_DHT":
-       plugindeps.modulelist[i]["pip"] = [""] # only RPI supported!
-      elif plugindeps.modulelist[i]['name']=="ws2812":
-       plugindeps.modulelist[i]["pip"] = [""] # only RPI supported!
-#      elif plugindeps.modulelist[i]['name']=="OLED":
-#       plugindeps.modulelist[i]["pip"] = [""] # only real i2c supported!
-      elif plugindeps.modulelist[i]['name']=="tm1637":
-       plugindeps.modulelist[i]["pip"] = [""] # only RPI supported!
-      elif plugindeps.modulelist[i]['name']=="ina219":
-       plugindeps.modulelist[i]["pip"] = [""] # only RPI supported!
-      elif plugindeps.modulelist[i]['name']=="pylora":
-       plugindeps.modulelist[i]["pip"] = [""] # only RPI supported!
-      elif plugindeps.modulelist[i]['name']=="epd":
-       plugindeps.modulelist[i]["pip"] = [""] # only RPI supported!
-      elif plugindeps.modulelist[i]['name']=="amg":
-       plugindeps.modulelist[i]["pip"] = [""] # only RPI supported!
-      elif plugindeps.modulelist[i]['name']=="wpi":
-       plugindeps.modulelist[i]["installcmd"] = [""] # only RPI supported!
-    except:
-     pass
+    correctdependencies()
     self.gpioctrl = [] # ftdi gpio
     self.gpios    = [] # rpigpio compatible layer
     self.i2cctrl  = [] # ftdi i2c

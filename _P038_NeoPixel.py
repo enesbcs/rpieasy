@@ -141,7 +141,7 @@ class Plugin(plugin.PluginProto):
   except:
     pass
 
- def __del__(self):
+ def plugin_exit(self):
   self.clearall()
 
  def plugin_write(self,cmd):

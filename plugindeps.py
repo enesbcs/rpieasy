@@ -508,6 +508,9 @@ plugindependencies = [
 {"pluginid": "522", # RTSP
  "supported_os_level": [1,2,3,10],
  "modules":["opencv","pil"]},
+{"pluginid": "524", #Keypad
+ "supported_os_level": [10],
+ "modules":["GPIO"]},
 
 ]
 

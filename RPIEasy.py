@@ -73,6 +73,7 @@ def hardwareInit():
  if pinout=="0":
   try:
    import lib.lib_ftdigpios as ftdigpio # check for ftdi hwtype?
+   ftdigpio.correctdependencies()
    if ftdigpio.get_ftdi_devices(0)>0:
     hwtype = 19
     pinout = "ftdi"
