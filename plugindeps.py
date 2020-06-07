@@ -244,6 +244,11 @@ modulelist = [
  "pip": [],
  "testcmd": "import cv2",
  "installed":-1},
+{"name":"dbus",
+ "apt": ["dbus-x11"],
+ "pip": ["dbus-python","PyGObject"],
+ "testcmd": "import dbus\nimport gi.repository",
+ "installed":-1},
 
 ]
 
@@ -269,6 +274,8 @@ controllerdependencies = [
 notifierdependencies = [
 {"npluginid":"5",      # Blynk
 "modules":["blynklib"]},
+{"npluginid":"7",      # Jami
+"modules":["dbus"]},
 ]
 
 plugindependencies = [
@@ -508,6 +515,9 @@ plugindependencies = [
 {"pluginid": "522", # RTSP
  "supported_os_level": [1,2,3,10],
  "modules":["opencv","pil"]},
+{"pluginid": "523", # Jami Connector
+ "supported_os_level": [1,2,3,10],
+ "modules":["dbus"]},
 {"pluginid": "524", #Keypad
  "supported_os_level": [10],
  "modules":["GPIO"]},

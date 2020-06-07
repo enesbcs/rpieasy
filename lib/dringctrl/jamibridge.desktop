@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Jamibridge
+GenericName=Jamibridge
+Exec=lxterminal -e /usr/bin/python3 /home/pi/rpieasy/jamibridge.py
+Icon=jami
+StartupNotify=true
+Terminal=false
+Type=Application
+Categories=Network;Telephony;

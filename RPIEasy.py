@@ -424,27 +424,32 @@ def initprogram():
  t = threading.Thread(target=mainloop)  # starting sensors and background functions
  t.daemon = True
  t.start()
+ ports = []
  try:
   ports = Settings.AdvSettings["portlist"]
  except:
-  ports = [80,8080,8008,591] # check for usable ports
+  ports = [80,8080,8008,591] # replace default ports
+ if len(ports)<1:
+  ports = [80,8080,8008,591] # replace default ports
  up = 0
  try:
   ownaddr = socket.gethostname()
  except:
   ownaddr = '127.0.0.1'
+ errors = ""
  for p in ports:
   up = p
   try:
    serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
    serversocket.bind((ownaddr, up))
    serversocket.close()
-  except:
+  except Exception as e:
    up = 0
+   errors = errors + str(e)
   if up>0:
    break
  if up == 0:
-  misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Webserver can not be started, no available port found!")
+  misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Webserver can not be started, no available port found! "+str(errors))
  else:
   misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"Webserver starting at port "+str(up))
   Settings.WebUIPort = up
