@@ -249,6 +249,9 @@ modulelist = [
  "pip": ["dbus-python","PyGObject"],
  "testcmd": "import dbus\nimport gi.repository",
  "installed":-1},
+{"name":"snapclient",
+"testcmd" : "if OS.is_command_found('snapclient')==False:\n raise Exception('snapclient not found')",
+"installed":-1},
 
 ]
 
@@ -521,6 +524,9 @@ plugindependencies = [
 {"pluginid": "524", #Keypad
  "supported_os_level": [10],
  "modules":["GPIO"]},
+{"pluginid": "525", # snapc
+ "supported_os_level": [1,2,3,10],
+ "modules":["snapclient"]},
 
 ]
 
