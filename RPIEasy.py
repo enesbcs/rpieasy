@@ -432,10 +432,7 @@ def initprogram():
  if len(ports)<1:
   ports = [80,8080,8008,591] # replace default ports
  up = 0
- try:
-  ownaddr = socket.gethostname()
- except:
-  ownaddr = '127.0.0.1'
+ ownaddr = '0.0.0.0'
  errors = ""
  for p in ports:
   up = p
@@ -453,7 +450,7 @@ def initprogram():
  else:
   misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"Webserver starting at port "+str(up))
   Settings.WebUIPort = up
-  webserver.WebServer.start('', up) # starts webserver GUI
+  webserver.WebServer.start(ownaddr, up) # starts webserver GUI
 
 # MAIN
 signal.signal(signal.SIGTERM, signal_handler)

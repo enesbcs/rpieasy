@@ -13,12 +13,17 @@ class keypad():
  def __init__(self,keypad=[],row_pins=[],col_pins=[],callback=None):
    if len(keypad)<1 or len(row_pins)<1 or len(col_pins)<1:
     return
-   GPIO.setwarnings(False)
-   GPIO.setmode(GPIO.BCM)
    self.keypad = keypad
    self.rowpins = row_pins
    self.colpins = col_pins
    self.callback = callback
+   self.readmode = 0
+   self.initpins()
+   self.initialized = True
+
+ def initpins(self):
+#   GPIO.setwarnings(False)
+#   GPIO.setmode(GPIO.BCM)
    for po in self.colpins:
     GPIO.setup(po,GPIO.OUT)
    for pi in self.rowpins:
@@ -29,15 +34,14 @@ class keypad():
      pass
     time.sleep(0.05)
     GPIO.add_event_detect(pi,GPIO.RISING, callback=self.inthandler,bouncetime=200)
-   self.readmode = 0
-   self.initialized = True
 
  def isInitialized(self):
    return self.initialized
 
  def inthandler(self,channel):
-   if self.readmode==1:
-    self.getButton()
+   if channel in self.rowpins:
+    if self.readmode==1:
+     self.getButton()
 
  def setup_keyscan(self):
   for p in self.colpins:
@@ -69,7 +73,9 @@ class keypad():
     result = None
     resultCoordx = -1
     resultCoordy = -1
-    while result == None:
+    rstart = time.time()
+    while result == None and self.initialized:
+     try:
       for actCol in self.colpins:
         resultCoordy+=1
         for _actCol in self.colpins:
@@ -84,6 +90,10 @@ class keypad():
         time.sleep(0.005)
       resultCoordy = -1
       time.sleep(0.005)
+      if time.time()-rstart>2:
+       break
+     except:
+      pass
     self.readmode = 0
     if self.callback is not None:
      try:
