@@ -160,7 +160,7 @@ class Plugin(plugin.PluginProto):
       if str(self.uservar[3]) !="":
        self.set_value(4,"")
       self.plugin_senddata()
-     elif int(self.uservar[0]) in [1,3]:
+     elif int(self.uservar[0]) != 0 and state==0:
       self.set_value(1,0,False)
       self.set_value(2,"INACTIVE",False)
       if str(self.uservar[3]) !="":

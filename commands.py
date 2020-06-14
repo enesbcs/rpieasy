@@ -974,6 +974,9 @@ def parseruleline(linestr,rulenum=-1):
  elif "else" in cline:
   cline = False
   state = "IFEL"
+ elif cline.startswith("breakon"):
+  cline = False
+  state = "BREAK"
  return cline,state
 
 def isformula(line):
@@ -1071,6 +1074,8 @@ def rulesProcessing(eventstr,efilter=-1): # fire events
      elif ifbool:
       if state=="INV":
        misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Invalid command: "+retval)
+      elif state=="BREAK":
+       return True
       else:
        cret = doExecuteCommand(retval,False) # execute command
 

@@ -54,6 +54,7 @@ class JamiBridge():
       sys.exit(0)
  
  def plugin_senddata(self,datapacket,cmdp="",types="0"):
+#     print(datapacket.datapacket)#debug
      try:
       datapacket.encode(cmds=cmdp,typee=types)
       if len(datapacket.buffer)>0:
@@ -62,6 +63,7 @@ class JamiBridge():
       print(e)
 
  def cb_ring2(self, stateid, statestr, caller=None):
+#     print(stateid,statestr)#debug
      dp = dring.json_data_packet()
      if (int(self.uservar[0]) != stateid) and (stateid != 0):
       self.uservar[0]=stateid
@@ -87,7 +89,7 @@ class JamiBridge():
       dp.set_value(2,"ACTIVE")
       dp.set_value(4,"")
       self.plugin_senddata(dp,types="STAT")
-     elif int(self.uservar[0]) in [1,3]:
+     elif int(self.uservar[0]) != 0 and state==0:
       self.uservar[0]=0
       dp.set_value(1,0)
       dp.set_value(2,"INACTIVE")

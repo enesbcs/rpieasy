@@ -76,8 +76,16 @@ class JamiHandler(DRingCtrl):
           self.cb_ring2(self.uservar[0],strstat,caller)
         self.lastring = time.time()
 
+#    def onCallHangup_cb(self,callId):
+#        if self.cb_call is not None:
+#         self.cb_call(0)
+#        if self.cb_ring is not None:
+#         self.cb_ring(0,None)
+#        if self.cb_ring2 is not None:
+#         self.cb_ring2(0,"INACTIVE")
+
     def onCallCurrent_cb(self):
-       if time.time()-self.lastcall > 2:
+       if time.time()-self.lastcall > 1:
         if self.cb_call is not None:
          self.cb_call(1)
 #        else:
@@ -88,11 +96,19 @@ class JamiHandler(DRingCtrl):
          self.cb_ring2(0,"INACTIVE")
         self.lastcall = time.time()
 
+    def onCallFailure_cb(self):
+        if self.cb_call is not None:
+         self.cb_call(0)
+        if self.cb_ring is not None:
+         self.cb_ring(0,None)
+        if self.cb_ring2 is not None:
+         self.cb_ring2(0,"INACTIVE")
+
     def onCallOver_cb(self):
         if self.cb_call is not None:
          self.cb_call(0)
 #        else:
-#         print("----------Call ended")
+#         print("----------Call ended") # debug
 
     def onIncomingAccountMessage(self, accountId, messageId, fromAccount, payloads=None):
       if payloads is None: # changes in API???

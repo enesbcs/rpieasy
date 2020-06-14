@@ -90,6 +90,7 @@ class DRingCtrl(Thread):
          cid = 0
          stat = 0
          for arg in message.get_args_list():
+#          print(arg)#debug
           if ct==0:
            cid = arg
           elif ct==1:
@@ -221,7 +222,7 @@ class DRingCtrl(Thread):
             self.Accept(callId)
         pass
 
-    def onCallHangup_cb(self, callId):
+    def onCallHangup_cb(self, callId, dummy=None):
         pass
 
     def onCallConnecting_cb(self, callId):
@@ -339,7 +340,7 @@ class DRingCtrl(Thread):
             self.onCallHangUp(callid, state)
         elif state == "CONNECTING":
             self.onCallConnecting(callid, state)
-        elif state == "RINGING":
+        elif state == "RINGING" or state == "INCOMING":
             self.onCallRinging(callid, state)
         elif state == "CURRENT":
             self.onCallCurrent(callid, state)
