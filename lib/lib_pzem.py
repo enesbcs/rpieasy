@@ -35,6 +35,7 @@ class PZEM():
     self.initialized = False
     self.dev = None
   except Exception as e:
+   print("PZEM Exception: ",str(e))
    self.initialized = False
    self.dev = None
 
@@ -86,8 +87,17 @@ class PZEM():
 pzem_devices = []
 
 def request_pzem_device(sport,saddress):
+  global pzem_devices
+  sport = str(sport)
+  try:
+   saddress = int(saddress)
+  except:
+   saddress = 1
   for i in range(len(pzem_devices)):
-   if (pzem_devices[i].port == str(sport)) and (int(pzem_devices[i].address) == int(saddress)):
-    return pzem_devices[i]
+   try:
+    if (str(pzem_devices[i].port) == sport) and (int(pzem_devices[i].address) == saddress):
+     return pzem_devices[i]
+   except:
+    pass
   pzem_devices.append(PZEM(sport,saddress))
   return pzem_devices[-1]

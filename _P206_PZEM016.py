@@ -43,20 +43,21 @@ class Plugin(plugin.PluginProto):
   self.initialized=False
 
  def webform_load(self): # create html page for settings
-  choice1 = self.taskdevicepluginconfig[0]
+  choice1 = self.stripstring(self.taskdevicepluginconfig[0])
   options = rpiSerial.serial_portlist()
   if len(options)>0:
    webserver.addHtml("<tr><td>Serial Device:<td>")
    webserver.addSelector_Head("p206_addr",False)
    for o in range(len(options)):
+    options[o] = self.stripstring(options[o])
     webserver.addSelector_Item(options[o],options[o],(str(options[o])==str(choice1)),False)
    webserver.addSelector_Foot()
    webserver.addFormNote("Address of the USB-RS485 converter")
   else:
    webserver.addFormNote("No serial ports found")
-  webserver.addFormNumericBox("Slave address","p206_saddr",self.taskdevicepluginconfig[1],1,247)
+  webserver.addFormNumericBox("Slave address","p206_saddr",self.taskdevicepluginconfig[1],1,248)
 
-  webserver.addFormNote("Default address is 1. Use 'pzemaddress,[currentaddress],[newaddress]' command to change it")
+  webserver.addFormNote("Default address is 1. Use 'pzemaddress,[currentaddress],[newaddress]' command to change it. (broadcast=248)")
   if self.taskname=="":
    choice1 = 0
    choice2 = 1
@@ -76,14 +77,20 @@ class Plugin(plugin.PluginProto):
   return True
 
  def webform_save(self,params): # process settings post reply
+  paddr = self.taskdevicepluginconfig[1]
+  ninit = False
   par = webserver.arg("p206_saddr",params)
   try:
    self.taskdevicepluginconfig[1] = int(par)
   except:
    self.taskdevicepluginconfig[1] = 1
-
   try:
-   self.taskdevicepluginconfig[0] = str(webserver.arg("p206_addr",params)).strip()
+   if int(paddr) != int(self.taskdevicepluginconfig[1]):
+    ninit = True
+  except:
+   ninit = True
+  try:
+   self.taskdevicepluginconfig[0] = self.stripstring(webserver.arg("p206_addr",params))
    for v in range(0,4):
     par = webserver.arg("plugin_206_ind"+str(v),params)
     if par == "":
@@ -105,11 +112,13 @@ class Plugin(plugin.PluginProto):
     self.vtype = rpieGlobals.SENSOR_TYPE_QUAD
   except Exception as e:
    misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,+str(e))
+  if ninit:
+   self.plugin_init()
   return True
 
  def plugin_init(self,enableplugin=None):
   plugin.PluginProto.plugin_init(self,enableplugin)
-  self.taskdevicepluginconfig[0] = str(self.taskdevicepluginconfig[0]).strip()
+  self.taskdevicepluginconfig[0] = self.stripstring(self.taskdevicepluginconfig[0])
   self.readinprogress=0
   self.initialized=False
   if self.valuecount == 1:
@@ -189,3 +198,8 @@ class Plugin(plugin.PluginProto):
       else:
        res = False
   return res
+
+ def stripstring(self,tstr):
+   sentence = str(tstr)
+   sentence = ''.join(sentence.split())
+   return sentence

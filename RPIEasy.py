@@ -404,7 +404,7 @@ def initprogram():
   os.chdir(os.path.dirname(os.path.realpath(__file__)))
  except:
   pass
- #print("Loading settings")
+ print("Starting "+rpieGlobals.PROGNAME+" "+rpieGlobals.PROGVER)
  try:
   Settings.loadsettings()
   hardwareInit()
