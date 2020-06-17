@@ -74,6 +74,7 @@ class Plugin(plugin.PluginProto):
   webserver.addFormSelector("Indicator2","plugin_206_ind1",len(options),options,optionvalues,None,choice2)
   webserver.addFormSelector("Indicator3","plugin_206_ind2",len(options),options,optionvalues,None,choice3)
   webserver.addFormSelector("Indicator4","plugin_206_ind3",len(options),options,optionvalues,None,choice4)
+  webserver.addFormCheckBox("Increase timeout for slow PZEM004 compatibility","plugin_206_slow",self.taskdevicepluginconfig[6])
   return True
 
  def webform_save(self,params): # process settings post reply
@@ -89,6 +90,7 @@ class Plugin(plugin.PluginProto):
     ninit = True
   except:
    ninit = True
+  self.taskdevicepluginconfig[6] = (webserver.arg("plugin_206_slow",params)=="on")
   try:
    self.taskdevicepluginconfig[0] = self.stripstring(webserver.arg("p206_addr",params))
    for v in range(0,4):
@@ -131,10 +133,20 @@ class Plugin(plugin.PluginProto):
     self.vtype = rpieGlobals.SENSOR_TYPE_QUAD
   if self.enabled and self.taskdevicepluginconfig[0]!="" and self.taskdevicepluginconfig[0]!="0":
    self.ports = str(self.taskdevicepluginconfig[0])+"/"+str(self.taskdevicepluginconfig[1])
+   if self.taskdevicepluginconfig[6]:
+    timeout = 3
+    if self.interval<3:
+     self.interval=3 # sorry, use better device if you need smaller intervals
+   else:
+    timeout = 0.1
    try:
-    self.pzem = uPZEM.request_pzem_device(self.taskdevicepluginconfig[0],self.taskdevicepluginconfig[1])
+    self.pzem = uPZEM.request_pzem_device(self.taskdevicepluginconfig[0],self.taskdevicepluginconfig[1],timeout)
     if self.pzem != None and self.pzem.initialized:
-     misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"PZEM initialized at: "+str(self.taskdevicepluginconfig[0])+" / " +str(self.taskdevicepluginconfig[1]))
+     if timeout>1:
+      sl = "slow "
+     else:
+      sl = ""
+     misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"PZEM "+sl+"initialized at: "+str(self.taskdevicepluginconfig[0])+" / " +str(self.taskdevicepluginconfig[1]))
      self.initialized=True
      self.readinprogress = 0
     else:
