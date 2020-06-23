@@ -10,9 +10,9 @@ import os
 import rpieGlobals
 import misc
 try:
- import linux_os as OS
+ import os_os as OS
 except:
- print("Linux OS import error!")
+ print("OS functions import error!")
 import Settings
 import threading
 
@@ -258,8 +258,6 @@ modulelist = [
 controllerdependencies = [
 {"controllerid":"2",       # Domoticz MQTT
 "modules":["paho-mqtt"]},
-{"controllerid":"13",      # ESPEasy P2P
-"modules":["linux-kernel"]},
 {"controllerid":"14",      # Generic MQTT
 "modules":["paho-mqtt"]},
 {"controllerid":"15",      # Blynk
@@ -356,8 +354,7 @@ plugindependencies = [
  "supported_os_level": [10],
  "modules":["i2c","Adafruit_ADS1x15"]},
 {"pluginid": "26", #SysInfo
- "supported_os_level": [1,2,3,10],
- "modules":["linux-kernel"]},
+ "supported_os_level": [1,2,3,10]},
 {"pluginid": "27", # INA219
  "supported_os_level": [10],
  "modules":["i2c","ina219"]},
@@ -579,11 +576,14 @@ def installdeps2(modulename):
       installprog = OS.cmdline_rootcorrect("sudo apt-get update && sudo apt-get install -y "+ installprog.strip())
      elif rpieGlobals.ossubtype==2:
       installprog = OS.cmdline_rootcorrect("yes | sudo pacman -S "+ installprog.strip())
+     elif rpieGlobals.osinuse=="windows":
+      installprog = ""      
      ustr = "apt: "+installprog
-     Settings.UpdateString = "!"+ustr
-     misc.addLog(rpieGlobals.LOG_LEVEL_INFO,ustr)
-     proc = subprocess.Popen(installprog, shell=True, stdin=None, stdout=open(os.devnull,"wb"), executable="/bin/bash")
-     proc.wait()
+     if installprog.strip() != "":
+      Settings.UpdateString = "!"+ustr
+      misc.addLog(rpieGlobals.LOG_LEVEL_INFO,ustr)
+      proc = subprocess.Popen(installprog, shell=True, stdin=None, stdout=open(os.devnull,"wb"), executable="/bin/bash")
+      proc.wait()
    except Exception as e:
      misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,str(e))
    try:
@@ -591,9 +591,13 @@ def installdeps2(modulename):
      installprog = " "
      for j in range(len(modulelist[i]["pip"])):
       installprog += modulelist[i]["pip"][j] + " "
-     installprog = "sudo -H pip3 install "+ installprog.strip()
-     if OS.is_command_found("sudo")==False: # if sudo is installed use it because -H option is important
-      installprog = OS.cmdline_rootcorrect("sudo -H pip3 install "+ installprog.strip())
+     if rpieGlobals.osinuse=="windows":
+      import shutil
+      installprog = '"'+shutil.which("python")+'"'+" -m pip install "+ installprog.strip()     
+     else:
+      installprog = "sudo -H pip3 install "+ installprog.strip()
+      if OS.is_command_found("sudo")==False: # if sudo is installed use it because -H option is important
+       installprog = OS.cmdline_rootcorrect("sudo -H pip3 install "+ installprog.strip())
      ustr = "pip3: "+installprog
      Settings.UpdateString = "!"+ustr
      misc.addLog(rpieGlobals.LOG_LEVEL_INFO,ustr)

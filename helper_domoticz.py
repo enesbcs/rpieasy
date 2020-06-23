@@ -8,7 +8,7 @@
 # Copyright (C) 2018-2019 by Alexander Nagy - https://bitekmindenhol.blog.hu/
 #
 import rpieGlobals
-import linux_os as OS
+import os_os as OS
 import time
 import misc
 

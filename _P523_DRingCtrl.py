@@ -248,7 +248,12 @@ class Plugin(plugin.PluginProto):
       self.jami.endCall()
      except Exception as e:
       print(e)
-
+    elif subcmd=="contactlist":
+     try:
+      clist = self.jami.getContactList()
+      misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"Jami contacts: "+str(clist))
+     except Exception as e:
+      print(e)
     res = True
    else:
     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Jami is not initialized")

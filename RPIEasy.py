@@ -69,6 +69,12 @@ def hardwareInit():
    if opv:
     pinout = opv["pins"]
     misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,str(opv["name"])+" "+str(opv["pins"])+" pins")
+ if rpieGlobals.osinuse=="windows":
+  print("Windows OS is not supported")
+  import win_os as OS
+  import win_network as Network
+  Settings.NetMan = Network.NetworkManager()
+  Settings.SoundSystem["usable"]=False
  hwtype = rpieGlobals.ossubtype
  if pinout=="0":
   try:
@@ -119,7 +125,7 @@ def PluginInit():
  for fname in filenames:
   tarr = [0,0,0]
   tarr[0] = fname
-  with open(fname,"r") as fcont:
+  with open(fname,"r",encoding="utf8") as fcont:
    for line in fcont:
     if "PLUGIN_ID" in line:
      tarr[1] = line[line.find("=")+1:].strip().replace('"',"")
@@ -141,7 +147,7 @@ def CPluginInit():
  for fname in filenames:
   tarr = [0,0,0]
   tarr[0] = fname
-  with open(fname,"r") as fcont:
+  with open(fname,"r",encoding="utf8") as fcont:
    for line in fcont:
     if "CONTROLLER_ID" in line:
      tarr[1] = line[line.find("=")+1:].strip().replace('"',"")
@@ -187,7 +193,7 @@ def NPluginInit():
  for fname in filenames:
   tarr = [0,0,0]
   tarr[0] = fname
-  with open(fname,"r") as fcont:
+  with open(fname,"r",encoding="utf8") as fcont:
    for line in fcont:
     if "NPLUGIN_ID" in line:
      tarr[1] = line[line.find("=")+1:].strip().replace('"',"")
@@ -214,7 +220,7 @@ def NPluginInit():
 def RulesInit():
  rules = ""
  try:
-  with open(rpieGlobals.FILE_RULES,'r') as f:
+  with open(rpieGlobals.FILE_RULES,'r',encoding="utf8") as f:
    rules = f.read()
  except:
   pass
@@ -356,8 +362,7 @@ def checkNetwork():
       if Settings.NetMan.APMode not in [-1,100]:
        if lastdisconntime!=0:
         if (time.time()-lastdisconntime)>int(Settings.NetMan.APModeTime):
-           from linux_network import AP_start
-           AP_start(Settings.NetMan.WifiDevNum)
+           Network.AP_start(Settings.NetMan.WifiDevNum)
            lastdisconntime = 0 # forgive last disconnect time
            lastaptime = time.time()
        else:
@@ -367,8 +372,7 @@ def checkNetwork():
       if Settings.NetMan.APMode not in [-1,100]:
        if lastaptime!=0:
         if (time.time()-lastaptime)>int(Settings.NetMan.APStopTime):
-           from linux_network import AP_stop
-           AP_stop(Settings.NetMan.WifiDevNum)
+           Network.AP_stop(Settings.NetMan.WifiDevNum)
            lastaptime = 0
            lastdisconntime = 0 # forgive last disconnect time
  except Exception as e:
@@ -419,7 +423,8 @@ def initprogram():
   timer2s    = timer100ms
   timer30s   = timer100ms
   init_ok = True
- except:
+ except Exception as e:
+  print(e)
   init_ok = False
  t = threading.Thread(target=mainloop)  # starting sensors and background functions
  t.daemon = True

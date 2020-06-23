@@ -20,9 +20,9 @@ import socket
 import struct
 import threading
 try:
- import linux_os as OS
+ import os_os as OS
 except:
- print("Linux OS function import error")
+ print("OS function import error")
 
 class Controller(controller.ControllerProto):
  CONTROLLER_ID = 13

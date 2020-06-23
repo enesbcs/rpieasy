@@ -9,7 +9,7 @@ import plugin
 import webserver
 import rpieGlobals
 import rpieTime
-import linux_os as OS
+import os_os as OS
 import misc
 
 class Plugin(plugin.PluginProto):

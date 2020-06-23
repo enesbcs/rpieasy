@@ -19,10 +19,10 @@ import Settings
 import time
 from datetime import datetime, timedelta
 import rpieTime
-import linux_os as OS
+import os_os as OS
 import misc
 import commands
-import linux_network as Network
+import os_network as Network
 import urllib
 import hashlib
 import threading
@@ -691,6 +691,7 @@ def handle_hardware(self):
 
  TXBuffer += "<form name='frmselect' method='post'><table class='normal'><tr><TH style='width:150px;' align='left' colspan=2>System"
  TXBuffer += "<TR><TD>Type:<TD>"+suplvl
+
  if suplvl[0] != "N":
   TXBuffer += "<TR><TD>OS:<TD>"+str(rpieGlobals.osinuse)+" "+str(misc.getosname(1))
  if "Linux" in suplvl:
@@ -737,7 +738,7 @@ def handle_hardware(self):
    addFormCheckBox("Enable HDMI at startup","hdmienabled",ar.hdmienabled)
   if OS.check_permission():
    TXBuffer += "<tr><td colspan=2>"
-   addSubmitButton()
+   addSubmitButton() 
 
  addFormSeparator(2)
  TXBuffer += "<TR><TD HEIGHT=30>"
@@ -757,7 +758,6 @@ def handle_hardware(self):
   addSubmitButton("Disable Serial port usage by kernel","nokernelserial")
 
  TXBuffer += "</table></form>"
-
  sendHeadandTail("TmplStd",_TAIL)
  return TXBuffer
 
@@ -1058,6 +1058,7 @@ def handle_plugins(self):
  global TXBuffer, navMenuIndex
  TXBuffer=""
  navMenuIndex=3
+
  if (rpieGlobals.wifiSetup):
   return self.redirect('/setup')
  if (not isLoggedIn(self.get,self.cookie)):

@@ -60,6 +60,8 @@ class Plugin(plugin.PluginProto):
  def plugin_init(self,enableplugin=None):
   plugin.PluginProto.plugin_init(self,enableplugin)
   self.decimals[0]=0
+  self.decimals[1]=0
+  self.decimals[2]=0
   self.initialized = False
   try:
    gpioinit = gpios.HWPorts is not None
@@ -87,6 +89,18 @@ class Plugin(plugin.PluginProto):
      gpios.HWPorts.add_event_detect(int(self.taskdevicepin[0]),int(self.taskdevicepluginconfig[3]),self.p001_handler)
     misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"Event registered to pin "+str(self.taskdevicepin[0]))
     self.timer100ms = False
+    self._lastdataservetime = 0
+    if self.taskdevicepluginconfig[4]>0:
+     self.valuecount = 3
+     self.uservar[1]=-1
+     if len(self.valuenames)<3:
+       self.valuenames.append("")
+       self.valuenames.append("")
+     if self.valuenames[1]=="":
+      self.valuenames[1]="Longpress"
+      self.valuenames[2]="PressedTime"
+    else:
+     self.valuecount = 1
    except Exception as e:
     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Event can not be added, register backup timer "+str(e))
     self.timer100ms = True
@@ -108,6 +122,10 @@ class Plugin(plugin.PluginProto):
    webserver.addFormNote("Only valid if event detection activated")
   except:
    pass
+  options = ["None","1-->0","0-->1","Both"]
+  optionvalues = [0,1,2,3]
+  webserver.addFormSelector("Longpress detection","p001_long",len(optionvalues),options,optionvalues,None,self.taskdevicepluginconfig[4])
+  webserver.addFormNumericBox("Longpress min time (ms)","p001_longtime",self.taskdevicepluginconfig[5],0,10000)
   return True
 
  def webform_save(self,params):
@@ -135,17 +153,32 @@ class Plugin(plugin.PluginProto):
    self.taskdevicepluginconfig[2] = int(par)
   except:
    self.taskdevicepluginconfig[2] = 0
-  par = webserver.arg("p001_det",params)
   if prevval != self.taskdevicepluginconfig[2]:
    changed = True
 
   prevval = self.taskdevicepluginconfig[3]
+  par = webserver.arg("p001_det",params)
   try:
    self.taskdevicepluginconfig[3] = int(par)
   except:
    self.taskdevicepluginconfig[3] = gpios.BOTH
   if prevval != self.taskdevicepluginconfig[3]:
    changed = True
+
+  prevval = self.taskdevicepluginconfig[4]
+  par = webserver.arg("p001_long",params)
+  try:
+   self.taskdevicepluginconfig[4] = int(par)
+  except:
+   self.taskdevicepluginconfig[4] = 0
+  if prevval != self.taskdevicepluginconfig[4]:
+   changed = True
+
+  par = webserver.arg("p001_longtime",params)
+  try:
+   self.taskdevicepluginconfig[5] = int(par)
+  except:
+   self.taskdevicepluginconfig[5] = 1000
 
   if changed:
    self.plugin_init()
@@ -181,7 +214,31 @@ class Plugin(plugin.PluginProto):
     if inval==1:             # if high
      outval = 1-int(prevval) # negate
    if prevval != outval:
-    self.set_value(1,int(outval),True)
+    if self.taskdevicepluginconfig[4]>0 and self._lastdataservetime>0: # check for longpress
+     docheck = False
+     if self.taskdevicepluginconfig[4]==3:
+      docheck = True
+     elif self.taskdevicepluginconfig[4]==1 and int(prevval)==1 and int(outval)==0:
+      docheck = True
+     elif self.taskdevicepluginconfig[4]==2 and int(prevval)==0 and int(outval)==1:
+      docheck = True
+     self.set_value(1,int(outval),False)
+     diff = (rpieTime.millis()-self._lastdataservetime)
+     dolong = False
+     if docheck:
+       if diff > self.taskdevicepluginconfig[5]:
+        dolong = True
+     if dolong:
+      self.set_value(2,1,False)
+     else:
+      self.set_value(2,0,False)
+     if docheck:
+      self.set_value(3,diff,False)
+     else:
+      self.set_value(3,0,False)
+     self.plugin_senddata()
+    else:
+     self.set_value(1,int(outval),True)
     self._lastdataservetime = rpieTime.millis()
     if self.taskdevicepluginconfig[2]>0 and self.timer100ms:
       time.sleep(self.taskdevicepluginconfig[1]/1000) # force debounce if not event driven detection

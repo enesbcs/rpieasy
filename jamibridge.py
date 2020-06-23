@@ -127,6 +127,7 @@ class JamiBridge():
     except socket.error:
         pass
     else:
+     try:
       if dp.buffer[0]==123: # {
        dp.decode()
 #       print("rec cmd ",dp.datapacket)#debug
@@ -134,10 +135,7 @@ class JamiBridge():
         if dp.datapacket["type"]=="CMD":
          ds.clear()
          if dp.datapacket["cmd"]=="call":
-          try:
-           self.jami.makeCall(dp.datapacket["val1"])
-          except Exception as e:
-           print(e)
+          self.jami.makeCall(dp.datapacket["val1"])
 #          print("call")
          elif dp.datapacket["cmd"]=="isoperational":
           ds.set_value(1,self.initialized)
@@ -152,18 +150,15 @@ class JamiBridge():
           self.jami.endCall()
 #          print("endcall")
          elif dp.datapacket["cmd"]=="getcontactlist":
-          try:
-           cl = self.jami.getContactList()
-          except:
-           cl = []
+#          try:
+          cl = self.jami.getContactList()
+#          except:
+#           cl = []
           ds.set_value(1,cl)
           self.plugin_senddata(ds,types="RES",cmdp=dp.datapacket["cmd"])
 #          print("getcontactlist")
          elif dp.datapacket["cmd"]=="sendtext":
-          try:
            self.jami.sendText(dp.datapacket["val1"],dp.datapacket["val2"])
-          except Exception as e:
-           print(e)
          elif dp.datapacket["cmd"]=="getstatus":
           ds.set_value(1,self.uservar[0])
           self.plugin_senddata(ds,types="RES",cmdp=dp.datapacket["cmd"])
@@ -172,7 +167,10 @@ class JamiBridge():
           ds.set_value(1,self.jami.account)
           self.plugin_senddata(ds,types="RES",cmdp=dp.datapacket["cmd"])
 #          print("getaccount")
-
+     except Exception as e:
+      if "freedesktop.DBus" in str(e):
+       print("Exception: ",str(e))
+       self.initialized = False
     time.sleep(0.01) # sleep to avoid 100% cpu usage
 
  def udpsender(self,data):
@@ -199,6 +197,19 @@ while connok==False:
   connok = False
  time.sleep(5)
 print("Connection OK, starting loop. Data sending to localhost:"+str(JB.scontrollerport))
-while JB.initialized:
+while True:
+ connok = True
+ try:
+  if JB.jami.initialized==False or JB.initialized==False:
+   connok = False
+ except Exception as e:
+  connok = False
+ if connok==False:
+   print("Dring communication failed try to reconnect")
+   try:
+    time.sleep(5)
+    JB = JamiBridge()
+   except Exception as e:
+    print("Error at reinit: ",str(e))
  time.sleep(1)
 # print(".")

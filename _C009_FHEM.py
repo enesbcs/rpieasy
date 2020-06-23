@@ -10,7 +10,7 @@
 import controller
 import rpieGlobals
 import Settings
-import linux_os as OS
+import os_os as OS
 import misc
 import urllib.request
 import threading

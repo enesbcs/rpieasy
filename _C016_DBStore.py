@@ -13,7 +13,7 @@ import misc
 import webserver
 import datetime
 import Settings
-import linux_os as OS
+import os_os as OS
 import time
 
 _lastRSSIval = 0

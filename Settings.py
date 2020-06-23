@@ -105,7 +105,7 @@ def savesettings():
  global Settings, settingsfile
  success = 1
  try:
-  f = open(settingsfile,'w')
+  f = open(settingsfile,'w',encoding="utf8")
   settingjson = jsonpickle.encode(Settings)
   f.write(settingjson)
  except Exception as e:
@@ -134,7 +134,7 @@ def savetasks():
         tasktoinit.append(T)
     except Exception as e:
      pass
-  f = open(tasksfile,'w')
+  f = open(tasksfile,'w',encoding="utf8")
   settingjson = jsonpickle.encode(Tasks_Shadow)
   f.write(settingjson)
   for t in tasktoinit:
@@ -150,13 +150,13 @@ def loadsettings():
  global Settings, settingsfile, AdvSettings, advsettingsfile
  success = 1
  try:
-  f = open(settingsfile)
+  f = open(settingsfile,encoding="utf8")
   settingjson = f.read()
   Settings = jsonpickle.decode(settingjson)
  except:
   success = 0
  try:
-  f = open(advsettingsfile)
+  f = open(advsettingsfile,encoding="utf8")
   settingjson = f.read()
   AdvSettings = jsonpickle.decode(settingjson)
  except:
@@ -168,7 +168,7 @@ def loadtasks():
  success = 1
  tTasks = [False]
  try:
-  f = open(tasksfile)
+  f = open(tasksfile,encoding="utf8")
   settingjson = f.read()
   tTasks = jsonpickle.decode(settingjson)
   Tasks = tTasks
@@ -180,7 +180,7 @@ def savecontrollers():
  global Controllers, controllersfile
  success = 1
  try:
-  f = open(controllersfile,'w')
+  f = open(controllersfile,'w',encoding="utf8")
   settingjson = jsonpickle.encode(Controllers,max_depth=2) # Restrict Jsonpickle to encode vars at first object
   f.write(settingjson)
  except:
@@ -191,7 +191,7 @@ def loadcontrollers():
  global Controllers, controllersfile
  success = 1
  try:
-  f = open(controllersfile)
+  f = open(controllersfile,encoding="utf8")
   settingjson = f.read()
   Controllers = jsonpickle.decode(settingjson)
  except Exception as e:
@@ -203,7 +203,7 @@ def savepinout():
  global Pinout, pinoutfile
  success = 1
  try:
-  f = open(pinoutfile,'w')
+  f = open(pinoutfile,'w',encoding="utf8")
   settingjson = jsonpickle.encode(Pinout)
   f.write(settingjson)
  except:
@@ -214,7 +214,7 @@ def loadpinout():
  global Pinout, pinoutfile
  success = 1
  try:
-  f = open(pinoutfile)
+  f = open(pinoutfile,encoding="utf8")
   settingjson = f.read()
   Pinout = jsonpickle.decode(settingjson)
  except:
@@ -225,13 +225,13 @@ def loadnetsettings():
  global NetworkDevices, NetMan, netdevfile, netmanfile
  success = 1
  try:
-  f = open(netdevfile)
+  f = open(netdevfile,encoding="utf8")
   settingjson = f.read()
   NetworkDevices = jsonpickle.decode(settingjson)
  except:
   success = 0
  try:
-  f = open(netmanfile)
+  f = open(netmanfile,encoding="utf8")
   settingjson = f.read()
   NetMan = jsonpickle.decode(settingjson)
  except:
@@ -242,13 +242,13 @@ def savenetsettings():
  global NetworkDevices, NetMan, netdevfile, netmanfile
  success = 1
  try:
-  f = open(netdevfile,"w")
+  f = open(netdevfile,"w",encoding="utf8")
   settingjson = jsonpickle.encode(NetworkDevices)
   f.write(settingjson)
  except:
   success = 0
  try:
-  f = open(netmanfile,"w")
+  f = open(netmanfile,"w",encoding="utf8")
   settingjson = jsonpickle.encode(NetMan)
   f.write(settingjson)
  except:
@@ -259,7 +259,7 @@ def saveadvsettings():
  global AdvSettings, advsettingsfile
  success = 1
  try:
-  f = open(advsettingsfile,'w')
+  f = open(advsettingsfile,'w',encoding="utf8")
   settingjson = jsonpickle.encode(AdvSettings)
   f.write(settingjson)
  except:
@@ -270,7 +270,7 @@ def savenotifiers():
  global Notifiers, notifiersfile
  success = 1
  try:
-  f = open(notifiersfile,'w')
+  f = open(notifiersfile,'w',encoding="utf8")
   settingjson = jsonpickle.encode(Notifiers,max_depth=2) # Restrict Jsonpickle to encode vars at first object
   f.write(settingjson)
  except:
@@ -281,7 +281,7 @@ def loadnotifiers():
  global Notifiers, notifiersfile
  success = 1
  try:
-  f = open(notifiersfile)
+  f = open(notifiersfile,encoding="utf8")
   settingjson = f.read()
   Notifiers = jsonpickle.decode(settingjson)
  except Exception as e:

@@ -144,7 +144,9 @@ class JamiHandler(DRingCtrl):
          if dcontacts[i]['confirmed']:
           contacts.append(str(dcontacts[i]['id'])) # returns only enabled and confirmed ones
      except Exception as e:
-      print(e)
+        self.initialized = False
+        self.operational = False
+        print("Dring communication lost")
      return contacts
 
     def acceptIncoming(self):

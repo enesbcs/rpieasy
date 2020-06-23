@@ -4,9 +4,9 @@
 #############################################################################
 #
 # Copyright (C) 2018-2020 by Alexander Nagy - https://bitekmindenhol.blog.hu/
-# 
+#
 PROGNAME = "RPIEasy"
-BUILD   = 20169
+BUILD   = 20175
 PROGVER = str(BUILD)[:1]+"."+str(BUILD)[1:2]+"."+str(BUILD)[2:]
 
 gpMenu = []
@@ -49,7 +49,7 @@ CMD_REBOOT                       =  89
 CMD_WIFI_DISCONNECT              = 135
 
 DEVICES_MAX                      = 75
-TASKS_MAX                        = 48
+TASKS_MAX                        = 64
 
 CONTROLLER_MAX                   =  4
 NOTIFICATION_MAX                 =  4

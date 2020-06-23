@@ -7,7 +7,7 @@
 #
 import misc
 import Settings
-import linux_os as OS
+import os_os as OS
 import time
 import os
 import signal
@@ -16,7 +16,7 @@ import re
 from datetime import datetime
 import rpieTime
 import time
-import linux_network as Network
+import os_network as Network
 import socket
 import urllib.request
 import threading
