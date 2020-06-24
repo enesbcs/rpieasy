@@ -14,6 +14,7 @@ import webserver
 import rpieGlobals
 import misc
 import os
+import threading
 
 class Plugin(plugin.PluginProto):
  PLUGIN_ID = 511
@@ -41,6 +42,7 @@ class Plugin(plugin.PluginProto):
   webserver.addFormTextBox("Command 0","plugin_511_cmd0",str(self.taskdevicepluginconfig[0]),512)
   webserver.addFormTextBox("Command 1","plugin_511_cmd1",str(self.taskdevicepluginconfig[1]),512)
   webserver.addFormNote("Specify OS commands that has to be executed at the speficied state (0/1)")
+  webserver.addFormCheckBox("Use threading to run in background","plugin_511_th",self.taskdevicepluginconfig[2])
   return True
 
  def webform_save(self,params):
@@ -50,6 +52,7 @@ class Plugin(plugin.PluginProto):
    self.taskdevicepluginconfig[0]=""
   if str(self.taskdevicepluginconfig[1])=="0":
    self.taskdevicepluginconfig[1]=""
+  self.taskdevicepluginconfig[2] = (webserver.arg("plugin_511_th",params)=="on")
   return True
 
  def runcmd(self,number): # run command stored at taskdevicepluginconfig[number]
@@ -63,6 +66,8 @@ class Plugin(plugin.PluginProto):
     if val2>=0 and val2<=1:
      if self.taskdevicepluginconfig[val2]!="" and str(self.taskdevicepluginconfig[val2])!="0":
       output = os.popen(self.taskdevicepluginconfig[val2])
+      if self.taskdevicepluginconfig[2]:
+       return True
       res = ""
       for l in output:
        res += str(l)
@@ -76,13 +81,22 @@ class Plugin(plugin.PluginProto):
     else:
      val = 0
     try:
-     res = self.runcmd(val)
+     if self.taskdevicepluginconfig[2]:
+      res = True
+      bgt = threading.Thread(target=self.runcmd, args=(val,))
+      bgt.daemon = True
+      bgt.start()
+     else:
+      res = self.runcmd(val)
     except Exception as e:
      misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,str(e))
      res = False
   if res!=False:
-    misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG_MORE,str(res))
-    misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"OS command executed succesfully")
+    if self.taskdevicepluginconfig[2]:
+     misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"OS command started at background")
+    else:
+     misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG_MORE,str(res))
+     misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"OS command executed succesfully")
   else:
     misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"OS command execution failed")
   plugin.PluginProto.set_value(self,valuenum,value,publish,suserssi,susebattery)

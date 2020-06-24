@@ -1,8 +1,8 @@
-| PayPal |
-|-------|
-|  [![donate](https://img.shields.io/badge/donate-PayPal-blue.svg)](https://www.paypal.me/rpieasy) |
-If you like this project, or you wants to support the development, you can do that with the paypal link above or by doing pull requests, if you knew Python language.
-[![ko-fi](https://www.ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/I3I5UT4H)
+If you like this project, or you wants to support the development, you can do that by:
+- Buying a [coffee](https://ko-fi.com/I3I5UT4H)
+- Direct [PayPal donation](https://www.paypal.me/rpieasy)
+- Contributing to any of my [Wishlist items](https://www.wishlist.com/wishlists_/alexander-nagy/dwGnV/)
+- Adding Python code by [Pull Request](https://github.com/enesbcs/rpieasy/pulls)
 
 # RPIEasy
 
@@ -17,8 +17,9 @@ Main goal is to create a multisensor device, that can be install and setup quick
 - Debian/Ubuntu/Raspbian Linux
 - Python3
 
-Tested with Raspberry Pi Zero W/Raspbian Stretch and PC/Ubuntu 18.04. (may work with other Debian/Ubuntu derivatives)
-For obvious reasons GPIO based devices needs GPIO support, mainly targeted for Raspberry Pi. (However experimental Orange Pi and USB FTDI GPIO support also added) Some basic devices and controllers will work on a normal PC.
+Tested with Raspberry Pi Zero W/Raspbian Buster and PC/Ubuntu 20.04. (may work with other Debian/Ubuntu derivatives)
+For obvious reasons GPIO based devices needs GPIO support, mainly targeted for Raspberry Pi. 
+However experimental Orange Pi and USB FTDI GPIO support also added for testing purposes. Some basic devices (dummy, system informations...) and controllers will work on a normal PC.
 
 # Installation
 
@@ -31,7 +32,7 @@ In case of Debian Stretch or other linux that misses "ifconfig" command:
 
 `sudo apt install net-tools`
 
-Other dependencies can be reached and installed through the webGUI after starting with:
+Other dependencies can be reached and installed through the webGUI after starting with: (See Hardware page)
 
 `sudo ./RPIEasy.py`
 
@@ -41,3 +42,9 @@ There are an external updater and command line manager script by [haraldtux](/ha
 https://github.com/haraldtux/rpieasy-update
 
 Or you can use the integrated updater at Tools->System Updates, but be warned: save your "data" directory before update if it is containing data that you can't or won't readd manually!
+
+# FAQ
+In case of questions or problems:
+- [Check the Wiki](https://github.com/enesbcs/rpieasy/wiki)
+- [Check the Forum](https://www.letscontrolit.com/forum/viewforum.php?f=24&sid=73480306697e27e1e89fe9e67c18c7d6)
+- [Make a new Issue](https://github.com/enesbcs/rpieasy/issues)

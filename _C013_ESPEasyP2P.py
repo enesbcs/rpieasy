@@ -295,8 +295,11 @@ class data_packet:
     nl = 24
    for s in range(nl):
     tbuf.append(ord(self.infopacket["name"][s]))
-   for p in range(s,24):
-    tbuf.append(0)
+   try:
+    for p in range(s,24):
+     tbuf.append(0)
+   except:
+    pass
    tbuf.append(int(self.infopacket["type"]))
    tbuf.append(int(self.infopacket["port"]%256))
    tbuf.append(int(self.infopacket["port"]/256))
