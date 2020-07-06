@@ -1,4 +1,4 @@
-If you like this project, or you wants to support the development, you can do that by:
+# If you like this project, or you wants to support the development, you can do that by:
 - Buying a [coffee](https://ko-fi.com/I3I5UT4H)
 - Direct [PayPal donation](https://www.paypal.me/rpieasy)
 - Contributing to any of my [Wishlist items](https://www.wishlist.com/wishlists_/alexander-nagy/dwGnV/)
