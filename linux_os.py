@@ -246,7 +246,7 @@ def checkRPI():
      with open('/proc/cpuinfo') as f:
       for line in f:
        line = line.strip()
-       if line.startswith('Hardware') and ( line.endswith('BCM2708') or line.endswith('BCM2709') or line.endswith('BCM2835') ):
+       if line.startswith('Hardware') and ( line.endswith('BCM2708') or line.endswith('BCM2709') or line.endswith('BCM2835') or line.endswith('BCM2711') or line.endswith('BCM2837') or line.endswith('BCM2836') ):
         return True
     except:
      pass
@@ -391,7 +391,7 @@ def getRPIVer():
        "lan":"1",
        "bt":"1"
       }
-     elif (hwid == "b03111"):
+     elif (hwid == "b03111") or (hwid == "b03112"):
       hwarr = { 
        "name": "Pi 4 Model B",
        "ram": "2GB",
@@ -404,6 +404,15 @@ def getRPIVer():
       hwarr = { 
        "name": "Pi 4 Model B",
        "ram": "4GB",
+       "pins": "40",
+       "wlan": "1",
+       "lan":"1",
+       "bt":"1"
+      }
+     elif (hwid == "d03114"):
+      hwarr = { 
+       "name": "Pi 4 Model B",
+       "ram": "8GB",
        "pins": "40",
        "wlan": "1",
        "lan":"1",

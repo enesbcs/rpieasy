@@ -124,7 +124,7 @@ class SR04:
        return c
 
     def get_avg_val(self,valarray):
-       if len(valarray)<0:
+       if len(valarray)<=0:
         return 0
        adist = round( (sum(valarray) / len(valarray)), 0)
        if len(valarray)<3:
