@@ -2927,7 +2927,7 @@ def handle_upload(self):
  else:
   TXBuffer += "<p>Upload selected files into remote directory: <b>"+str(upath)+"</b><p>"
  TXBuffer += "<p>Please avoid using space in filenames, and restart RPIEasy to commit changes. Otherwise you will see empty structures..."
- TXBuffer += "<p><form enctype='multipart/form-data' method='post'><p>Upload file:<br><input type='file' name='datafile' size='200'></p><div><input class='button link' type='submit' value='Upload'><input type='hidden' name='path' value='"
+ TXBuffer += "<p><form enctype='multipart/form-data' method='post'><p>Upload file:<br><input type='file' name='datafile' id='datafile'></p><div><input class='button link' type='submit' value='Upload'><input type='hidden' name='path' value='"
  TXBuffer += upath + "'></div></form>"
  sendHeadandTail("TmplStd",_TAIL)
  return TXBuffer
@@ -2978,6 +2978,9 @@ def handle_upload_post(self):
    logstr = str(e)
   misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG, logstr)
   try:
+   if 'datafile' not in self.post:
+    misc.addLog(rpieGlobals.LOG_LEVEL_ERROR, "Browser did not send any data "+str(self.post))
+    return self.redirect("filelist?chgto="+str(upath))
    if self.post['datafile']['filename']:
     fname = upath + self.post['datafile']['filename'].strip()
     fout = open(fname,"wb")

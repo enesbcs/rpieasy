@@ -320,51 +320,52 @@ class PerverHandler:
 			
 	# Parsing POST multipart:
 	@asyncio.coroutine
-	def parse_post(self, content, type, boundary):
+	def parse_post(self, content, types, boundary):
 	
 		# Establishing default encoding:
 		encoding = self.server.encoding
-
+		types = str(types).strip()
 		# Parsing multipart:
-		if type == 'multipart/form-data':
-			
+		if types == 'multipart/form-data':
 			# Splitting request to fields:
 			fields = content.split(boundary)
 			fields_dict = {}
-			
+
 			# Turning `em to dictionary:
 			for field in fields:
 			
 				# Checking:
 				field_rows = field.split(b'\r\n\r\n')
-				if len(field_rows) == 2:
-					header, value = field_rows
-					value = value[:-4]
-					
-					# Decoding key:
-					key = re.findall(b';[ ]*name="([^;]+)"', header)[0]
-					key = key.decode(encoding)
-					
-					# Checking content-type:
-					ctype = re.search(b'Content-Type: ([^;]+)$', header)
-					
-					# File upload field:
-					if ctype:
-						if value == b'' or value == b'\r\n':
-							continue
-						ctype = ctype.group()
-						fname = re.findall(b';[ ]*filename="([^;]+)"', header)
-						fname = len(fname) == 1 and fname[0] or b'unknown'
-						fields_dict[key] = {
-							'filename': fname.decode(encoding),
-							'mime': ctype.decode(encoding),
-							'file': value,
-						}
-						
-					# Text field:
-					else:
-						fields_dict[key] = value.decode(encoding)
-						
+				if len(field_rows) >= 2:
+					try:
+						header = field_rows[0]
+						value = field_rows[1]
+						if len(field_rows)>2:
+						 for x in range(2,len(field_rows)):
+						  value += b'\r\n\r\n' + field_rows[x]
+						value = value[:-4]
+						# Decoding key:
+						key = re.findall(b';[ ]*name="([^;]+)"', header)[0]
+						key = key.decode(encoding)
+						# Checking content-type:
+						ctype = re.search(b'Content-Type: ([^;]+)$', header)
+						# File upload field:
+						if ctype:
+							if value == b'' or value == b'\r\n':
+								continue
+							ctype = ctype.group()
+							fname = re.findall(b';[ ]*filename="([^;]+)"', header)
+							fname = len(fname) == 1 and fname[0] or b'unknown'
+							fields_dict[key] = {
+								'filename': fname.decode(encoding),
+								'mime': ctype.decode(encoding),
+								'file': value,
+							}
+						# Text field:
+						else:
+							fields_dict[key] = value.decode(encoding)
+					except Exception as e:
+						print("Perver exception ",e)
 			return fields_dict
 		
 		# Parsing average urlencoded:
