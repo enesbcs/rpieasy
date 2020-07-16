@@ -84,60 +84,79 @@ class Plugin(plugin.PluginProto):
 #    except:
 #     self.initialized = False
     self.readinprogress = False
+    minrefresh = 2
     if str(self.taskdevicepluginconfig[0]) != "0" and str(self.taskdevicepluginconfig[0]).strip() != "": # display type
      try:
       if str(self.taskdevicepluginconfig[0])=="154":
        import epd1in54
        self.epdbase = epd1in54
        self.redframe = None
+       minrefresh = 2
       elif str(self.taskdevicepluginconfig[0])=="154b":
        import epd1in54b
        self.epdbase = epd1in54b
        self.redframe = True
+       minrefresh = 8
       elif str(self.taskdevicepluginconfig[0])=="154c":
        import epd1in54c
        self.epdbase = epd1in54c
        self.redframe = True
+       minrefresh = 27
       elif str(self.taskdevicepluginconfig[0])=="213":
        import epd2in13
        self.epdbase = epd2in13
        self.redframe = None
+       minrefresh = 2
       elif str(self.taskdevicepluginconfig[0])=="213b":
        import epd2in13b
        self.epdbase = epd2in13b
        self.redframe = True
+       minrefresh = 15
       elif str(self.taskdevicepluginconfig[0])=="270":
        import epd2in7
        self.epdbase = epd2in7
        self.redframe = None
+       minrefresh = 6
       elif str(self.taskdevicepluginconfig[0])=="270b":
        import epd2in7b
        self.epdbase = epd2in7b
        self.redframe = True
+       minrefresh = 15
       elif str(self.taskdevicepluginconfig[0])=="290":
        import epd2in9
        self.epdbase = epd2in9
        self.redframe = None
+       minrefresh = 2
       elif str(self.taskdevicepluginconfig[0])=="290b":
        import epd2in9b
        self.epdbase = epd2in9b
        self.redframe = True
+       minrefresh = 15
       elif str(self.taskdevicepluginconfig[0])=="420":
        import epd4in2
        self.epdbase = epd4in2
        self.redframe = None
+       minrefresh = 4
       elif str(self.taskdevicepluginconfig[0])=="420b":
        import epd4in2b
        self.epdbase = epd4in2b
        self.redframe = True
+       minrefresh = 15
       elif str(self.taskdevicepluginconfig[0])=="750":
        import epd7in5
        self.epdbase = epd7in5
        self.redframe = None
+       minrefresh = 5
       elif str(self.taskdevicepluginconfig[0])=="750b":
        import epd7in5b
        self.epdbase = epd7in5b
        self.redframe = True
+       minrefresh = 16
+      elif str(self.taskdevicepluginconfig[0])=="970":
+       import epd9in7
+       self.epdbase = epd9in7
+       self.redframe = None
+       minrefresh = 16
       else:
        self.epdbase = None
      except Exception as e:
@@ -182,10 +201,12 @@ class Plugin(plugin.PluginProto):
      self.ufont=ImageFont.truetype('img/UbuntuMono-R.ttf', lineheight)
      try:
       #self.device.init(self.device.lut_full_update)
-      if self.redframe is None:
-       if self.partialupdate:
+#      if self.redframe is None:
+      if self.partialupdate:
+        misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"EPD Partial update supported")
         self.device.init(self.device.lut_partial_update)
-       else:
+      else:
+        misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"EPD Partial update NOT supported, set large intervals!")
         self.device.init()
       self.dispimage = Image.new('1', (self.width,self.height), 255)
       try:
@@ -200,7 +221,8 @@ class Plugin(plugin.PluginProto):
       if self.redframe is None and self.setframe:
        self.device.set_frame_memory(self.dispimage,0,0)
       if self.redframe is not None:
-       self.device.display_frame(self.device.get_frame_buffer(self.dispimage),None)
+       framered = [0] * int(self.device.width * self.device.height / 8)
+       self.device.display_frame(self.device.get_frame_buffer(self.dispimage),framered)
       else:
        if self.setframe:
         self.device.display_frame()
@@ -217,15 +239,15 @@ class Plugin(plugin.PluginProto):
       if maxcols < 1:
        maxcols = 1
       tstr = "X"*maxcols
-      try:
-       if int(self.taskdevicepluginconfig[2]) in [1,3]: # width correction for initial char size detection
-        tv = self.width
-        self.width = self.height
-        self.height = tv
-        self.dispimage = Image.new('1', (self.width,self.height), 255)
-        draw = ImageDraw.Draw(self.dispimage)
-      except:
-       pass
+#      try:
+#       if int(self.taskdevicepluginconfig[2]) in [1,3]: # width correction for initial char size detection
+#        tv = self.width
+#        self.width = self.height
+#        self.height = tv
+#        self.dispimage = Image.new('1', (self.width,self.height), 255)
+#        draw = ImageDraw.Draw(self.dispimage)
+#      except:
+#       pass
       try:
        sw = draw.textsize(tstr,self.ufont)[0]
       except:
@@ -237,14 +259,18 @@ class Plugin(plugin.PluginProto):
       self.charwidth, self.lineheight = draw.textsize("X",self.ufont)
       if lc in [2,4,6,8]:
        self.lineheight += 1
-      try:
-       if int(self.taskdevicepluginconfig[2]) in [1,3]: # reverse width correction for initial char size detection
-        tv = self.width
-        self.width = self.height
-        self.height = tv
-        self.dispimage = Image.new('1', (self.width,self.height), 255)
-      except:
-       pass
+#      try:
+#       if int(self.taskdevicepluginconfig[2]) in [1,3]: # reverse width correction for initial char size detection
+#        tv = self.width
+#        self.width = self.height
+#        self.height = tv
+#        self.dispimage = Image.new('1', (self.width,self.height), 255)
+#      except:
+#       pass
+     if self.interval>0:
+      if self.partialupdate==False:
+       if self.interval<minrefresh:
+        self.interval = minrefresh
      if self.interval>2:
        nextr = self.interval-2
      else:
@@ -261,8 +287,8 @@ class Plugin(plugin.PluginProto):
 
  def webform_load(self): # create html page for settings
   choice1 = str(self.taskdevicepluginconfig[0]) # store display type
-  options = ['1.54" (200x200)','1.54"B (200x200)','1.54"C (150x150)','2.13" (250x122)','2.13"B (212x104)','2.7" (264x176)','2.7"B (264x176)','2.9" (296x128)','2.9"B (296x128)','4.2" (400x300)','4.2"B (400x300)','7.5" (800x480)','7.5"B (800x480)']
-  optionvalues = ["154","154b","154c","213","213b","270","270b","290","290b","420","420b","750","750b"]
+  options = ['1.54" (200x200)','1.54"B (200x200)','1.54"C (150x150)','2.13" (250x122)','2.13"B (212x104)','2.7" (264x176)','2.7"B (264x176)','2.9" (296x128)','2.9"B (296x128)','4.2" (400x300)','4.2"B (400x300)','7.5" (800x480)','7.5"B (800x480)','9.7" (1200x825)']
+  optionvalues = ["154","154b","154c","213","213b","270","270b","290","290b","420","420b","750","750b","970"]
   webserver.addHtml("<tr><td>Display type:<td>")
   webserver.addSelector_Head("p205_type",False)
   for d in range(len(options)):
@@ -344,6 +370,7 @@ class Plugin(plugin.PluginProto):
       if self.taskdevicepluginconfig[6] == False:
        self.dispimage = Image.new('1', (self.width,self.height), 255)
       if self.dispimage:
+       pf = False
        draw = ImageDraw.Draw(self.dispimage)
        for l in range(int(self.taskdevicepluginconfig[4])):
         resstr = ""
@@ -357,7 +384,9 @@ class Plugin(plugin.PluginProto):
          if self.taskdevicepluginconfig[6]:
           draw.rectangle( ((0,y+2), (self.device.width,y+self.lineheight)), fill=255)
          draw.text( (0,y), resstr, font=self.ufont, fill=0)
-         self.dodisplay()
+         pf = True
+       if pf:
+        self.dodisplay()
      except Exception as e:
       if self.initialized:
        misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"EPD write error! "+str(e))
@@ -382,6 +411,9 @@ class Plugin(plugin.PluginProto):
       except Exception as e:
        misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"PIL rotate error! "+str(e))
       try:
+       w, h = dimage.size
+       if w != self.width or h != self.height:
+        dimage = dimage.resize((self.width,self.height), Image.LANCZOS)
        if self.redframe is None and self.setframe:
         self.device.set_frame_memory(dimage,0,0)
        if self.redframe is not None:
@@ -408,7 +440,7 @@ class Plugin(plugin.PluginProto):
    try:
     if self.device is not None:
      if cmd == "clear":
-      self.device.init(self.device.lut_full_update)
+#      self.device.init(self.device.lut_full_update)
       self.dispimage = Image.new('1', (self.width,self.height), 255)
       if self.redframe is None and self.setframe:
        self.device.set_frame_memory(self.dispimage,0,0)
