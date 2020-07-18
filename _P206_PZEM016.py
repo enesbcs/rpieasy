@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #############################################################################
-####################### PZEM016 plugin for RPIEasy ##########################
+##################### PZEM016/004 plugin for RPIEasy ########################
 #############################################################################
 #
 # Plugin for the USB-RS485 PZEM-016 device reading
@@ -22,7 +22,7 @@ import lib.lib_serial as rpiSerial
 
 class Plugin(plugin.PluginProto):
  PLUGIN_ID = 206
- PLUGIN_NAME = "Energy (AC) - PZEM016 USB (TESTING)"
+ PLUGIN_NAME = "Energy (AC) - PZEM016/004 Modbus (TESTING)"
  PLUGIN_VALUENAME1 = "Volt"
  PLUGIN_VALUENAME2 = "Amper"
  PLUGIN_VALUENAME3 = "Watt"
@@ -52,12 +52,16 @@ class Plugin(plugin.PluginProto):
     options[o] = self.stripstring(options[o])
     webserver.addSelector_Item(options[o],options[o],(str(options[o])==str(choice1)),False)
    webserver.addSelector_Foot()
-   webserver.addFormNote("Address of the USB-RS485 converter")
+   webserver.addFormNote("Address of the USB-RS485/232 converter")
   else:
    webserver.addFormNote("No serial ports found")
   webserver.addFormNumericBox("Slave address","p206_saddr",self.taskdevicepluginconfig[1],1,248)
-
   webserver.addFormNote("Default address is 1. Use 'pzemaddress,[currentaddress],[newaddress]' command to change it. (broadcast=248)")
+
+  options = ["Fast PZEM016", "Slow PZEM004"]
+  optionvalues = [0, 1]
+  webserver.addFormSelector("Device type","plugin_206_slow",len(options),options,optionvalues,None,self.taskdevicepluginconfig[6])
+
   if self.taskname=="":
    choice1 = 0
    choice2 = 1
@@ -74,7 +78,7 @@ class Plugin(plugin.PluginProto):
   webserver.addFormSelector("Indicator2","plugin_206_ind1",len(options),options,optionvalues,None,choice2)
   webserver.addFormSelector("Indicator3","plugin_206_ind2",len(options),options,optionvalues,None,choice3)
   webserver.addFormSelector("Indicator4","plugin_206_ind3",len(options),options,optionvalues,None,choice4)
-  webserver.addFormCheckBox("Increase timeout for slow PZEM004 compatibility","plugin_206_slow",self.taskdevicepluginconfig[6])
+#  webserver.addFormCheckBox("Increase timeout for slow PZEM004 compatibility","plugin_206_slow",self.taskdevicepluginconfig[6])
   return True
 
  def webform_save(self,params): # process settings post reply
@@ -90,7 +94,10 @@ class Plugin(plugin.PluginProto):
     ninit = True
   except:
    ninit = True
-  self.taskdevicepluginconfig[6] = (webserver.arg("plugin_206_slow",params)=="on")
+  try:
+   self.taskdevicepluginconfig[6] = int(webserver.arg("plugin_206_slow",params))
+  except:
+   self.taskdevicepluginconfig[6] = 0
   try:
    self.taskdevicepluginconfig[0] = self.stripstring(webserver.arg("p206_addr",params))
    for v in range(0,4):
@@ -135,12 +142,13 @@ class Plugin(plugin.PluginProto):
    self.ports = str(self.taskdevicepluginconfig[0])+"/"+str(self.taskdevicepluginconfig[1])
    if self.taskdevicepluginconfig[6]:
     timeout = 3
-    if self.interval<3:
-     self.interval=3 # sorry, use better device if you need smaller intervals
    else:
     timeout = 0.1
    try:
-    self.pzem = uPZEM.request_pzem_device(self.taskdevicepluginconfig[0],self.taskdevicepluginconfig[1],timeout)
+    if timeout>1:
+     self.pzem = uPZEM.request_pzem4_device(self.taskdevicepluginconfig[0],self.taskdevicepluginconfig[1],timeout)
+    else:
+     self.pzem = uPZEM.request_pzem_device(self.taskdevicepluginconfig[0],self.taskdevicepluginconfig[1],timeout)
     if self.pzem != None and self.pzem.initialized:
      if timeout>1:
       sl = "slow "
