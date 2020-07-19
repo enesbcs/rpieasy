@@ -41,15 +41,12 @@ class Plugin(plugin.PluginProto):
   self.clklast = -1
   self.timer100ms = False
 
- def __del__(self):
+ def plugin_exit(self):
   if self.enabled and self.timer100ms==False:
    try:
     gpios.HWPorts.remove_event_detect(self.taskdevicepin[0])
    except:
     pass
-
- def plugin_exit(self):
-  self.__del__()
   return True
 
  def plugin_init(self,enableplugin=None):
@@ -64,9 +61,18 @@ class Plugin(plugin.PluginProto):
     self.set_value(1,self.taskdevicepluginconfig[1],False)
   if int(self.taskdevicepin[0])>=0 and self.enabled and int(self.taskdevicepin[1])>=0:
    try:
-    self.__del__()
+    gpios.HWPorts.remove_event_detect(self.taskdevicepin[0])
+   except:
+    pass
+   try:
+    btime = int(self.taskdevicepluginconfig[3])
+    if btime<0:
+     btime = 0
+   except:
+    btime = 10
+   try:
     self.clklast = gpios.HWPorts.input(int(self.taskdevicepin[0]))
-    gpios.HWPorts.add_event_detect(self.taskdevicepin[0],gpios.FALLING,self.p059_handler,10)
+    gpios.HWPorts.add_event_detect(self.taskdevicepin[0],gpios.FALLING,self.p059_handler,btime)
    except:
     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Event can not be added")
     self.initialized = False
@@ -91,6 +97,12 @@ class Plugin(plugin.PluginProto):
   if minv>=maxv:
    maxv = minv+1
   webserver.addFormNumericBox("Limit max.","p059_max",maxv,-65535,65535)
+  try:
+   bt = int(self.taskdevicepluginconfig[3])
+  except:
+   bt = 10
+  webserver.addFormNumericBox("GPIO bounce time","p059_bounce",bt,0,1000)
+  webserver.addUnit("ms")
   return True
 
  def webform_save(self,params): # process settings post reply
@@ -124,6 +136,19 @@ class Plugin(plugin.PluginProto):
    self.taskdevicepluginconfig[2] = int(par)
   except:
    self.taskdevicepluginconfig[2] = 100
+
+  par = webserver.arg("p059_bounce",params)
+  try:
+   if par == "":
+    par = 10
+   else:
+    par = int(par)
+  except:
+   par = 10
+  if par != int(self.taskdevicepluginconfig[3]):
+   changed = True
+   self.taskdevicepluginconfig[3] = par
+
   if changed:
    self.plugin_init()
   return True
