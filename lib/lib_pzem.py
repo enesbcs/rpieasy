@@ -144,7 +144,7 @@ class PZEM4():
  def connect(self,testit=True):
   try:
    self.busy = True
-   self.dev = minimalmodbus.Instrument(self.port,self.address,close_port_after_each_call=False)
+   self.dev = minimalmodbus.Instrument(self.port,self.address,close_port_after_each_call=True)
    self.dev.serial.timeout = self.timeout
    self.dev.serial.baudrate = 9600
    self.busy = False
@@ -229,7 +229,8 @@ class PZEM4():
   try:
    self.dev._performCommand(66,'')
    res = True
-  except:
+  except Exception as e:
+   print("PZEM004 reset error:",e)#debug
    res = False
   return res
 
