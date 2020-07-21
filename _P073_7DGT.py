@@ -61,11 +61,13 @@ class Plugin(plugin.PluginProto):
   self.device = None
   self.prevbl = 15
   self.blink = -1
+  self.hide  = False
 
  def plugin_init(self,enableplugin=None):
   plugin.PluginProto.plugin_init(self,enableplugin)
+  self.hide  = False
   if self.enabled==False or enableplugin==False:
-   self.__del__()
+   self.clrscr()
    return False
   if self.enabled:
    if int(self.taskdevicepin[0])>=0:
@@ -108,7 +110,7 @@ class Plugin(plugin.PluginProto):
    webserver.addFormNumericBox("Brightness", "p073_brightness", self.taskdevicepluginconfig[2], 0, 15)
    return True
 
- def __del__(self):
+ def clrscr(self):
   try:
    if self.device is not None:
     self.device.show('    ')
@@ -117,7 +119,7 @@ class Plugin(plugin.PluginProto):
    pass
 
  def plugin_exit(self):
-  self.__del__()
+  self.clrscr()
 
  def p073_brightness(self,br):
   try:
@@ -137,10 +139,12 @@ class Plugin(plugin.PluginProto):
     pass
    if brn>0:
     self.prevbl = brn
+    self.hide = False
    else:
+    self.hide = True
     self.device._write_data_cmd()
     self.device._start()
-    self.device._write_byte(tm1637.TM1637_CMD3) # OFF 
+    self.device._write_byte(tm1637.TM1637_CMD3) # OFF
     self.device._stop()
 
  def webform_save(self,params): # process settings post reply
@@ -215,6 +219,11 @@ class Plugin(plugin.PluginProto):
 
  def timer_once_per_second(self):
   if self.initialized and self.enabled:
+   try:
+    if self.hide:
+     return True # skip display if brightness is 0
+   except:
+    pass
    newval = ""
    try:
     if int(self.taskdevicepluginconfig[1])==int(self.P073_DISP_MANUAL):
