@@ -48,6 +48,8 @@ I2C     = 4
 UNKNOWN = 5
 LOW     = 0
 HIGH    = 1
+PUD_UP  = 2
+PUD_DOWN = 1
 
 def set_bit(v, index, x):
   """Set the index:th bit of v to 1 if x is truthy, else to 0, and return the new value."""

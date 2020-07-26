@@ -156,7 +156,7 @@ def GPIO_get_status(gpionum): # input: BCM GPIO num, output: GPIOStatus string
  return result
 
 def preinit(gpiotype):
- global HWPorts, BOTH, RISING, FALLING
+ global HWPorts, BOTH, RISING, FALLING, IN, OUT, PUD_UP, PUD_DOWN
  #Init Hardware GLOBAL ports
  if gpiotype==10: # RPI
   import lib.lib_rpigpios as GPIOHW
@@ -164,6 +164,10 @@ def preinit(gpiotype):
   BOTH=GPIOHW.BOTH
   RISING=GPIOHW.RISING
   FALLING=GPIOHW.FALLING
+  IN=GPIOHW.IN
+  OUT=GPIOHW.OUT
+  PUD_UP=GPIOHW.PUD_UP
+  PUD_DOWN=GPIOHW.PUD_DOWN
   HWPorts = hwports()
   if os.path.exists("/DietPi/config.txt"): # DietPi FIX!
    HWPorts.config_file_name = "/DietPi/config.txt"
@@ -173,6 +177,10 @@ def preinit(gpiotype):
   BOTH=GPIOHW.BOTH
   RISING=GPIOHW.RISING
   FALLING=GPIOHW.FALLING
+  IN=GPIOHW.IN
+  OUT=GPIOHW.OUT
+  PUD_UP=GPIOHW.PUD_UP
+  PUD_DOWN=GPIOHW.PUD_DOWN
   HWPorts = hwports()
  elif gpiotype==19: # FTDI
   import lib.lib_ftdigpios as GPIOHW
@@ -180,6 +188,10 @@ def preinit(gpiotype):
   BOTH=GPIOHW.BOTH
   RISING=GPIOHW.RISING
   FALLING=GPIOHW.FALLING
+  IN=GPIOHW.IN
+  OUT=GPIOHW.OUT
+  PUD_UP=GPIOHW.PUD_UP
+  PUD_DOWN=GPIOHW.PUD_DOWN
   HWPorts = hwports()
 
 #HWPorts = None

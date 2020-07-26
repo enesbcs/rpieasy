@@ -3,15 +3,21 @@
 ################### DHT11/22 plugin for RPIEasy &############################
 #############################################################################
 #
-# Copyright (C) 2018-2019 by Alexander Nagy - https://bitekmindenhol.blog.hu/
+# Copyright (C) 2018-2020 by Alexander Nagy - https://bitekmindenhol.blog.hu/
 #
 import plugin
 import webserver
 import rpieGlobals
 import rpieTime
-import linux_os as OS
 import misc
-import Adafruit_DHT as DHT
+try:
+ import Adafruit_DHT as ADHT
+except:
+ pass
+try:
+ import lib.DHT_Python.dht as PDHT
+except:
+ pass
 
 class Plugin(plugin.PluginProto):
  PLUGIN_ID = 5
@@ -50,20 +56,41 @@ class Plugin(plugin.PluginProto):
    self._lastdataservetime = rpieTime.millis()-(nextr*1000)
    self.lastread = 0
 
+ def loadlib(self):
+     if int(self.taskdevicepluginconfig[1])==0:
+      return ADHT
+     else:
+      return PDHT
+ 
  def webform_load(self): # create html page for settings
-  choice1 = self.taskdevicepluginconfig[0]
-  options = ["DHT11","DHT22/AM2302"]
-  optionvalues = [DHT.DHT11,DHT.DHT22]
-  webserver.addFormSelector("Sensor type","plugin_005_type",2,options,optionvalues,None,int(choice1))
+  choice2 = self.taskdevicepluginconfig[1]
+  options = ["Adafruit Lib","Native Python Lib (SzaZo)"]
+  optionvalues = [0,1]
+  webserver.addFormSelector("Driver type","plugin_005_drv",2,options,optionvalues,None,int(choice2))
+  DHT = self.loadlib()
+  try:
+   choice1 = self.taskdevicepluginconfig[0]
+   options = ["DHT11","DHT22/AM2302"]
+   optionvalues = [DHT.DHT11,DHT.DHT22]
+   webserver.addFormSelector("Sensor type","plugin_005_type",2,options,optionvalues,None,int(choice1))
+  except:
+   pass
   webserver.addFormCheckBox("Oversampling","plugin_005_over",self.timer2s)
   webserver.addFormNote("Strongly recommended to enable oversampling for reliable readings!")
   return True
 
  def webform_save(self,params): # process settings post reply
+
   par = webserver.arg("plugin_005_type",params)
-  if par == "":
-    par = DHT.DHT22
+  try:
+   if par == "":
+     DHT = self.loadlib()
+     par = DHT.DHT22
+  except:
+   par = 22
   self.taskdevicepluginconfig[0] = int(par)
+  self.taskdevicepluginconfig[1] = int(webserver.arg("plugin_005_drv",params))
+
   if (webserver.arg("plugin_005_over",params)=="on"):
    self.timer2s = True
   else:
@@ -81,6 +108,7 @@ class Plugin(plugin.PluginProto):
  def plugin_read(self): # deal with data processing at specified time interval
   result = False
   if self.initialized and self.readinprogress==0:
+   DHT = self.loadlib()
    prevt = self.uservar[0]
    prevh = self.uservar[1]
    self.readinprogress = 1
@@ -143,11 +171,12 @@ class Plugin(plugin.PluginProto):
 
  def p005_get_value(self):
    if rpieTime.millis()>=(self.lastread+2000):
+    DHT = self.loadlib()
     humidity = None
     temperature = None
     try:
      humidity, temperature = DHT.read(int(self.taskdevicepluginconfig[0]), int(self.taskdevicepin[0]))
-    except:
+    except Exception as e:
      humidity = None
      temperature = None
     if humidity is not None and temperature is not None:

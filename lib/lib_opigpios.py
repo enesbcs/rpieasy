@@ -293,10 +293,18 @@ try:
  BOTH=GPIO.BOTH
  RISING=GPIO.RISING
  FALLING=GPIO.FALLING
+ IN=GPIO.IN
+ OUT=GPIO.OUT
+ PUD_UP=GPIO.PUD_UP
+ PUD_DOWN=GPIO.PUD_DOWN
 except:
  BOTH=3
  RISING=1
  FALLING=2
+ IN=1
+ OUT=0
+ PUD_UP=2
+ PUD_DOWN=1
 
 class OrangePwm(threading.Thread):
   #https://github.com/evergreen-it-dev/orangepwm
@@ -457,6 +465,9 @@ class hwports:
   except Exception as e:
    typestr = "Unknown"
   return typestr
+
+ def setup(self,pin,mode,pull_up_down=0):
+  GPIO.setup(pin,mode)
 
  def gpio_function(self,bpin):
   func = -1
