@@ -252,6 +252,11 @@ modulelist = [
 {"name":"snapclient",
 "testcmd" : "if OS.is_command_found('snapclient')==False:\n raise Exception('snapclient not found')",
 "installed":-1},
+{"name":"spidev",
+ "apt": [],
+ "pip": ["spidev"],
+ "testcmd": "import spidev",
+ "installed":-1},
 
 ]
 
@@ -468,6 +473,9 @@ plugindependencies = [
 {"pluginid": "209", # AMG
  "supported_os_level": [10],
  "modules":["i2c","amg","pil"]},
+{"pluginid": "210", #MCP3008
+ "supported_os_level": [3,10],
+ "modules":["GPIO","spidev"]},
 {"pluginid": "501", # USB relay
  "modules":["hidapi"]},
 {"pluginid": "502", # pygame play wav/mp3
