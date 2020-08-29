@@ -2620,7 +2620,7 @@ def handle_rules(self):
  return TXBuffer
 
 @WebServer.route('/sysvars')
-def handle_rules(self):
+def handle_sysvars(self):
  global TXBuffer, navMenuIndex
  TXBuffer=""
  navMenuIndex=7

@@ -29,7 +29,7 @@ LYWSD02_DATA = 'EBE0CCC1-7A0A-4B0C-8A1A-6FF2997DA3A6'
 
 class Plugin(plugin.PluginProto):
  PLUGIN_ID = 517
- PLUGIN_NAME = "Environment - BLE Xiaomi LYWSD03 Hygrometer (EXPERIMENTAL)"
+ PLUGIN_NAME = "Environment - BLE Xiaomi LYWSD03/MHOC401 Hygrometer (EXPERIMENTAL)"
  PLUGIN_VALUENAME1 = "Temperature"
  PLUGIN_VALUENAME2 = "Humidity"
  PLUGIN_VALUENAME3 = "Battery"

@@ -532,6 +532,8 @@ plugindependencies = [
 {"pluginid": "525", # snapc
  "supported_os_level": [1,2,3,10],
  "modules":["snapclient"]},
+{"pluginid": "527", # BLE Sniff
+ "modules":["bluepy"]},
 
 ]
 

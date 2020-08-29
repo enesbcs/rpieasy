@@ -6,7 +6,7 @@
 # Copyright (C) 2020 by Alexander Nagy - https://bitekmindenhol.blog.hu/
 #
 
-from bluepy.btle import Scanner
+from bluepy.btle import Scanner, DefaultDelegate
 import time
 
 class BLEScan():
@@ -24,6 +24,7 @@ class BLEScan():
   self.devices = []
   self.devrssi = []
   self.lastscan = 0
+  self._scanning = False
 
  def stop(self):
     try:
@@ -31,10 +32,12 @@ class BLEScan():
       self.scanner.stop()
     except:
      pass
+    self._scanning = False
 
  def scan(self):
     result = False
     devices = []
+    self._scanning = True
     try:
      self.scanner = Scanner(self.bledev)
      devices = self.scanner.scan(self.timeout)
@@ -44,6 +47,7 @@ class BLEScan():
      print("BLE error: ",e)
      self.devices = []
      self.devrssi = []
+    self._scanning = False
     tempdev = []
     temprssi = []
     for dev in devices:
@@ -77,6 +81,34 @@ class BLEScan():
   except:
    result = -1
   return result
+
+ def sniff(self, callback):
+    self._scanning = True
+    try:
+     self.scanner = Scanner(self.bledev).withDelegate(SniffDelegate(callback))
+     if self.timeout==0:
+      while self._scanning:
+       self.scanner.clear()
+       self.scanner.start(passive=True)
+       self.scanner.process(10)
+       self.scanner.stop()
+     else:
+      self.scanner.scan(self.timeout,passive=True)
+     self.lastscan = time.time()
+    except Exception as e:
+     pass
+    self._scanning = False
+
+class SniffDelegate(DefaultDelegate):
+ def __init__(self, cb):
+     DefaultDelegate.__init__(self)
+     self.cb = cb
+
+ def handleDiscovery(self ,dev, isnewdev, isnewdata):
+     try:
+      self.cb(dev, dev.getScanData())
+     except Exception as e:
+      print(e)
 
 blescan_devices = []
 
