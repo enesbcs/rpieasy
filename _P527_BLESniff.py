@@ -124,12 +124,14 @@ class Plugin(plugin.PluginProto):
       self.bgproc.daemon = True
       self.bgproc.start()
      self.initialized = True
+     self.ports = str(self.address)
      misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"BLE sniffer init ok")
     except Exception as e:
      misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"BLE sniffer init error: "+str(e))
      self.initialized = False
   else:
     self.initialized = False
+    self.ports = ""
 
  def AdvDecoder(self,dev,advdat):
      ddat = {}
