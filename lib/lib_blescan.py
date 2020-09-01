@@ -7,7 +7,9 @@
 #
 
 from bluepy.btle import Scanner, DefaultDelegate
+import lib.lib_blehelper as BLEHelper
 import time
+from random import uniform
 
 class BLEScan():
  bledev = 0
@@ -84,16 +86,24 @@ class BLEScan():
 
  def sniff(self, callback):
     self._scanning = True
+    _blestatus = BLEHelper.BLEStatus[self.bledev]
     try:
      self.scanner = Scanner(self.bledev).withDelegate(SniffDelegate(callback))
      if self.timeout==0:
       while self._scanning:
+       while _blestatus.norequesters()==False or _blestatus.nodataflows()==False or _blestatus.isscaninprogress():
+        time.sleep(0.5)
+       _blestatus.reportscan(1)
        self.scanner.clear()
        self.scanner.start(passive=True)
        self.scanner.process(10)
        self.scanner.stop()
+       _blestatus.reportscan(0)
+       time.sleep(uniform(1,5))
      else:
+      _blestatus.reportscan(1)
       self.scanner.scan(self.timeout,passive=True)
+      _blestatus.reportscan(0)
      self.lastscan = time.time()
     except Exception as e:
      pass

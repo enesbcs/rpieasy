@@ -30,7 +30,7 @@ class Plugin(plugin.PluginProto):
  def __init__(self,taskindex): # general init
   plugin.PluginProto.__init__(self,taskindex)
   self.dtype = rpieGlobals.DEVICE_TYPE_BLE
-  self.vtype = rpieGlobals.SENSOR_TYPE_QUAD
+  self.vtype = rpieGlobals.SENSOR_TYPE_SINGLE
   self.valuecount = 1
   self.senddataoption = True
   self.recdataoption = False
@@ -47,6 +47,7 @@ class Plugin(plugin.PluginProto):
   self.rssi = -1
   self.battery = 255
   self._bgproc = None
+  self.startup = 0
 
  def webform_load(self): # create html page for settings
   bledevs = BLEHelper.find_hci_devices()
@@ -62,7 +63,7 @@ class Plugin(plugin.PluginProto):
   webserver.addFormSelector("Local Device","plugin_527_dev",len(options),options,optionvalues,None,int(self.taskdevicepluginconfig[4]))
   webserver.addFormTextBox("Remote Device Address","plugin_527_addr",str(self.address),20)
   webserver.addFormNote("Supported device types: LYWSD02, CGQ, CGG1, MiFlora")
-  webserver.addFormNote("If you are using Sniffer, you can not use any other BLE plugin, as scanning is continous! Although multiple sniffer task can be used.")
+  webserver.addFormNote("If you are using Sniffer, its not the best idea to use another BLE plugin at the same time. Although multiple sniffer tasks can be used.")
   choice1 = self.taskdevicepluginconfig[0]
   choice2 = self.taskdevicepluginconfig[1]
   choice3 = self.taskdevicepluginconfig[2]
@@ -118,12 +119,11 @@ class Plugin(plugin.PluginProto):
     try:
      self.blescanner = BLEScanner.request_blescan_device(devnum,0) #params
      self.blestatus.requestimmediatestopscan = self.blescanner.stop
-     if self.blescanner._scanning==False:
-      self.blestatus.reportscan(1)
-      self.bgproc = threading.Thread(target=self.blescanner.sniff, args=(self.AdvDecoder,))
-      self.bgproc.daemon = True
-      self.bgproc.start()
+     self.startsniff()
      self.initialized = True
+     self.startup = time.time()
+     if self.battery<1:
+      self.battery=255
      self.ports = str(self.address)
      misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"BLE sniffer init ok")
     except Exception as e:
@@ -134,6 +134,8 @@ class Plugin(plugin.PluginProto):
     self.ports = ""
 
  def AdvDecoder(self,dev,advdat):
+     if dev=="":
+      return False
      ddat = {}
      for i in range(len(advdat)): #process incoming BLE advertisement packets
        try:
@@ -148,35 +150,51 @@ class Plugin(plugin.PluginProto):
       except:
        pass
 
- def plugin_exit(self):
+ def startsniff(self):
+    try:
+     if self.blescanner._scanning==False:
+      self._bgproc = threading.Thread(target=self.blescanner.sniff, args=(self.AdvDecoder,))
+      self._bgproc.daemon = True
+      self._bgproc.start()
+    except:
+     pass
+
+ def stopsniff(self):
      try:
-      self.blestatus.reportscan(0)
       if self.blescanner._scanning:
        self.blescanner._scanning = False
        self._bgproc.join()
       self.blescanner.stop()
+      self.blestatus.reportscan(0)
      except:
       pass
+
+ def plugin_exit(self):
+     self.stopsniff()
 
  def plugin_read(self):
   result = False
   if self.initialized and self.readinprogress==0:
+   misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,str(self.address)+" "+str(self._attribs))
    self.readinprogress = 1
    lastupdate = 0
    for key in self._attribs.keys():
     if "-t" in key:
      if self._attribs[key]>lastupdate:
       lastupdate = self._attribs[key]
-   if (time.time()-lastupdate) > (3*self.interval):
+   otime = (3*self.interval)
+   if otime<1800:
+    otime = 1800
+   orssi = self.rssi
+   if ((time.time()-lastupdate) > otime) and ((time.time()-self.startup) > otime):
     self.rssi= -100
     self.battery = 0
-   elif self.battery==0:
-    self.battery=255
    for v in range(0,4):
     vtype = int(self.taskdevicepluginconfig[v])
     if vtype != 0:
      self.set_value(v+1,self.p527_get_value(vtype),False,susebattery=self.battery,suserssi=self.rssi)
-   self.plugin_senddata(pusebattery=self.battery,puserssi=self.rssi)
+   if orssi!=self.rssi and orssi!=-100:
+    self.plugin_senddata(pusebattery=self.battery,puserssi=self.rssi)
    self._lastdataservetime = rpieTime.millis()
    result = True
    self.readinprogress = 0
@@ -257,6 +275,7 @@ class Plugin(plugin.PluginProto):
       res = {"temp":cdata2[0]/10.0,"hum":cdata2[1]/10.0}
      elif cdata[10+ofs]==0xA and cdata[12+ofs]>0:
       res = {"batt": buf[16+ofs]}
+      misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,str(res)+" "+str(cdata))
      elif cdata[10+ofs]==6 and cdata[12+ofs]>0:
       cdata2 = struct.unpack_from('<H',buf[16+ofs:])
       res = {"hum":cdata2[0]/10.0}

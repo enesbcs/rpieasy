@@ -2145,7 +2145,7 @@ def handle_wifiscanner(self):
  sendHeadandTail("TmplStd",_TAIL);
  return TXBuffer
 
-@WebServer.route('/blescanner') 
+@WebServer.route('/blescanner')
 def handle_blescanner(self):
  global TXBuffer, navMenuIndex
  TXBuffer=""
@@ -2157,14 +2157,21 @@ def handle_blescanner(self):
  sendHeadandTail("TmplStd",_HEAD)
 
  blesupported = True
- try: 
+ try:
   from bluepy.btle import Scanner
+  import lib.lib_blehelper as BLEHelper
  except:
   blesupported = False
+ print("ble")#debug
  if blesupported:
     if OS.check_permission()==False:
      TXBuffer += "Scanning does not work properly without root permission!<p>"
     blesuccess = True
+    _blestatus = BLEHelper.BLEStatus[0]
+    while _blestatus.isscaninprogress():
+      _blestatus.requeststopscan()
+      time.sleep(0.5)
+    _blestatus.reportscan(1)
     try:
      scanner = Scanner()
      devices = scanner.scan(5.0)
@@ -2172,6 +2179,7 @@ def handle_blescanner(self):
      TXBuffer += "BLE scanning failed "+str(e)+"<p>"
      TXBuffer += "Try to run:<br>sudo systemctl stop bluetooth<br>sudo hciconfig hci0 up<p>"
      blesuccess = False
+    _blestatus.reportscan(0)
     if blesuccess:
      TXBuffer += "<table class='multirow'><TR><TH>Interface<TH>Address<TH>Address type<TH>RSSI<TH>Connectable<TH>Name<TH>Appearance</TH><TH>Actions</TH></TR>"
      cc = 0
