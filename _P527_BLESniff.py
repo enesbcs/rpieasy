@@ -186,14 +186,17 @@ class Plugin(plugin.PluginProto):
    if otime<1800:
     otime = 1800
    orssi = self.rssi
+   report = True
    if ((time.time()-lastupdate) > otime) and ((time.time()-self.startup) > otime):
     self.rssi= -100
     self.battery = 0
+    if self.rssi==orssi:
+     report = False
    for v in range(0,4):
     vtype = int(self.taskdevicepluginconfig[v])
     if vtype != 0:
      self.set_value(v+1,self.p527_get_value(vtype),False,susebattery=self.battery,suserssi=self.rssi)
-   if orssi!=self.rssi and orssi!=-100:
+   if report:
     self.plugin_senddata(pusebattery=self.battery,puserssi=self.rssi)
    self._lastdataservetime = rpieTime.millis()
    result = True

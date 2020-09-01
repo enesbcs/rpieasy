@@ -2162,7 +2162,6 @@ def handle_blescanner(self):
   import lib.lib_blehelper as BLEHelper
  except:
   blesupported = False
- print("ble")#debug
  if blesupported:
     if OS.check_permission()==False:
      TXBuffer += "Scanning does not work properly without root permission!<p>"
