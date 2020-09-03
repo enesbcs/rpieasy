@@ -162,6 +162,9 @@ class Plugin(plugin.PluginProto):
    except Exception as e:
     return False
    self.conninprogress = True
+   while self.blestatus.norequesters()==False or self.blestatus.nodataflows()==False:
+       time.sleep(0.5)
+       misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG_MORE,"BLE line not free for P512!")
    self.blestatus.registerdataprogress(self.taskindex)
    prevstate = self.connected
    try:
@@ -192,8 +195,9 @@ class Plugin(plugin.PluginProto):
  def request_temp_hum_value(self,d=None):
   res = False
   try:
-   self.BLEPeripheral.writeCharacteristic(TEMP_HUM_WRITE_HANDLE, TEMP_HUM_WRITE_VALUE)
-   res = True
+   if self.BLEPeripheral is not None:
+    self.BLEPeripheral.writeCharacteristic(TEMP_HUM_WRITE_HANDLE, TEMP_HUM_WRITE_VALUE)
+    res = True
   except Exception as e:
    res = False
 #   print(e)
@@ -235,14 +239,12 @@ class Plugin(plugin.PluginProto):
   self.waitnotifications = False
   if self.enabled:
    try:
-    self.BLEPeripheral.disconnect()
+    if self.BLEPeripheral is not None:
+     self.BLEPeripheral.disconnect()
     self.cproc._stop()
     self.blestatus.unregisterdataprogress(self.taskindex)
    except:
     pass
-
- def __del__(self):
-  self.disconnect()
 
  def plugin_exit(self):
   self.disconnect()

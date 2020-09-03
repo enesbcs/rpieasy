@@ -13,6 +13,7 @@ import webserver
 import rpieGlobals
 import rpieTime
 import misc
+import time
 import lib.lib_miflora as MiFloraMonitor
 import lib.lib_blehelper as BLEHelper
 
@@ -148,8 +149,11 @@ class Plugin(plugin.PluginProto):
      return False
    except Exception as e:
     return False
-   self.blestatus.registerdataprogress(self.taskindex)
    self.readinprogress = 1
+   while self.blestatus.norequesters()==False or self.blestatus.nodataflows()==False:
+       time.sleep(0.5)
+       misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG_MORE,"BLE line not free for P515! "+str(self.blestatus.dataflow))
+   self.blestatus.registerdataprogress(self.taskindex)
    try:
     batt = self.flora.battery_level()
    except:
@@ -173,7 +177,7 @@ class Plugin(plugin.PluginProto):
 
  def p515_get_value(self,ptype):
   value = -100
-  try: 
+  try:
    if ptype == 1:
     value = self.flora.get_temperature()
    elif ptype == 2:

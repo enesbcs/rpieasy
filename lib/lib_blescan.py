@@ -84,29 +84,38 @@ class BLEScan():
    result = -1
   return result
 
- def sniff(self, callback):
+ def sniff(self, callback,startwait=0):
     self._scanning = True
     _blestatus = BLEHelper.BLEStatus[self.bledev]
+    time.sleep(startwait)
     try:
-     self.scanner = Scanner(self.bledev).withDelegate(SniffDelegate(callback))
      if self.timeout==0:
       while self._scanning:
        while _blestatus.norequesters()==False or _blestatus.nodataflows()==False or _blestatus.isscaninprogress():
         time.sleep(0.5)
+#       print("scan start")#debug
        _blestatus.reportscan(1)
+       try:
+        self.scanner = Scanner(self.bledev).withDelegate(SniffDelegate(callback))
+       except:
+        pass
        self.scanner.clear()
        self.scanner.start(passive=True)
        self.scanner.process(10)
        self.scanner.stop()
        _blestatus.reportscan(0)
-       time.sleep(uniform(1,5))
+#       print("scan pause")#debug
+       time.sleep(uniform(10,30))
      else:
+      while _blestatus.norequesters()==False or _blestatus.nodataflows()==False or _blestatus.isscaninprogress():
+        time.sleep(0.5)
       _blestatus.reportscan(1)
+      self.scanner = Scanner(self.bledev).withDelegate(SniffDelegate(callback))
       self.scanner.scan(self.timeout,passive=True)
       _blestatus.reportscan(0)
      self.lastscan = time.time()
     except Exception as e:
-     pass
+     _blestatus.reportscan(0)
     self._scanning = False
 
 class SniffDelegate(DefaultDelegate):

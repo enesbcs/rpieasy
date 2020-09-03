@@ -119,7 +119,7 @@ class Plugin(plugin.PluginProto):
     try:
      self.blescanner = BLEScanner.request_blescan_device(devnum,0) #params
      self.blestatus.requestimmediatestopscan = self.blescanner.stop
-     self.startsniff()
+     self.startsniff(30)
      self.initialized = True
      self.startup = time.time()
      if self.battery<1:
@@ -150,14 +150,14 @@ class Plugin(plugin.PluginProto):
       except:
        pass
 
- def startsniff(self):
+ def startsniff(self,startwait=0):
     try:
      if self.blescanner._scanning==False:
-      self._bgproc = threading.Thread(target=self.blescanner.sniff, args=(self.AdvDecoder,))
+      self._bgproc = threading.Thread(target=self.blescanner.sniff, args=(self.AdvDecoder,startwait))
       self._bgproc.daemon = True
       self._bgproc.start()
-    except:
-     pass
+    except Exception as e:
+     print("SniffStart",e)
 
  def stopsniff(self):
      try:
@@ -176,6 +176,7 @@ class Plugin(plugin.PluginProto):
   result = False
   if self.initialized and self.readinprogress==0:
    misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,str(self.address)+" "+str(self._attribs))
+   self.startsniff(0)
    self.readinprogress = 1
    lastupdate = 0
    for key in self._attribs.keys():
@@ -192,6 +193,8 @@ class Plugin(plugin.PluginProto):
     self.battery = 0
     if self.rssi==orssi:
      report = False
+   if report and len(self._attribs)<2:
+    report = False
    for v in range(0,4):
     vtype = int(self.taskdevicepluginconfig[v])
     if vtype != 0:
@@ -278,7 +281,7 @@ class Plugin(plugin.PluginProto):
       res = {"temp":cdata2[0]/10.0,"hum":cdata2[1]/10.0}
      elif cdata[10+ofs]==0xA and cdata[12+ofs]>0:
       res = {"batt": buf[16+ofs]}
-      misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,str(res)+" "+str(cdata))
+#      misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,str(res)+" "+str(cdata))
      elif cdata[10+ofs]==6 and cdata[12+ofs]>0:
       cdata2 = struct.unpack_from('<H',buf[16+ofs:])
       res = {"hum":cdata2[0]/10.0}

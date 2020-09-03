@@ -162,8 +162,11 @@ class Plugin(plugin.PluginProto):
      return False
    except Exception as e:
     return False
-   self.blestatus.registerdataprogress(self.taskindex)
    self.conninprogress = True
+   while self.blestatus.norequesters()==False or self.blestatus.nodataflows()==False:
+       time.sleep(0.5)
+       misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"BLE line not free for P518!")
+   self.blestatus.registerdataprogress(self.taskindex)
    prevstate = self.connected
    try:
     misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"BLE connection initiated to "+str(self.taskdevicepluginconfig[0]))
@@ -178,8 +181,8 @@ class Plugin(plugin.PluginProto):
    self.isconnected()
    if self.connected==False:
     misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"BLE connection failed "+str(self.taskdevicepluginconfig[0]))
-    self.disconnect()
     self.blestatus.unregisterdataprogress(self.taskindex)
+    self.disconnect()
     time.sleep(uniform(5,10))
     self.failures =  self.failures +1
     if self.failures>5:
@@ -209,6 +212,7 @@ class Plugin(plugin.PluginProto):
     res = True
    except Exception as e:
 #    print(e)
+    self.blestatus.unregisterdataprogress(self.taskindex)
     res = False
     self.failures+=1
   else:
@@ -238,14 +242,12 @@ class Plugin(plugin.PluginProto):
   self.waitnotifications = False
   if self.enabled:
    try:
-    self.BLEPeripheral.disconnect()
-    self.cproc._stop()
     self.blestatus.unregisterdataprogress(self.taskindex)
+    if self.BLEPeripheral is not None:
+     self.BLEPeripheral.disconnect()
+    self.cproc._stop()
    except:
     pass
-
- def __del__(self):
-  self.disconnect()
 
  def plugin_exit(self):
   self.disconnect()

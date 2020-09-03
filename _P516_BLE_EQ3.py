@@ -45,7 +45,7 @@ class Plugin(plugin.PluginProto):
   self.timeroption = True
   self.timeroptional = False
   self.formulaoption = True
-  self.thermostat = None  
+  self.thermostat = None
   self.readinprogress = False
   self.battery = 0
   self._lastdataservetime = 0
@@ -55,7 +55,7 @@ class Plugin(plugin.PluginProto):
  def webform_load(self): # create html page for settings
   webserver.addFormTextBox("Device Address","plugin_516_addr",str(self.taskdevicepluginconfig[0]),20)
   webserver.addFormNote("Enable blueetooth then <a href='blescanner'>scan EQ3 address</a> first.")
-  webserver.addFormNote("This plugin WILL NOT work with ble scanner plugin.")
+  webserver.addFormNote("!!!This plugin WILL NOT work with ble scanner plugin!!!")
   return True
 
  def webform_save(self,params): # process settings post reply
@@ -87,12 +87,21 @@ class Plugin(plugin.PluginProto):
   else:
    self.ports = ""
 
+ def plugin_exit(self):
+  try:
+     self.blestatus.unregisterdataprogress(self.taskindex)
+     if self.thermostat._conn is not None:
+      self.thermostat._conn.__exit__()
+  except:
+     pass
+
  def plugin_read(self):
    result = False
    if self.enabled and self.initialized and self.readinprogress==0:
      self.readinprogress  = 1
      try:
       self.thermostat.update()
+      time.sleep(0.1)
       if self.thermostat.low_battery:
        self.battery = 10
       else:

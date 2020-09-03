@@ -73,7 +73,6 @@ class Plugin(plugin.PluginProto):
   plugin.PluginProto.plugin_init(self,enableplugin)
   self.timer1s = False
   self.readinprogress = 0
-#  self.connected = False
 #  self.uservar[0] = 0
 #  self.uservar[1] = 0
   self.connected = False
@@ -82,21 +81,30 @@ class Plugin(plugin.PluginProto):
   except:
      pass
   if self.enabled:
-    self.connect()
-  if self.connected:
-    self.initialized = True
-    self.ports = str(self.taskdevicepluginconfig[0])
-    if self.taskdevicepluginconfig[2]:
-     try:
-      misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"Sync LWSD02 time")
-      self.BLEPeripheral.time = datetime.now()
-     except:
-      pass
-    self._lastdataservetime = rpieTime.millis() - ((self.interval-1)*1000)
-#    self.plugin_read()
+    self.conninprogress=False
+    self.timer1s = True
   else:
     self.ports = ""
     self.initialized = False
+    self.timer1s = False
+    self.conninprogress=False
+
+ def timer_once_per_second(self):
+  if self.enabled and self.connected==False and self.conninprogress==False:
+    self.conninprogress=True
+    self.connect()
+    if self.connected:
+      self.initialized = True
+      self.ports = str(self.taskdevicepluginconfig[0])
+      if self.taskdevicepluginconfig[2]:
+       try:
+        misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"Sync LWSD02 time")
+        self.BLEPeripheral.time = datetime.now()
+       except:
+        pass
+      self._lastdataservetime = rpieTime.millis() - ((self.interval-1)*1000)
+      self.timer1s = False
+    self.conninprogress=False
 
  def connect(self):
    try:
@@ -105,6 +113,9 @@ class Plugin(plugin.PluginProto):
      return False
    except Exception as e:
     return False
+   while self.blestatus.norequesters()==False or self.blestatus.nodataflows()==False:
+       time.sleep(0.5)
+       misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG_MORE,"BLE line not free for P513!")
    self.blestatus.registerdataprogress(self.taskindex)
    try:
     self.BLEPeripheral = Lywsd02Client(str(self.taskdevicepluginconfig[0]),int(self.interval))

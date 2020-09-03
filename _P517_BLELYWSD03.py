@@ -25,7 +25,6 @@ BATTERY_UUID   = 'EBE0CCC4-7A0A-4B0C-8A1A-6FF2997DA3A6'
 TEMP_HUM_WRITE_HANDLE = 0x0038
 TEMP_HUM_READ_HANDLE = [0x36,0x3c,0x4b]
 TEMP_HUM_WRITE_VALUE = bytearray([0x01, 0x00])
-LYWSD02_DATA = 'EBE0CCC1-7A0A-4B0C-8A1A-6FF2997DA3A6'
 
 class Plugin(plugin.PluginProto):
  PLUGIN_ID = 517
@@ -58,6 +57,7 @@ class Plugin(plugin.PluginProto):
   self._nextdataservetime = 0
   self.TARR = []
   self.HARR = []
+  self.BARR = []
   self.failures = 0
   self.blestatus = None
 
@@ -76,7 +76,7 @@ class Plugin(plugin.PluginProto):
   webserver.addFormTextBox("Device Address","plugin_517_addr",str(self.taskdevicepluginconfig[0]),20)
   webserver.addFormNote("Enable blueetooth then <a href='blescanner'>scan LYWSD03 address</a> first.")
   webserver.addFormCheckBox("Add Battery value for non-Domoticz system","plugin_517_bat",self.taskdevicepluginconfig[1])
-  webserver.addFormCheckBox("Connect only if BLE local device free","plugin_517_free",self.taskdevicepluginconfig[3])
+#  webserver.addFormCheckBox("Connect only if BLE local device free","plugin_517_free",self.taskdevicepluginconfig[3])
   webserver.addFormNote("Check if you are using multiple devices and interferences occurs between them.")
   return True
 
@@ -87,7 +87,7 @@ class Plugin(plugin.PluginProto):
    self.taskdevicepluginconfig[2] = int(webserver.arg("plugin_517_dev",params))
   except:
    self.taskdevicepluginconfig[2] = 0
-  self.taskdevicepluginconfig[3] = str(webserver.arg("plugin_517_free",params)).strip()
+#  self.taskdevicepluginconfig[3] = str(webserver.arg("plugin_517_free",params)).strip()
   self.plugin_init()
   return True
 
@@ -100,6 +100,7 @@ class Plugin(plugin.PluginProto):
   self.connectcount = 0
   self.TARR = []
   self.HARR = []
+  self.BARR = []
   try:
    if self.preread:
     pass
@@ -110,7 +111,7 @@ class Plugin(plugin.PluginProto):
   if self.enabled:
    self.ports = str(self.taskdevicepluginconfig[0])
    self.timer1s = True
-   self.battery = -1
+   self.battery = 255
    self._lastdataservetime = 0
 #   self.lastread = 0
    self.failures = 0
@@ -129,12 +130,13 @@ class Plugin(plugin.PluginProto):
   else:
    self.ports = ""
    self.timer1s = False
- 
+
  def timer_once_per_second(self):
   if self.enabled:
    if self._nextdataservetime-rpieTime.millis()<=self.preread:
     if self.conninprogress==False and self.connected==False:
      self.waitnotifications = False
+     self.blestatus.unregisterdataprogress(self.taskindex)
      if len(self.taskdevicepluginconfig[0])>10:
       self.cproc = threading.Thread(target=self.connectproc)
       self.cproc.daemon = True
@@ -145,11 +147,17 @@ class Plugin(plugin.PluginProto):
    result = False
    if self.enabled:
      if len(self.TARR)>0 and len(self.HARR)>0:
-      self.get_battery_value()
-      if self.battery==-1:
-       self.get_battery_value()
-       if self.battery==-1:
-        self.get_battery_value()
+#      self.get_battery_value()
+#      if self.battery==-1:
+#       self.get_battery_value()
+#       if self.battery==-1:
+#        self.get_battery_value()
+      try:
+       self.battery = self.BARR[-1]
+      except:
+       self.battery=255
+      if self.battery is None:
+       self.battery=255
       try:
        self.set_value(1,self.TARR[-1],False)
        if self.taskdevicepluginconfig[1]:
@@ -167,6 +175,7 @@ class Plugin(plugin.PluginProto):
        self.disconnect()
       self.TARR = []
       self.HARR = []
+      self.BARR = []
      elif (self._nextdataservetime < rpieTime.millis()):
       self._nextdataservetime = self._lastdataservetime + uniform(self.preread,self.preread*2.5)
       self.isconnected()
@@ -178,13 +187,10 @@ class Plugin(plugin.PluginProto):
      return False
    except Exception as e:
     return False
-   if self.taskdevicepluginconfig[3]: # exclusive mode
-    if self.blestatus.nodataflows()==False:
-     self.connectcount += 1
-     if self.connectcount > 3:
-      self.blestatus.unregisterdataprogress(self.taskindex)
-     return False
    self.conninprogress = True
+   while self.blestatus.norequesters()==False or self.blestatus.nodataflows()==False:
+       time.sleep(0.5)
+       misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG_MORE,"BLE line not free for P517!")
    self.blestatus.registerdataprogress(self.taskindex)
    prevstate = self.connected
    try:
@@ -202,8 +208,12 @@ class Plugin(plugin.PluginProto):
    self.isconnected()
    if self.connected==False:
     misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"BLE connection failed "+str(self.taskdevicepluginconfig[0]))
-    self.disconnect()
     self.blestatus.unregisterdataprogress(self.taskindex)
+    self.conninprogress = False
+    try:
+     self.disconnect()
+    except:
+     pass
     time.sleep(uniform(0.5,1.2))
     self.failures =  self.failures +1
     if self.failures>5:
@@ -213,22 +223,25 @@ class Plugin(plugin.PluginProto):
       skiptime = self.interval
      self._nextdataservetime = rpieTime.millis()+(skiptime)
 #     self._lastdataservetime = self._nextdataservetime
-    self.conninprogress = False
     return False
    else:
-    misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"BLE connected to "+str(self.taskdevicepluginconfig[0]))
+    misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG_MORE,"BLE connected to "+str(self.taskdevicepluginconfig[0]))
     self.waitnotifications = True
-    self.get_battery_value()
-#    rpieTime.addsystemtimer(3,self.isconnected,[-1])
+#    self.get_battery_value()
+#    rpieTime.addsystemtimer(15,self.deregister,[-1])
+    time.sleep(0.1)
+    self.blestatus.unregisterdataprogress(self.taskindex)
    self.conninprogress = False
 
  def request_temp_hum_value(self,d=None):
   res = False
   try:
-   self.BLEPeripheral.writeCharacteristic(TEMP_HUM_WRITE_HANDLE, TEMP_HUM_WRITE_VALUE)
-   res = True
+   if self.BLEPeripheral is not None:
+    self.BLEPeripheral.writeCharacteristic(TEMP_HUM_WRITE_HANDLE, TEMP_HUM_WRITE_VALUE)
+    res = True
   except Exception as e:
    res = False
+   self.blestatus.unregisterdataprogress(self.taskindex)
   return res
 
  def isconnected(self,d=None):
@@ -236,16 +249,20 @@ class Plugin(plugin.PluginProto):
    self.connected = self.request_temp_hum_value()
   return self.connected
 
- def get_battery_value(self):
+ def deregister(self,d=None):
+    self.blestatus.unregisterdataprogress(self.taskindex)
+
+ def get_battery_value(self): # now it is not used
   if ((time.time()-self.lastbatteryreq)>600) or (self.battery<=0):
    battery = 0
    try:
-    ch = self.BLEPeripheral.getCharacteristics(uuid=BATTERY_UUID)[0]
-    value = ch.read()
-    battery = ord(value) # self.BLEPeripheral.readCharacteristic(BATTERY_HANDLE)[0]
-    self.lastbatteryreq = time.time()
+    if self.BLEPeripheral is not None:
+     ch = self.BLEPeripheral.getCharacteristics(uuid=BATTERY_UUID)[0]
+     value = ch.read()
+     battery = ord(value) # self.BLEPeripheral.readCharacteristic(BATTERY_HANDLE)[0]
+     self.lastbatteryreq = time.time()
    except Exception as e:
-    pass
+    self.blestatus.unregisterdataprogress(self.taskindex)
    try:
     if battery:
      self.battery = int(battery)
@@ -253,12 +270,13 @@ class Plugin(plugin.PluginProto):
     pass
   return self.battery
 
- def callbackfunc(self,temp=None,hum=None):
+ def callbackfunc(self,temp=None,hum=None,batt=None):
   self.connected = True
   self.blestatus.unregisterdataprogress(self.taskindex)
   if self.enabled:
    self.TARR.append(temp)
    self.HARR.append(hum)
+   self.BARR.append(batt)
    if rpieTime.millis()-self._lastdataservetime>=2000:
     self.plugin_read()
 
@@ -268,14 +286,12 @@ class Plugin(plugin.PluginProto):
   self.waitnotifications = False
   if self.enabled:
    try:
-    self.BLEPeripheral.disconnect()
+    if self.BLEPeripheral is not None:
+     self.BLEPeripheral.disconnect()
     self.cproc._stop()
     self.blestatus.unregisterdataprogress(self.taskindex)
    except:
     pass
-
- def __del__(self):
-  self.disconnect()
 
  def plugin_exit(self):
   self.disconnect()
@@ -292,11 +308,19 @@ class TempHumDelegate2(btle.DefaultDelegate):
    if (cHandle in TEMP_HUM_READ_HANDLE) and data is not None:
     temp = None
     hum = None
+    batt = None
     try:
      received = bytearray(data)
      temp = float(received[1] * 256 + received[0]) / 100
      hum = received[2]
+     try:
+       battvolt = float(received[4]*256 + received[3]) / 1000
+     except:
+       battvolt = -1
+     batt = min(int(round((battvolt - 2.1),2) * 100), 100)
+     if battvolt<=0 or batt<=0:
+       batt = 0
     except Exception as e:
      print("Notification error: ",e)
-#    print(temp,hum) # DEBUG
-    self.callback(temp,hum)
+#    print(temp,hum,batt) # DEBUG
+    self.callback(temp,hum,batt)
