@@ -190,7 +190,7 @@ class Plugin(plugin.PluginProto):
    self.conninprogress = True
    while self.blestatus.norequesters()==False or self.blestatus.nodataflows()==False:
        time.sleep(0.5)
-       misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG_MORE,"BLE line not free for P517!")
+       misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG_MORE,"BLE line not free for P517! "+str(self.blestatus.dataflow))
    self.blestatus.registerdataprogress(self.taskindex)
    prevstate = self.connected
    try:
@@ -202,7 +202,7 @@ class Plugin(plugin.PluginProto):
     self.connectcount = 0
     self.BLEPeripheral.setDelegate( TempHumDelegate2(self.callbackfunc) )
    except Exception as e:
-    print(e) # debug
+#    print(e) # debug
     self.connected = False
 #   time.sleep(0.5)
    self.isconnected()
@@ -286,10 +286,10 @@ class Plugin(plugin.PluginProto):
   self.waitnotifications = False
   if self.enabled:
    try:
+    self.blestatus.unregisterdataprogress(self.taskindex)
     if self.BLEPeripheral is not None:
      self.BLEPeripheral.disconnect()
     self.cproc._stop()
-    self.blestatus.unregisterdataprogress(self.taskindex)
    except:
     pass
 

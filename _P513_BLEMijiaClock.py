@@ -115,7 +115,7 @@ class Plugin(plugin.PluginProto):
     return False
    while self.blestatus.norequesters()==False or self.blestatus.nodataflows()==False:
        time.sleep(0.5)
-       misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG_MORE,"BLE line not free for P513!")
+       misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG_MORE,"BLE line not free for P513! "+str(self.blestatus.dataflow))
    self.blestatus.registerdataprogress(self.taskindex)
    try:
     self.BLEPeripheral = Lywsd02Client(str(self.taskdevicepluginconfig[0]),int(self.interval))

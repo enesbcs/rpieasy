@@ -172,7 +172,7 @@ def loadtasks():
   settingjson = f.read()
   tTasks = jsonpickle.decode(settingjson)
   Tasks = tTasks
- except:
+ except Exception as e:
   success = 0
  return success
 

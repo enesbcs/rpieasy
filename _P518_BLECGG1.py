@@ -123,12 +123,13 @@ class Plugin(plugin.PluginProto):
   else:
    self.ports = ""
    self.timer1s = False
- 
+
  def timer_once_per_second(self):
   if self.enabled:
    if self._nextdataservetime-rpieTime.millis()<=self.preread:
     if self.conninprogress==False and self.connected==False:
      self.waitnotifications = False
+     self.blestatus.unregisterdataprogress(self.taskindex)
      if len(self.taskdevicepluginconfig[0])>10:
       self.cproc = threading.Thread(target=self.connectproc)
       self.cproc.daemon = True
@@ -165,7 +166,7 @@ class Plugin(plugin.PluginProto):
    self.conninprogress = True
    while self.blestatus.norequesters()==False or self.blestatus.nodataflows()==False:
        time.sleep(0.5)
-       misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"BLE line not free for P518!")
+       misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"BLE line not free for P518! "+str(self.blestatus.dataflow))
    self.blestatus.registerdataprogress(self.taskindex)
    prevstate = self.connected
    try:
@@ -177,13 +178,17 @@ class Plugin(plugin.PluginProto):
     self.BLEPeripheral.setDelegate( TempHumDelegateC1(self.callbackfunc) )
    except Exception as e:
     self.connected = False
-   time.sleep(0.5)
+#   time.sleep(0.5)
    self.isconnected()
    if self.connected==False:
     misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"BLE connection failed "+str(self.taskdevicepluginconfig[0]))
     self.blestatus.unregisterdataprogress(self.taskindex)
-    self.disconnect()
-    time.sleep(uniform(5,10))
+    self.conninprogress = False
+    try:
+     self.disconnect()
+    except:
+     pass
+    time.sleep(uniform(1,3))
     self.failures =  self.failures +1
     if self.failures>5:
      if self.interval<120:
@@ -192,12 +197,13 @@ class Plugin(plugin.PluginProto):
       skiptime = self.interval
      self._nextdataservetime = rpieTime.millis()+(skiptime)
      self._lastdataservetime = self._nextdataservetime
-    self.conninprogress = False
     return False
    else:
     misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"BLE connected to "+str(self.taskdevicepluginconfig[0]))
     self.waitnotifications = True
-    self.get_battery_value()
+    time.sleep(0.1)
+    self.blestatus.unregisterdataprogress(self.taskindex)
+#    self.get_battery_value()
 #    rpieTime.addsystemtimer(3,self.isconnected,[-1])
    self.conninprogress = False
 

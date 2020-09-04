@@ -556,7 +556,7 @@ def settingstozip():
 
 def extractzip(zipname,destdir=""):
      try:
-      cmdline = 'unzip -o -q '+str(zipname)
+      cmdline = "unzip -o -q '"+str(zipname)+"'"
       if destdir != "":
        cmdline += ' -d '+str(destdir)
       output = os.popen(cmdline)

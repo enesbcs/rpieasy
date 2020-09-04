@@ -164,7 +164,7 @@ class Plugin(plugin.PluginProto):
    self.conninprogress = True
    while self.blestatus.norequesters()==False or self.blestatus.nodataflows()==False:
        time.sleep(0.5)
-       misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG_MORE,"BLE line not free for P512!")
+       misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG_MORE,"BLE line not free for P512! "+str(self.blestatus.dataflow))
    self.blestatus.registerdataprogress(self.taskindex)
    prevstate = self.connected
    try:
