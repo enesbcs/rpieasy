@@ -6,6 +6,7 @@
 # Copyright (C) 2020 by Alexander Nagy - https://bitekmindenhol.blog.hu/
 #
 import os
+import time
 
 def find_hci_devices():
   resarr = []
@@ -24,12 +25,14 @@ class BLEStatusSemaphore():
  requests = []
  dataflow = []
  requestimmediatestopscan = None
+ lastflowtime = 0
 
  def __init__(self):
   self.scanprogress = False
   self.requests = []
   self.dataflow = []
   self.requestimmediatestopscan = None
+  self.lastflowtime = 0
 
  def reportscan(self,status):     # called by scanner program
   if int(status)==0:
@@ -49,6 +52,12 @@ class BLEStatusSemaphore():
   if len(self.dataflow)==0:
    return True
   else:
+   try:
+    if self.lastflowtime > 0:
+     if time.time()-self.lastflowtime>300: #more than 5minutes?
+      self.dataflow = []                   #reset line
+   except:
+    pass
    return False
 
  def isscaninprogress(self):            # called by standard ble plugin
@@ -70,10 +79,12 @@ class BLEStatusSemaphore():
  def registerdataprogress(self,tskid):   # called by standard ble plugin
   if not (int(tskid) in self.dataflow):
    self.dataflow.append(int(tskid))
+   self.lastflowtime = time.time()
 
  def unregisterdataprogress(self,tskid): # called by standard ble plugin
   if (int(tskid) in self.dataflow):
    try:
+    self.lastflowtime = 0
     self.dataflow.remove(int(tskid))
    except:
     pass

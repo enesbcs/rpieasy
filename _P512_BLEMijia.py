@@ -206,6 +206,8 @@ class Plugin(plugin.PluginProto):
  def isconnected(self,d=None):
   if self.connected:
    self.connected = self.request_temp_hum_value()
+  if self.connected==False:
+     self.blestatus.unregisterdataprogress(self.taskindex)
   return self.connected
 
  def get_battery_value(self):
