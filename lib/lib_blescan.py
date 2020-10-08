@@ -27,6 +27,9 @@ class BLEScan():
   self.devrssi = []
   self.lastscan = 0
   self._scanning = False
+  self.scantime = 10
+  self.minsleep = 15
+  self.maxsleep = 40
 
  def stop(self):
     try:
@@ -84,8 +87,11 @@ class BLEScan():
    result = -1
   return result
 
- def sniff(self, callback,startwait=0):
+ def sniff(self, callback,startwait=0,scantime=10,minsleep=15,maxsleep=40):
     self._scanning = True
+    self.scantime = scantime
+    self.minsleep = minsleep
+    self.maxsleep = maxsleep
     _blestatus = BLEHelper.BLEStatus[self.bledev]
     time.sleep(startwait)
     try:
@@ -101,11 +107,11 @@ class BLEScan():
         pass
        self.scanner.clear()
        self.scanner.start(passive=True)
-       self.scanner.process(10)
+       self.scanner.process(scantime)
        self.scanner.stop()
        _blestatus.reportscan(0)
 #       print("scan pause")#debug
-       time.sleep(uniform(10,30))
+       time.sleep(uniform(minsleep,maxsleep))
      else:
       while _blestatus.norequesters()==False or _blestatus.nodataflows()==False or _blestatus.isscaninprogress():
         time.sleep(0.5)

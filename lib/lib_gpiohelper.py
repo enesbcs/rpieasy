@@ -284,7 +284,7 @@ def play_rtttl(pin,notestr):
   notes = rtttllib.parse_rtttl(notestr)
  except Exception as e:
   misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"RTTTL parse failed: "+str(e))
-  return false
+  return False
  if 'notes' in notes:
   for note in notes['notes']:
    try:

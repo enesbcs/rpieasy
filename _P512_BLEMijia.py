@@ -217,7 +217,7 @@ class Plugin(plugin.PluginProto):
     battery = self.BLEPeripheral.readCharacteristic(BATTERY_HANDLE)
     self.lastbatteryreq = time.time()
    except Exception as e:
-    pass
+    self.connected = False
    try:
     if battery:
      self.battery = int(binascii.b2a_hex(battery),16)
@@ -241,10 +241,10 @@ class Plugin(plugin.PluginProto):
   self.waitnotifications = False
   if self.enabled:
    try:
+    self.blestatus.unregisterdataprogress(self.taskindex)
     if self.BLEPeripheral is not None:
      self.BLEPeripheral.disconnect()
     self.cproc._stop()
-    self.blestatus.unregisterdataprogress(self.taskindex)
    except:
     pass
 

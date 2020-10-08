@@ -74,6 +74,33 @@ class Plugin(plugin.PluginProto):
   webserver.addFormSelector("Indicator2","plugin_527_ind1",len(optionvalues),options,optionvalues,None,choice2)
   webserver.addFormSelector("Indicator3","plugin_527_ind2",len(optionvalues),options,optionvalues,None,choice3)
   webserver.addFormSelector("Indicator4","plugin_527_ind3",len(optionvalues),options,optionvalues,None,choice4)
+  try:
+   if self.taskdevicepluginconfig[5]<1:
+     self.taskdevicepluginconfig[5] = self.blescanner.scantime
+  except:
+   pass
+  try:
+   if self.taskdevicepluginconfig[6]<1:
+     self.taskdevicepluginconfig[6] = self.blescanner.minsleep
+  except:
+   pass
+  try:
+   if self.taskdevicepluginconfig[7]<1:
+     self.taskdevicepluginconfig[7] = self.blescanner.maxsleep
+  except:
+   pass
+  if self.taskdevicepluginconfig[5]<1:
+   self.taskdevicepluginconfig[5]=5
+  if self.taskdevicepluginconfig[6]<1:
+   self.taskdevicepluginconfig[6]=10
+  if self.taskdevicepluginconfig[7]<1:
+   self.taskdevicepluginconfig[7]=30
+  webserver.addFormNumericBox("Scan time","plugin_527_scantime",self.taskdevicepluginconfig[5],5,60)
+  webserver.addUnit('s')
+  webserver.addFormNumericBox("Minimal pause after scan","plugin_527_minsleep",self.taskdevicepluginconfig[6],5,60)
+  webserver.addUnit('s')
+  webserver.addFormNumericBox("Maximal pause after scan","plugin_527_maxsleep",self.taskdevicepluginconfig[7],10,120)
+  webserver.addUnit('s')
   return True
 
  def webform_save(self,params): # process settings post reply
@@ -82,6 +109,18 @@ class Plugin(plugin.PluginProto):
    self.taskdevicepluginconfig[4] = int(webserver.arg("plugin_527_dev",params))
   except:
    self.taskdevicepluginconfig[4] = 0
+  try:
+   self.taskdevicepluginconfig[5] = int(webserver.arg("plugin_527_scantime",params))
+  except:
+   self.taskdevicepluginconfig[5] = 5
+  try:
+   self.taskdevicepluginconfig[6] = int(webserver.arg("plugin_527_minsleep",params))
+  except:
+   self.taskdevicepluginconfig[6] = 10
+  try:
+   self.taskdevicepluginconfig[7] = int(webserver.arg("plugin_527_maxsleep",params))
+  except:
+   self.taskdevicepluginconfig[7] = 30
   for v in range(0,4):
    par = webserver.arg("plugin_527_ind"+str(v),params)
    if par == "":
@@ -153,7 +192,7 @@ class Plugin(plugin.PluginProto):
  def startsniff(self,startwait=0):
     try:
      if self.blescanner._scanning==False:
-      self._bgproc = threading.Thread(target=self.blescanner.sniff, args=(self.AdvDecoder,startwait))
+      self._bgproc = threading.Thread(target=self.blescanner.sniff, args=(self.AdvDecoder,startwait,self.taskdevicepluginconfig[5],self.taskdevicepluginconfig[6],self.taskdevicepluginconfig[7]))
       self._bgproc.daemon = True
       self._bgproc.start()
     except Exception as e:
@@ -240,6 +279,7 @@ class Plugin(plugin.PluginProto):
    return value
 
  def _updatedevice(self,newvals):
+    res = False
     for key in newvals.keys():
      if key=="batt":
       self.battery = newvals[key]
@@ -248,30 +288,31 @@ class Plugin(plugin.PluginProto):
        if time.time()-self._attribs[key+"-t"]>1.5:
         self._attribs[key+"-t"] = time.time()
         self._attribs[key] = newvals[key]
-        return True
-       else:
-        return False
+        res = True
       else:
        self._attribs.update({key:newvals[key]})
        key = key + "-t"
        self._attribs.update({key:time.time()})
-       return True
-     except:
+       res = True
+     except Exception as e:
       pass
+    return res
 
  def decode_xiaomi(self,buf):
   res = {}
   ofs = 0
-  if len(buf)>16:
-   cdata = struct.unpack_from('<H H H B 6B B B B B',buf)
-  elif len(buf)>15:
-   cdata = struct.unpack_from('<H H H B 6B B B B ',buf)
-  else:
-   return res
+  try:
+   if len(buf)>16:
+    cdata = struct.unpack_from('<H H H B 6B B B B B',buf)
+   elif len(buf)>15:
+    cdata = struct.unpack_from('<H H H B 6B B B B ',buf)
+   else:
+    cdata = [0]
+  except:
+    cdata = [0]
   if cdata[0] == 0xFE95:
     if cdata[11] != 0x10 and cdata[12] == 0x10:
      ofs = 1
-#    print(cdata,ofs)
     try:
      if cdata[2] == 0x0576:
       cdata2 = struct.unpack_from('<h H',buf[15:])
@@ -308,6 +349,13 @@ class Plugin(plugin.PluginProto):
       res = {"stat":buf[16+ofs],"temp":buf[17+ofs]}
     except:
      res = {}
+  else:
+    if buf[0]==0x1A and buf[1]==0x18: # ATC
+     try:
+      cdata = struct.unpack_from('>H 6B h B B H B',buf)
+     except:
+      cdata = [0]
+     res = {"temp":cdata[7]/10.0,"hum":cdata[8],"batt":cdata[9]}
   return res
 
  def dosync(self,addr,rssi,values):

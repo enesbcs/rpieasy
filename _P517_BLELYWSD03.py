@@ -271,7 +271,7 @@ class Plugin(plugin.PluginProto):
   return self.battery
 
  def callbackfunc(self,temp=None,hum=None,batt=None):
-  self.connected = True
+#  self.connected = True
   self.blestatus.unregisterdataprogress(self.taskindex)
   if self.enabled:
    self.TARR.append(temp)
@@ -280,7 +280,7 @@ class Plugin(plugin.PluginProto):
    if rpieTime.millis()-self._lastdataservetime>=2000:
     self.plugin_read()
 
- def disconnect(self):
+ def disconnect(self,forceit=False):
 #  print("disconn")
   self.connected = False
   self.waitnotifications = False

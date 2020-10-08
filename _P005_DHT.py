@@ -48,6 +48,7 @@ class Plugin(plugin.PluginProto):
   self.HARR = []
   self.uservar[0] = 0
   self.uservar[1] = 0
+  self.initialized = False
   if self.enabled:
    if self.interval>2:
     nextr = self.interval-2
@@ -55,6 +56,7 @@ class Plugin(plugin.PluginProto):
     nextr = 0
    self._lastdataservetime = rpieTime.millis()-(nextr*1000)
    self.lastread = 0
+   self.initialized = True
 
  def loadlib(self):
      if int(self.taskdevicepluginconfig[1])==0:
@@ -108,7 +110,6 @@ class Plugin(plugin.PluginProto):
  def plugin_read(self): # deal with data processing at specified time interval
   result = False
   if self.initialized and self.readinprogress==0:
-   DHT = self.loadlib()
    prevt = self.uservar[0]
    prevh = self.uservar[1]
    self.readinprogress = 1

@@ -136,7 +136,7 @@ class Plugin(plugin.PluginProto):
   try:
     if self.led is not None:
      for l in range(self.pixelnum):
-      self.led.setPixelColor(0, Color(0,0,0))
+      self.led.setPixelColor(l, Color(0,0,0))
      self.led.show()
   except:
     pass

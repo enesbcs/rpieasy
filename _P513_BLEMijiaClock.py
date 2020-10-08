@@ -54,12 +54,18 @@ class Plugin(plugin.PluginProto):
   webserver.addFormNote("This plugin may not work well with ble scanner plugin.")
   webserver.addFormCheckBox("Add Battery value for non-Domoticz system","plugin_513_bat",self.taskdevicepluginconfig[1])
   webserver.addFormCheckBox("Set LYWSD time at startup","plugin_513_t",self.taskdevicepluginconfig[2])
+  webserver.addFormNumericBox("Force to release BLE queue if blocked for x seconds","plugin_513_free",self.taskdevicepluginconfig[3],5,240)
+  webserver.addUnit('s')
   return True
 
  def webform_save(self,params): # process settings post reply
   self.taskdevicepluginconfig[0] = str(webserver.arg("plugin_513_addr",params)).strip()
   self.taskdevicepluginconfig[1] = (webserver.arg("plugin_513_bat",params)=="on")
   self.taskdevicepluginconfig[2] = (webserver.arg("plugin_513_t",params)=="on")
+  try:
+   self.taskdevicepluginconfig[3] = int(webserver.arg("plugin_513_free",params))
+  except:
+   self.taskdevicepluginconfig[3] = 0
   if self.taskdevicepluginconfig[1]:
    self.valuecount = 3
    self.vtype = rpieGlobals.SENSOR_TYPE_TRIPLE
@@ -75,6 +81,8 @@ class Plugin(plugin.PluginProto):
   self.readinprogress = 0
 #  self.uservar[0] = 0
 #  self.uservar[1] = 0
+  if self.taskdevicepluginconfig[3]<5:
+   self.taskdevicepluginconfig[3]=240
   self.connected = False
   try:
      self.blestatus  = BLEHelper.BLEStatus[0] # 0 is hardwired in LYWSD02 library
@@ -113,9 +121,15 @@ class Plugin(plugin.PluginProto):
      return False
    except Exception as e:
     return False
+   cstart = time.time()
    while self.blestatus.norequesters()==False or self.blestatus.nodataflows()==False:
        time.sleep(0.5)
        misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG_MORE,"BLE line not free for P513! "+str(self.blestatus.dataflow))
+       try:
+        if time.time()-cstart>int(self.taskdevicepluginconfig[3]):
+         self.blestatus.dataflow = [] #reset line by force
+       except:
+        pass
    self.blestatus.registerdataprogress(self.taskindex)
    try:
     self.BLEPeripheral = Lywsd02Client(str(self.taskdevicepluginconfig[0]),int(self.interval))
