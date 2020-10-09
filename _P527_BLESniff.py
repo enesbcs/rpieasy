@@ -104,7 +104,7 @@ class Plugin(plugin.PluginProto):
   return True
 
  def webform_save(self,params): # process settings post reply
-  self.address = str(webserver.arg("plugin_527_addr",params)).strip()
+  self.address = str(webserver.arg("plugin_527_addr",params)).strip().lower()
   try:
    self.taskdevicepluginconfig[4] = int(webserver.arg("plugin_527_dev",params))
   except:
@@ -363,7 +363,7 @@ class Plugin(plugin.PluginProto):
    if (Settings.Tasks[x]) and type(Settings.Tasks[x]) is not bool: # device exists
     if (Settings.Tasks[x].enabled):
       if (Settings.Tasks[x].pluginid==self.pluginid):
-       if str(Settings.Tasks[x].address) == str(addr):
+       if str(Settings.Tasks[x].address).lower() == str(addr).lower():
         try:
          if Settings.Tasks[x]._updatedevice(values):
           Settings.Tasks[x].rssi = rssi

@@ -66,7 +66,7 @@ class Plugin(plugin.PluginProto):
 
  def webform_save(self,params): # process settings post reply
   try:
-   self.taskdevicepluginconfig[0] = str(webserver.arg("plugin_515_addr",params)).strip()
+   self.taskdevicepluginconfig[0] = str(webserver.arg("plugin_515_addr",params)).strip().lower()
    for v in range(0,4):
     par = webserver.arg("plugin_515_ind"+str(v),params)
     if par == "":
