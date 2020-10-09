@@ -192,7 +192,7 @@ class Plugin(plugin.PluginProto):
  def startsniff(self,startwait=0):
     try:
      if self.blescanner._scanning==False:
-      self._bgproc = threading.Thread(target=self.blescanner.sniff, args=(self.AdvDecoder,startwait,self.taskdevicepluginconfig[5],self.taskdevicepluginconfig[6],self.taskdevicepluginconfig[7]))
+      self._bgproc = threading.Thread(target=self.blescanner.sniff, args=(self.AdvDecoder,startwait,self.taskdevicepluginconfig[5],self.taskdevicepluginconfig[6],self.taskdevicepluginconfig[7],))
       self._bgproc.daemon = True
       self._bgproc.start()
     except Exception as e:
