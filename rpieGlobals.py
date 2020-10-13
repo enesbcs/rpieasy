@@ -6,7 +6,7 @@
 # Copyright (C) 2018-2020 by Alexander Nagy - https://bitekmindenhol.blog.hu/
 #
 PROGNAME = "RPIEasy"
-BUILD   = 20283
+BUILD   = 20287
 PROGVER = str(BUILD)[:1]+"."+str(BUILD)[1:2]+"."+str(BUILD)[2:]
 
 gpMenu = []
@@ -100,6 +100,7 @@ SENSOR_TYPE_QUAD                 =  7
 SENSOR_TYPE_TEMP_EMPTY_BARO      =  8
 SENSOR_TYPE_SWITCH               = 10
 SENSOR_TYPE_DIMMER               = 11
+SENSOR_TYPE_RGB                  = 12
 SENSOR_TYPE_LONG                 = 20
 SENSOR_TYPE_WIND                 = 21
 SENSOR_TYPE_TEXT                 = 101

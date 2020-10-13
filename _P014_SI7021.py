@@ -37,6 +37,7 @@ class Plugin(plugin.PluginProto):
   plugin.PluginProto.plugin_init(self,enableplugin)
   self.uservar[0] = 0
   self.uservar[1] = 0
+  self.readinprogress = 0
   if self.enabled:
    i2cport = -1
    try:

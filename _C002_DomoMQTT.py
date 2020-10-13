@@ -282,6 +282,16 @@ class Controller(controller.ControllerProto):
       tval[0] = str(svalue)
      else:
       tval[0] = str(nvalue)
+    try:
+     if ("Dimmer" in list['switchType']):
+      if str(list['nvalue'])=="0":
+       tval[0] = 0
+     if ("RGB" in  list['stype']):
+      tval[1] = str(list['Color']['r'])
+      tval[2] = str(list['Color']['g'])
+      tval[3] = str(list['Color']['b'])
+    except:
+     pass
     if decodeerr:
      misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"JSON decode error: "+msg2)
     else:

@@ -4,10 +4,9 @@
 #############################################################################
 #
 # Only receiver! Communication is implemented through plugin_receivedata()
-# Primarily for Domoticz, but can be used any MQTT based controller
-# which do not need feedback.
+# Primarily for Domoticz, but can be used any MQTT based controllers.
 #
-# Copyright (C) 2018-2019 by Alexander Nagy - https://bitekmindenhol.blog.hu/
+# Copyright (C) 2018-2020 by Alexander Nagy - https://bitekmindenhol.blog.hu/
 #
 import plugin
 import webserver
@@ -20,7 +19,7 @@ import Settings
 
 class Plugin(plugin.PluginProto):
  PLUGIN_ID = 29
- PLUGIN_NAME = "Output - Domoticz Output Helper (No feedback)"
+ PLUGIN_NAME = "Output - Output Helper"
  PLUGIN_VALUENAME1 = "State"
 
  def __init__(self,taskindex): # general init
@@ -41,6 +40,7 @@ class Plugin(plugin.PluginProto):
  def webform_load(self):
   webserver.addFormNote("Please make sure to select <a href='pinout'>pin configured for Output!</a>")
   webserver.addFormCheckBox("Preserve state at startup","p029_preserve",self.taskdevicepluginconfig[0])
+  webserver.addFormCheckBox("Response to remote commands for non-Domoticz controllers","p029_report",self.taskdevicepluginconfig[1])
   return True
 
  def webform_save(self,params):
@@ -48,6 +48,10 @@ class Plugin(plugin.PluginProto):
    self.taskdevicepluginconfig[0] = True
   else:
    self.taskdevicepluginconfig[0] = False
+  if (webserver.arg("p029_report",params)=="on"):
+   self.taskdevicepluginconfig[1] = True
+  else:
+   self.taskdevicepluginconfig[1] = False
   self.sync()
   return True
 
@@ -99,7 +103,7 @@ class Plugin(plugin.PluginProto):
     val = 1
    else:
     val = 0
-   self.set_value(1,val,False)
+   self.set_value(1,val,self.taskdevicepluginconfig[1])
 #  print("Data received:",data) # DEBUG
 
  def plugin_write(self,cmd):
