@@ -63,7 +63,7 @@ class Plugin(plugin.PluginProto):
        ot = False
        for p in range(len(Settings.Pinout)):
         if str(Settings.Pinout[p]["BCM"])==str(self.taskdevicepin[0]):
-         if Settings.Pinout[p]["startupstate"]==4:
+         if Settings.Pinout[p]["startupstate"] in [4,5,6]:
           ot = True
           break
        if ot==False:
@@ -75,7 +75,12 @@ class Plugin(plugin.PluginProto):
       misc.addLog(rpieGlobals.LOG_LEVEL_INFO,self.taskname+": Restoring previous GPIO value "+str(self.uservar[0]))
      else:
       self.uservar[0] = v1                      # store actual pin state into uservar
+      if self.taskdevicepluginconfig[1]:
+       self.plugin_senddata()
       misc.addLog(rpieGlobals.LOG_LEVEL_INFO,self.taskname+": Syncing actual GPIO value "+str(v1))
+    elif self.taskdevicepluginconfig[1]:
+       self.plugin_senddata()
+    self.initialized = True
    if self.initialized:
     if self.taskdevicepluginconfig[0]==True:
      sps = "en"
