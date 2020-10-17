@@ -44,7 +44,7 @@ class Plugin(plugin.PluginProto):
  def plugin_init(self,enableplugin=None):
   plugin.PluginProto.plugin_init(self,enableplugin)
   if self.enabled==False or enableplugin==False:
-   self.__del__()
+   self.plugin_exit()
    return False
   if self.enabled:
    if int(self.taskdevicepin[0])>0:
@@ -164,7 +164,7 @@ class Plugin(plugin.PluginProto):
   webserver.addFormPinSelect("Display button","taskdevicepin0",self.taskdevicepin[0])
   return True
 
- def __del__(self):
+ def plugin_exit(self):
   try:
    if self.device is not None:
     self.device.clear()
@@ -176,9 +176,6 @@ class Plugin(plugin.PluginProto):
     gpios.HWPorts.remove_event_detect(int(self.taskdevicepin[0]))
    except:
     pass
-
- def plugin_exit(self):
-  self.__del__()
 
  def webform_save(self,params): # process settings post reply
    par = webserver.arg("p012_type",params)
@@ -257,6 +254,9 @@ class Plugin(plugin.PluginProto):
       res = True
      elif cmd == "clear":
       self.device.clear()
+      res = True
+     elif cmd == "reinit":
+      self.plugin_init()
       res = True
      elif cmd == "clearline":
       try:

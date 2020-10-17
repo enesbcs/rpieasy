@@ -412,6 +412,10 @@ plugindependencies = [
  "supported_os_level": [3,10],
  "ext":256,
  "modules":["i2c","apds"]},
+{"pluginid": "68", # SHT30
+ "supported_os_level": [3,10],
+ "ext":256,
+ "modules":["i2c"]},
 {"pluginid": "69", # LM75
  "supported_os_level": [3,10],
  "ext":256,
