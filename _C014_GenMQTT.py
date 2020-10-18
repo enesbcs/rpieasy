@@ -12,7 +12,8 @@
 #  topic: %sysname%/taskname/valuename/set payload value will be forwarded to it!
 # (Two way communication)
 #
-# Variables: %sysname% %tskname% %valname%
+# Variables: %sysname% %tskname% %valname% %tskid%
+#  # = %tskname%/%valname% !!!
 #
 # Commands can be remotely executed through MQTT with writing to:
 #  topic: %sysname%/cmd with payload: command
@@ -158,6 +159,7 @@ class Controller(controller.ControllerProto):
     self.mqttclient.loop_start()
    except Exception as e:
     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"MQTT controller: "+self.controllerip+":"+str(self.controllerport)+" connection failed "+str(e))
+    self.laststatus = 0
   return self.isconnected()
 
  def disconnect(self):
@@ -182,7 +184,7 @@ class Controller(controller.ControllerProto):
   res = False
   if self.enabled and self.initialized:
    if ForceCheck==False:
-    return self.laststatus
+    return (self.laststatus==1)
    if self.mqttclient is not None:
     tstart = self.outch[:len(self.outch)-1]
     gtopic = tstart+"status"
@@ -242,6 +244,7 @@ class Controller(controller.ControllerProto):
   webserver.addFormTextBox("Controller lwl topic","c014_lwt",lwt,255)
   webserver.addFormTextBox("LWT Connect Message","c014_cmsg",lwt1,255)
   webserver.addFormTextBox("LWT Disconnect Message","c014_dcmsg",lwt2,255)
+  webserver.addFormCheckBox("Check conn & reconnect if needed at every 30 sec","c014_reconnect",self.timer30s)
   return True
 
  def webform_save(self,params): # process settings post reply
@@ -286,11 +289,22 @@ class Controller(controller.ControllerProto):
    self.lwtdisconnmsg = "Offline"
   if lwt!=self.lwt_topic or lwt1!= self.lwtconnmsg or lwt2!=self.lwtdisconnmsg:
    pchange = True
+  if (webserver.arg("c014_reconnect",params)=="on"):
+   self.timer30s = True
+  else:
+   self.timer30s = False
   if pchange and self.enabled:
    self.disconnect()
    time.sleep(0.1)
    self.connect()
   return True
+
+ def timer_thirty_second(self):
+  if self.enabled:
+   if self.isconnected()==False:
+    misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"MQTT: Try to reconnect")
+    self.connect()
+  return self.timer30s
 
  def on_message(self, msg):
   success = False
@@ -367,7 +381,8 @@ class Controller(controller.ControllerProto):
        vname = Settings.Tasks[tasknum].valuenames[u]
        if vname != "":
         if ('%t' in self.inch) or ('%v' in self.inch):
-         gtopic = self.inch.replace('#','')
+         gtopic = self.inch.replace('#/','')
+         gtopic = gtopic.replace('#','')
          gtopic = gtopic.replace('%tskname%',tname)
          gtopic = gtopic.replace('%tskid%',str(tasknum+1))
          gtopic = gtopic.replace('%valname%',vname)
@@ -388,7 +403,8 @@ class Controller(controller.ControllerProto):
      else:
       vname = Settings.Tasks[tasknum].valuenames[changedvalue-1]
       if ('%t' in self.inch) or ('%v' in self.inch):
-         gtopic = self.inch.replace('#','')
+         gtopic = self.inch.replace('#/','')
+         gtopic = gtopic.replace('#','')
          gtopic = gtopic.replace('%tskname%',tname)
          gtopic = gtopic.replace('%tskid%',str(tasknum+1))
          gtopic = gtopic.replace('%valname%',vname)
