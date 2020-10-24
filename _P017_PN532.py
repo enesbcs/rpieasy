@@ -45,15 +45,17 @@ class Plugin(plugin.PluginProto):
   self.initialized = False
   time.sleep(1)
   if self.enabled:
-   self.i2cport = -1
    try:
-    for i in range(0,2):
-     if gpios.HWPorts.is_i2c_usable(i) and gpios.HWPorts.is_i2c_enabled(i):
-      self.i2cport = i
-      break
+     i2cl = self.i2c
    except:
-    self.i2cport = -1
-   if self.i2cport>-1:
+     i2cl = -1
+   try:
+    i2cport = gpios.HWPorts.geti2clist()
+    if i2cl==-1:
+      i2cl = int(i2cport[0])
+   except:
+    i2cport = []
+   if len(i2cport)>0 and i2cl>-1:
     self.preset = str(self.taskdevicepin[0]).strip()
     if self.preset == "" or self.preset=="-1":
      self.preset = None
@@ -64,7 +66,7 @@ class Plugin(plugin.PluginProto):
       self.preset = None
     self.ver = ""
     try:
-     self.pn = pn532.PN532_I2C(reset=self.preset,i2c_c=self.i2cport)
+     self.pn = pn532.PN532_I2C(reset=self.preset,i2c_c=self.i2cl)
      ic,ver,rev,supp=self.pn.get_firmware_version() # get fw version
      self.ver = str(ver)+"."+str(rev)
      self.pn.SAM_configuration() # set mifare type

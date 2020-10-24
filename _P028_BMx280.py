@@ -3,7 +3,7 @@
 ###################### BMP280/BME280 plugin for RPIEasy #####################
 #############################################################################
 #
-# Copyright (C) 2018-2019 by Alexander Nagy - https://bitekmindenhol.blog.hu/
+# Copyright (C) 2018-2020 by Alexander Nagy - https://bitekmindenhol.blog.hu/
 #
 # BME280 code used from:
 # https://github.com/cmur2/python-bme280
@@ -49,9 +49,15 @@ class Plugin(plugin.PluginProto):
   if self.enabled and sensoraddress in [0x76,0x77]:
    try:
     self.bme = None
-    i2cok = gpios.HWPorts.i2c_init()
-    self.bme = Bme280(i2c_bus=gpios.HWPorts.i2cbus,sensor_address=sensoraddress)
-    if i2cok:
+    try:
+     i2cl = self.i2c
+    except:
+     i2cl = -1
+    i2cbus = gpios.HWPorts.i2c_init(i2cl)
+    if i2cl==-1:
+     i2cbus = gpios.HWPorts.i2cbus
+    self.bme = Bme280(i2c_bus=i2cbus,sensor_address=sensoraddress)
+    if (self.bme is not None) and (i2cbus is not None) and self.bme.init:
      if self.interval>2:
       nextr = self.interval-2
      else:
@@ -59,10 +65,10 @@ class Plugin(plugin.PluginProto):
      self._lastdataservetime = rpieTime.millis()-(nextr*1000)
     else:
      misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"BME through I2C can not be initialized!")
-     self.enabled = False
+     self.initialized = False
    except Exception as e:
     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,str(e))
-    self.enabled = False
+    self.initialized = False
   if self.enabled:
    chiptype = self.bme.get_chip_id()
    self.hashumidity = False
@@ -91,7 +97,10 @@ class Plugin(plugin.PluginProto):
    par = 0
   self.taskdevicepluginconfig[0] = int(par)
   if initpar != self.taskdevicepluginconfig[0]:
-   self.plugin_init()
+   try:
+    self.plugin_init()
+   except:
+    pass
   return True
 
  def plugin_read(self): # deal with data processing at specified time interval
@@ -123,7 +132,8 @@ class Bme280(object):
     REGISTER_CONFIG = 0xF5
 
     def __init__(self, i2c_bus=None, sensor_address=ADDR):
-       if i2c_bus != None:
+      if i2c_bus != None:
+       try:
         self.bus = i2c_bus # smbus.SMBus(1)
         self.sensor_address = sensor_address
         self.ho = self.HO_1
@@ -138,6 +148,10 @@ class Bme280(object):
         self.bus.write_byte_data(self.sensor_address, self.REGISTER_CTRL_HUM, self.get_reg_ctrl_hum())
         self.bus.write_byte_data(self.sensor_address, self.REGISTER_CTRL_MEAS, self.get_reg_ctrl_meas())
         self.bus.write_byte_data(self.sensor_address, self.REGISTER_CONFIG, self.get_reg_config())
+        self.init = True
+       except:
+        self.bus = None
+        self.init = False
 
     def get_chip_id(self):
         return self.bus.read_byte_data(self.sensor_address, self.REGISTER_ID)

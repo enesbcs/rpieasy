@@ -500,6 +500,7 @@ class hwports:
  def __init__(self): # general init
   self.i2c_initialized = False
   self.i2cbus = None
+  self.i2c_channels_init = []
   self.gpioctrl = [] # ftdi gpio
   self.gpios    = [] # rpigpio compatible layer
   self.i2cctrl  = [] # ftdi i2c
@@ -510,6 +511,8 @@ class hwports:
   self.pwmo = []
   for p in range(22):
    self.pwmo.append({"pin":0,"o":False})
+  for i in range(20):
+   self.i2c_channels_init.append(None)
 
  def get_gpiohandler(self,pinid):
    try:
@@ -634,23 +637,33 @@ class hwports:
   return res
 
  def i2c_init(self,channel=-1):
-  if self.i2c_initialized == False:
-   if channel==-1:
+  try:
+   import smbus
+  except:
+   return None
+  if channel==-1:
     channel = self.get_first_i2c()
+  if channel>-1:
+   succ = False
    try:
-    import smbus
-    self.i2cbus = smbus.SMBus(channel)
-    self.i2c_initialized = True
+    if self.i2c_channels_init[channel] is None:
+     self.i2c_channels_init[channel] = smbus.SMBus(channel)
+    succ = True
    except:
-    self.i2c_initialized = False
-  return self.i2c_initialized
+    self.i2c_channels_init[channel] = None
+   if succ and (self.i2c_channels_init[channel] is not None):
+    if self.i2cbus is None:
+      self.i2cbus = self.i2c_channels_init[channel]
+    self.i2c_initialized = True
+    return self.i2c_channels_init[channel]
+  return None
 
- def i2c_read_block(self,address,cmd,channel=-1):
-     channel = self.get_first_i2c()
-     bus = self.get_i2c_ctrl(channel)
+
+ def i2c_read_block(self,address,cmd,bus=None):
+     if bus is None:
+      bus = self.i2cbus
      try:
-      i2c = bus.get_port(address)
-      res = i2c.read_from(int(cmd),readlen=32)
+      res = bus.read_from(int(cmd),readlen=32)
      except:
       res = None
      return res
@@ -1079,6 +1092,13 @@ class hwports:
       pass
 
     return devices
+
+ def geti2clist(self):
+  resarr = []
+  for i in range(20):
+   if self.is_i2c_usable(i):
+    resarr.append(i)
+  return resarr
 
  def removedevpinout(self,ftdidevicename,devtype=""):
   for p in reversed(range(len(Settings.Pinout))):

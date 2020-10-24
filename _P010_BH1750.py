@@ -32,6 +32,7 @@ class Plugin(plugin.PluginProto):
   self.samples = 3
   self.preread = self.samples*2000 # 3 * 2 sec
   self.LARR = []
+  self.i2cbus = None
 
  def plugin_init(self,enableplugin=None):
   plugin.PluginProto.plugin_init(self,enableplugin)
@@ -39,8 +40,14 @@ class Plugin(plugin.PluginProto):
   self.uservar[0] = 0
   if self.enabled:
    try:
-    i2cok = gpios.HWPorts.i2c_init()
-    if i2cok:
+    try:
+     i2cl = self.i2c
+    except:
+     i2cl = -1
+    self.i2cbus = gpios.HWPorts.i2c_init(i2cl)
+    if i2cl==-1:
+     self.i2cbus = gpios.HWPorts.i2cbus
+    if self.i2cbus is not None:
      if self.interval>2:
       nextr = self.interval-2
      else:
@@ -53,6 +60,7 @@ class Plugin(plugin.PluginProto):
    except Exception as e:
     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,str(e))
     self.enabled = False
+    self.i2cbus = None
 
  def webform_load(self): # create html page for settings
   choice1 = self.taskdevicepluginconfig[0]
@@ -119,7 +127,7 @@ class Plugin(plugin.PluginProto):
    if rpieTime.millis()>=(self.lastread+2000):
     lux = None
     try:
-     lux = gpios.HWPorts.i2c_read_block(int(self.taskdevicepluginconfig[0]),0x21) # Start measurement at 0.5lx resolution.  Measurement Time is typically 120ms.  It is automatically set to Power Down mode after measurement.
+     lux = gpios.HWPorts.i2c_read_block(int(self.taskdevicepluginconfig[0]),0x21,bus=self.i2cbus) # Start measurement at 0.5lx resolution.  Measurement Time is typically 120ms.  It is automatically set to Power Down mode after measurement.
     except:
      lux = None
     if lux != None:

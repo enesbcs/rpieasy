@@ -42,13 +42,18 @@ class Plugin(plugin.PluginProto):
   self.readinprogress=0
   if self.enabled and int(self.taskdevicepluginconfig[0])>0:
    try:
-    i2cok = gpios.HWPorts.i2c_init()
-    if i2cok:
+    try:
+     i2cl = self.i2c
+    except:
+     i2cl = -1
+    self.bus = gpios.HWPorts.i2c_init(i2cl)
+    if i2cl==-1:
+     self.bus = gpios.HWPorts.i2cbus
+    if self.bus is not None:
      if self.interval>2:
       nextr = self.interval-2
      else:
       nextr = self.interval
-     self.bus = gpios.HWPorts.i2cbus
      config = [0x00, 0x00]
      self.bus.write_i2c_block_data(int(self.taskdevicepluginconfig[0]), 0x01, config) # Select configuration register, 0x01(1) 0x0000(00)	Continuous conversion mode, Power-up default
      self.bus.write_byte_data(int(self.taskdevicepluginconfig[0]), 0x08, 0x03)        # Select resolution register, 0x08(8) 0x03(03)	Resolution = +0.0625 / C !!! MAX 4 TIMES/SEC!!!
@@ -56,10 +61,10 @@ class Plugin(plugin.PluginProto):
      self._lastdataservetime = rpieTime.millis()-(nextr*1000)
     else:
      misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"I2C can not be initialized!")
-     self.enabled = False
+     self.initialized = False
    except Exception as e:
     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"MCP9808 init failed "+str(e))
-    self.enabled = False
+    self.initialized = False
 
  def webform_load(self): # create html page for settings
   choice1 = self.taskdevicepluginconfig[0]

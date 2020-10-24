@@ -38,7 +38,7 @@ class Plugin(plugin.PluginProto):
    for x in range(len(data)):
     if data[x] != -9999:
      self.set_value(x+1,data[x],False)
-#  print("Data received:",data)
+#  print("Data received:",data)#debug
 
  def getvaluecount(self):
    if self.vtype in [rpieGlobals.SENSOR_TYPE_SINGLE,rpieGlobals.SENSOR_TYPE_SWITCH,rpieGlobals.SENSOR_TYPE_DIMMER,rpieGlobals.SENSOR_TYPE_LONG,rpieGlobals.SENSOR_TYPE_WIND]:

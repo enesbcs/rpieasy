@@ -59,15 +59,17 @@ class Plugin(plugin.PluginProto):
   self.timer100ms = False
   time.sleep(0.1)
   if self.enabled:
-   i2cport = -1
    try:
-    for i in range(0,2):
-     if gpios.HWPorts.is_i2c_usable(i) and gpios.HWPorts.is_i2c_enabled(i):
-      i2cport = i
-      break
+     i2cl = self.i2c
    except:
-    i2cport = -1
-   if i2cport>-1:
+     i2cl = -1
+   try:
+    i2cport = gpios.HWPorts.geti2clist()
+    if i2cl==-1:
+      i2cl = int(i2cport[0])
+   except:
+    i2cport = []
+   if len(i2cport)>0 and i2cl>-1:
      try:
       dport = int(self.taskdevicepluginconfig[0])
      except:
@@ -76,12 +78,12 @@ class Plugin(plugin.PluginProto):
       dport = 0x3f
      self.pme = None
      try:
-      self.pme = rpiwire.request_i2c_device(int(i2cport),dport)
+      self.pme = rpiwire.request_i2c_device(int(i2cl),dport)
      except Exception as e:
       self.pme = None
    if self.pme:
     try:
-     if str(self.pme.i2c_bus_num) != str(i2cport):
+     if str(self.pme.i2c_bus_num) != str(i2cl):
       self.pme = None
     except Exception as e:
      self.pme = None

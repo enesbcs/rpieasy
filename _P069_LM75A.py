@@ -39,20 +39,25 @@ class Plugin(plugin.PluginProto):
   self.bus = None
   if self.enabled and int(self.taskdevicepluginconfig[0])>0:
    try:
-    i2cok = gpios.HWPorts.i2c_init()
-    if i2cok:
+    try:
+     i2cl = self.i2c
+    except:
+     i2cl = -1
+    self.bus = gpios.HWPorts.i2c_init(i2cl)
+    if i2cl==-1:
+     self.bus = gpios.HWPorts.i2cbus
+    if self.bus is not None:
      if self.interval>2:
       nextr = self.interval-2
      else:
       nextr = self.interval
-     self.bus = gpios.HWPorts.i2cbus
      self._lastdataservetime = rpieTime.millis()-(nextr*1000)
     else:
      misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"I2C can not be initialized!")
-     self.enabled = False
+     self.initialized = False
    except Exception as e:
     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,str(e))
-    self.enabled = False
+    self.initialized = False
 
  def webform_load(self): # create html page for settings
   choice1 = self.taskdevicepluginconfig[0]

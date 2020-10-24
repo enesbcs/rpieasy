@@ -30,6 +30,9 @@ class PluginProto: # Skeleton for every plugin! Override necessary functions and
   self.dtype = rpieGlobals.DEVICE_TYPE_SINGLE
   self.vtype = rpieGlobals.SENSOR_TYPE_SWITCH
   self.ports = 0
+  self.uart = -1
+  self.i2c  = -1
+  self.spi  = -1
 #  self.pullupoption = False
 #  self.pullup = False
   self.inverselogicoption = False

@@ -44,15 +44,17 @@ class Plugin(plugin.PluginProto):
   self.initialized = False
   self.pca = None
   if self.enabled:
-   i2cport = -1
    try:
-    for i in range(0,2):
-     if gpios.HWPorts.is_i2c_usable(i) and gpios.HWPorts.is_i2c_enabled(i):
-      i2cport = i
-      break
+     i2cl = self.i2c
    except:
-    i2cport = -1
-   if i2cport>-1 and int(self.taskdevicepluginconfig[0])>0:
+     i2cl = -1
+   try:
+    i2cport = gpios.HWPorts.geti2clist()
+    if i2cl==-1:
+      i2cl = int(i2cport[0])
+   except:
+    i2cport = []
+   if len(i2cport)>0 and i2cl>-1 and int(self.taskdevicepluginconfig[0])>0:
      try:
       freq = int(self.taskdevicepluginconfig[1])
       if freq<self.MIN_FREQUENCY or freq>self.MAX_FREQUENCY:
@@ -60,7 +62,7 @@ class Plugin(plugin.PluginProto):
      except:
        freq = self.MAX_FREQUENCY
      try:
-      self.pca = Device(address=int(self.taskdevicepluginconfig[0]),bus_number=int(i2cport))
+      self.pca = Device(address=int(self.taskdevicepluginconfig[0]),bus_number=int(i2cl))
       if self.pca is not None:
        self.initialized = True
        self.pca.set_pwm_frequency(freq)

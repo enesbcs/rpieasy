@@ -39,22 +39,24 @@ class Plugin(plugin.PluginProto):
   self.initialized = False
   self.timer100ms = False
   if self.enabled:
-   i2cport = -1
    try:
-    for i in range(0,2):
-     if gpios.HWPorts.is_i2c_usable(i) and gpios.HWPorts.is_i2c_enabled(i):
-      i2cport = i
-      break
+     i2cl = self.i2c
    except:
-    i2cport = -1
-   if i2cport>-1:
+     i2cl = -1
+   try:
+    i2cport = gpios.HWPorts.geti2clist()
+    if i2cl==-1:
+      i2cl = int(i2cport[0])
+   except:
+    i2cport = []
+   if len(i2cport)>0 and i2cl>-1:
      try:
       i2ca = int(self.taskdevicepluginconfig[0])
      except:
       i2ca = 0
      if i2ca>0:
       try:
-       self.ht16 = HT16K33.LEDBackpack(address=int(i2ca),i2cbusnum=i2cport)
+       self.ht16 = HT16K33.LEDBackpack(address=int(i2ca),i2cbusnum=i2cl)
        self.timer100ms = True
        self.initialized = True
       except Exception as e:

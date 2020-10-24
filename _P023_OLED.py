@@ -51,15 +51,17 @@ class Plugin(plugin.PluginProto):
  def plugin_init(self,enableplugin=None):
   plugin.PluginProto.plugin_init(self,enableplugin)
   if self.enabled:
-   i2cport = -1
    try:
-    for i in range(0,2):
-     if gpios.HWPorts.is_i2c_usable(i) and gpios.HWPorts.is_i2c_enabled(i):
-      i2cport = i
-      break
+     i2cl = self.i2c
    except:
-    i2cport = -1
-   if i2cport>-1:
+     i2cl = -1
+   try:
+    i2cport = gpios.HWPorts.geti2clist()
+    if i2cl==-1:
+      i2cl = int(i2cport[0])
+   except:
+    i2cport = []
+   if len(i2cport)>0 and i2cl>-1:
     if self.interval>2:
       nextr = self.interval-2
     else:
@@ -69,7 +71,7 @@ class Plugin(plugin.PluginProto):
     serialdev = None
     self.taskdevicepluginconfig[1] = int(float(self.taskdevicepluginconfig[1]))
     if self.taskdevicepluginconfig[1] != 0: # i2c address
-     serialdev = i2c(port=i2cport, address=self.taskdevicepluginconfig[1])
+     serialdev = i2c(port=i2cl, address=self.taskdevicepluginconfig[1])
     else:
      return self.initialized
     self.device = None

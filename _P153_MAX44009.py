@@ -36,14 +36,21 @@ class Plugin(plugin.PluginProto):
   self.formulaoption = True
   self._nextdataservetime = 0
   self.lastread = 0
+  self.i2cbus = None
 
  def plugin_init(self,enableplugin=None):
   plugin.PluginProto.plugin_init(self,enableplugin)
   self.uservar[0] = 0
   if self.enabled:
    try:
-    i2cok = gpios.HWPorts.i2c_init()
-    if i2cok:
+    try:
+     i2cl = self.i2c
+    except:
+     i2cl = -1
+    self.i2cbus = gpios.HWPorts.i2c_init(i2cl)
+    if i2cl==-1:
+     self.i2cbus = gpios.HWPorts.i2cbus
+    if self.i2cbus is not None:
      if self.interval>2:
       nextr = self.interval-2
      else:
@@ -52,10 +59,11 @@ class Plugin(plugin.PluginProto):
      self.lastread = 0
     else:
      misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"I2C can not be initialized!")
-     self.enabled = False
+     self.initialized = False
    except Exception as e:
     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,str(e))
-    self.enabled = False
+    self.initialized = False
+    self.i2cbus = None
 
  def webform_load(self): # create html page for settings
   choice1 = self.taskdevicepluginconfig[0]
@@ -90,7 +98,11 @@ class Plugin(plugin.PluginProto):
 
  def read_max44009(self):
   if self.initialized:
-   bus = gpios.HWPorts.i2cbus
+   try:
+    bus = self.i2cbus
+   except:
+    self.i2cbus = None
+    return None
    v1 = None
    try:
     bus.write_byte_data(int(self.taskdevicepluginconfig[0]), 0x02, 0x40) # Select configuration register, 0x02(02), 0x40(64) Continuous mode, Integration time = 800 ms

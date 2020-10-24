@@ -386,6 +386,7 @@ class hwports:
  def __init__(self): # general init
   self.i2c_channels = [] # 0,1
   self.i2c_channels_init = [] # 0,1
+  self.i2c_channels_arr = []
   self.i2c_initialized = False
   self.i2cbus = None
   self.spi_channels = [] # 0,1
@@ -432,6 +433,8 @@ class hwports:
   except:
    print("GPIO init failed")
    self.gpioinit = False
+  for i in range(20):
+   self.i2c_channels_arr.append(None)
 
  def __del__(self):
    try:
@@ -523,24 +526,32 @@ class hwports:
  def i2c_init(self,channel=-1):
   if channel==-1:
    channel = self.get_first_i2c()
-  if not(channel in self.i2c_channels_init):
-   if self.is_i2c_usable(channel)==False:
-      channel = -1
-   if channel ==-1:
-    return False
-   self.i2cbus = smbus.SMBus(channel)
-   self.i2c_channels_init.append(channel)
-  return True
-
- def i2c_read_block(self,address,cmd,channel=-1):
-  retval = None
-  if channel==-1:
-   channel = self.get_first_i2c()
-  if (channel in self.i2c_channels_init):
+  if channel>-1:
+   succ = False
    try:
-    retval = self.i2cbus.read_i2c_block_data(address,cmd)
+    if self.i2c_channels_arr[channel] is None:
+     self.i2c_channels_arr[channel] = smbus.SMBus(channel)
+    succ = True
    except:
-    retval = None
+    self.i2c_channels_arr[channel] = None
+   if succ and (self.i2c_channels_arr[channel] is not None):
+    if self.i2cbus is None:
+      self.i2cbus = self.i2c_channels_arr[channel]
+    self.i2c_initialized = True
+    if channel not in self.i2c_channels_init:
+     self.i2c_channels_init.append(channel)
+    return self.i2c_channels_arr[channel]
+  return None
+
+ def i2c_read_block(self,address,cmd,bus=None):
+  retval = None
+  try:
+   if bus is None:
+    retval = self.i2cbus.read_i2c_block_data(address,cmd)
+   else:
+    retval = bus.read_i2c_block_data(address,cmd)
+  except:
+   retval = None
   return retval
 
  def is_i2c_usable(self,channel):
@@ -996,6 +1007,13 @@ class hwports:
      pass
     bus = None
     return devices
+
+ def geti2clist(self):
+  resarr = []
+  for i in range(10):
+   if self.is_i2c_usable(i):
+    resarr.append(i)
+  return resarr
 
  def createpinout(self,pinout):
   global PINOUT40

@@ -40,6 +40,7 @@ class Plugin(plugin.PluginProto):
   self.preread = self.samples*2000 # 3 * 2 sec
   self.TARR = []
   self.HARR = []
+  self.i2cbus = None
 
  def plugin_init(self,enableplugin=None):
   plugin.PluginProto.plugin_init(self,enableplugin)
@@ -49,8 +50,14 @@ class Plugin(plugin.PluginProto):
   self.uservar[1] = 0
   if self.enabled:
    try:
-    i2cok = gpios.HWPorts.i2c_init()
-    if i2cok:
+    try:
+     i2cl = self.i2c
+    except:
+     i2cl = -1
+    self.i2cbus = gpios.HWPorts.i2c_init(i2cl)
+    if i2cl==-1:
+     self.i2cbus = gpios.HWPorts.i2cbus
+    if self.i2cbus is not None:
      if self.interval>2:
       nextr = self.interval-2
      else:
@@ -59,10 +66,11 @@ class Plugin(plugin.PluginProto):
      self.lastread = 0
     else:
      misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"I2C can not be initialized!")
-     self.enabled = False
+     self.initialized = False
    except Exception as e:
     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,str(e))
-    self.enabled = False
+    self.initialized = False
+    self.i2cbus = None
 
  def webform_load(self): # create html page for settings
   webserver.addFormNote("I2C address is fixed 0x5c! You can check it at <a href='i2cscanner'>i2cscan</a> page.")
@@ -146,7 +154,11 @@ class Plugin(plugin.PluginProto):
   return result
 
  def readam2320(self):
-  bus = gpios.HWPorts.i2cbus
+  try:
+   bus = self.i2cbus
+  except:
+   self.i2cbus = None
+   return 0,0
   temp = None
   humi = None
   try:

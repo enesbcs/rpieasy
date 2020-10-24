@@ -389,6 +389,7 @@ class hwports:
  def __init__(self): # general init
   self.i2c_channels = [] # 0,1
   self.i2c_initialized = False
+  self.i2c_channels_init = []
   self.i2cbus = None
   self.spi_channels = [] # 0,1
   self.spi_cs = [0,0]
@@ -442,6 +443,8 @@ class hwports:
   else:
    self.gpumax = 944
   self.gpumem = self.gpumin
+  for i in range(20):
+   self.i2c_channels_init.append(None)
 
  def __del__(self):
    try:
@@ -529,21 +532,48 @@ class hwports:
  def remove_event_detect(self,pin):
   GPIO.remove_event_detect(pin)
 
- def i2c_init(self):
-  if self.i2c_initialized == False:
+ def i2c_init(self,channel=-1):
+  if channel>-1:
+   succ = False
+   try:
+    if self.i2c_channels_init[channel] is None:
+     self.i2c_channels_init[channel] = smbus.SMBus(channel)
+    succ = True
+   except:
+    self.i2c_channels_init[channel] = None
+   if succ and (self.i2c_channels_init[channel] is not None):
+    if self.i2cbus is None:
+      self.i2cbus = self.i2c_channels_init[channel]
+    self.i2c_initialized = True
+    return self.i2c_channels_init[channel]
+   else:
+    return None
+  else:
    if self.is_i2c_usable(1):
-    self.i2cbus = smbus.SMBus(1)
+    if self.i2c_channels_init[1] is None:
+     self.i2c_channels_init[1] = smbus.SMBus(1)
+    if self.i2cbus is None:
+     self.i2cbus = self.i2c_channels_init[1]
     self.i2c_initialized = True
+    return True
    elif self.is_i2c_usable(0):
-    self.i2cbus = smbus.SMBus(0)
+    if self.i2c_channels_init[0] is None:
+     self.i2c_channels_init[0] = smbus.SMBus(0)
+    if self.i2cbus is None:
+     self.i2cbus = self.i2c_channels_init[0]
     self.i2c_initialized = True
-  return self.i2c_initialized
+    return True
+   return False
+  return None
 
- def i2c_read_block(self,address,cmd):
+ def i2c_read_block(self,address,cmd,bus=None):
   retval = None
   if self.i2c_initialized:
    try:
-    retval = self.i2cbus.read_i2c_block_data(address,cmd)
+    if bus is None:
+     retval = self.i2cbus.read_i2c_block_data(address,cmd)
+    else:
+     retval = bus.read_i2c_block_data(address,cmd)
    except:
     retval = None
   return retval
@@ -1344,6 +1374,22 @@ class hwports:
      pass
     bus = None
     return devices
+
+ def geti2clist(self):
+     import glob
+     rlist = []
+     try:
+      devlist = glob.glob('/dev/i2c*')
+      if len(devlist)>0:
+       for d in devlist:
+        dstr = d.split("-")
+        try:
+         rlist.append(int(dstr[1]))
+        except:
+         pass
+     except:
+      rlist = []
+     return rlist
 
  def createpinout(self,pinout):
   global PINOUT40, PINOUT26R1_DELTA, PINOUT26R2_DELTA

@@ -68,21 +68,27 @@ class Plugin(plugin.PluginProto):
      self.timer100ms = True
 
    try:
-     i2cok = gpios.HWPorts.i2c_init()
-     if i2cok:
+     try:
+      i2cl = self.i2c
+     except:
+      i2cl = -1
+     i2cbus = gpios.HWPorts.i2c_init(i2cl)
+     if i2cl==-1:
+      i2cbus = gpios.HWPorts.i2cbus
+     if i2cbus is not None:
       if self.interval>2:
        nextr = self.interval-2
       else:
        nextr = self.interval
-      self.apds = APDS9960(gpios.HWPorts.i2cbus)
+      self.apds = APDS9960(i2cbus)
       self._lastdataservetime = rpieTime.millis()-(nextr*1000)
       self.lastread = 0
       initok = True
      else:
-      self.enabled = False
+      self.initialized = False
       misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"I2C can not be initialized!") 
    except Exception as e:
-     self.enabled = False
+     self.initialized = False
      misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"APDS init error "+str(e))
   if initok:
    try:

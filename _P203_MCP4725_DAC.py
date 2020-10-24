@@ -41,15 +41,21 @@ class Plugin(plugin.PluginProto):
   plugin.PluginProto.plugin_init(self,enableplugin)
   if self.enabled:
    try:
-    i2cok = gpios.HWPorts.i2c_init()
-    if i2cok:
+    try:
+     i2cl = self.i2c
+    except:
+     i2cl = -1
+    self.bus = gpios.HWPorts.i2c_init(i2cl)
+    if i2cl==-1:
      self.bus = gpios.HWPorts.i2cbus
+    if self.bus is not None:
+     self.initialized = True
     else:
      misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"I2C can not be initialized!")
-     self.enabled = False
+     self.initialized = False
    except Exception as e:
      misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,str(e))
-     self.enabled = False
+     self.initialized = False
 
  def webform_load(self):
   webserver.addFormNote("Enable <a href='pinout'>I2C bus</a> first, than <a href='i2cscanner'>search for the used address</a>!<br>0x60 is number 0 DAC, 0x61 is number 1.")

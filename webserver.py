@@ -1303,7 +1303,7 @@ def handle_devices(self):
     s = s-1 # array is 0 based, tasks is 1 based
     if (type(Settings.Tasks[s])!=bool) and (Settings.Tasks[s]):
      if (Settings.Tasks[s].enabled):
-      Settings.Tasks[s].set_value(1,(1-int(Settings.Tasks[s].uservar[0])),publish=True)
+      Settings.Tasks[s].set_value(1,(1-int(float(Settings.Tasks[s].uservar[0]))),publish=True)
   except Exception as e:
     print(e)
 
@@ -1413,9 +1413,14 @@ def handle_devices(self):
 
         if (Settings.Tasks[x].dtype == rpieGlobals.DEVICE_TYPE_I2C):
             try:
-             i2cpins = Settings.get_i2c_pins()
+             c = Settings.Tasks[x].i2c
+            except:
+             c = -1
+             Settings.Tasks[x].i2c = -1
+            try:
+             i2cpins = Settings.get_i2c_pins(c)
              TXBuffer += i2cpins[0]
-             TXBuffer += "<BR>"+i2cpins[1]
+             TXBuffer += "<BR>"+str(i2cpins[1])
             except:
              TXBuffer += "NO-I2C"
         try:
@@ -1618,6 +1623,16 @@ def handle_devices(self):
           Settings.Tasks[taskIndex].valuenames[varnr] = ""
         Settings.Tasks[taskIndex].webform_save(responsearr) # call plugin read FORM
         Settings.Tasks[taskIndex].enabled = (arg("TDE",responsearr) == "on")
+        if (Settings.Tasks[taskIndex].dtype==rpieGlobals.DEVICE_TYPE_I2C):
+         try:
+          if Settings.Tasks[taskIndex].i2c>-1:
+           pass
+         except:
+          Settings.Tasks[taskIndex].i2c = -1 # set to default in case of error
+         try:
+          Settings.Tasks[taskIndex].i2c = int(arg("i2c",responsearr))
+         except:
+          pass
         if Settings.Tasks[taskIndex].taskname=="":
          Settings.Tasks[taskIndex].enabled = False
         Settings.savetasks() # savetasksettings!!!
@@ -1647,6 +1662,21 @@ def handle_devices(self):
           addFormPinSelect("3rd GPIO", "taskdevicepin3", Settings.Tasks[taskIndex].taskdevicepin[2])
         if (Settings.Tasks[taskIndex].dtype==rpieGlobals.DEVICE_TYPE_QUAD):
           addFormPinSelect("4th GPIO", "taskdevicepin4", Settings.Tasks[taskIndex].taskdevicepin[3])
+      if (Settings.Tasks[taskIndex].dtype==rpieGlobals.DEVICE_TYPE_I2C):
+          try:
+           import gpios
+           options = gpios.HWPorts.geti2clist()
+          except Exception as e:
+           options = []
+          addHtml("<tr><td>I2C line:<td>")
+          addSelector_Head("i2c",False)
+          for d in range(len(options)):
+           try:
+            addSelector_Item("I2C"+str(options[d]),options[d],(Settings.Tasks[taskIndex].i2c==options[d]),False)
+           except:
+            pass
+          addSelector_Foot()
+
       try:
        Settings.Tasks[taskIndex].webform_load() # call plugin function to fill TXBuffer
       except Exception as e:
@@ -2070,13 +2100,21 @@ def handle_i2cscanner(self):
  TXBuffer += "<table class='multirow' border=1px frame='box' rules='all'><TH>I2C Addresses in use<TH>Supported devices</th></tr>"
  i2cenabled = 0
  i2cdevs = 0
- for i in range(0,2):
-  try:
+ try:
+  i2cbuses = gpios.HWPorts.geti2clist()
+ except:
+  i2cbuses = []
+ if len(i2cbuses)<1:
+  for i in range(0,6):
    if gpios.HWPorts.is_i2c_usable(i) and gpios.HWPorts.is_i2c_enabled(i):
+    i2cbuses.append(i)
+ i2cl = gpios.HWPorts.is_i2c_lib_available()
+
+ for i in i2cbuses:
+  try:
     i2cenabled += 1
     addFormSubHeader("I2C-"+str(i))
     TXBuffer += "</td></tr>"
-    i2cl = gpios.HWPorts.is_i2c_lib_available()
     if i2cl:
      i2ca = gpios.HWPorts.i2cscan(i)
      for d in range(len(i2ca)):

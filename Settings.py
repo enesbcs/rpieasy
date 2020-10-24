@@ -80,25 +80,34 @@ def callback_from_controllers(controllerindex,idx,values,taskname="",valuename="
         tvalues = []
         for u in range(rpieGlobals.VARS_PER_TASK):     # fill unused values with -9999, handle at plugin side!!!
          tvalues.append(-9999)
-        for v in range(Tasks[x].valuecount):           # match with valuename
-         if Tasks[x].valuenames[v]==valuename:
-          tvalues[v] = values
-          Tasks[x].plugin_receivedata(tvalues)
-          break
+        if valuename=="":
+         Tasks[x].plugin_receivedata(values)            # send all
+        else:
+         for v in range(Tasks[x].valuecount):           # match with valuename
+          if Tasks[x].valuenames[v]==valuename:
+           tvalues[v] = values
+           Tasks[x].plugin_receivedata(tvalues)
+           break
         break
 
-def get_i2c_pins():                    # get list of enabled i2c pin numbers
+def get_i2c_pins(channel=-1):                    # get list of enabled i2c pin numbers
   global Pinout
   gplist = []
+  sname = "I2C"
+  if channel>-1:
+   sname += str(channel)
   try:
    for p in range(len(Pinout)):
     if int(Pinout[p]["altfunc"])!=0:
      n = Pinout[p]["name"]
      for i in range(len(n)):
-      if "I2C" in Pinout[p]["name"][i]:
+      if sname in Pinout[p]["name"][i]:
        gplist.append(Pinout[p]["name"][0]+"/"+Pinout[p]["name"][i])
   except:
    pass
+  if len(gplist)<1:
+   gplist.append("I2C")
+   gplist.append(channel)
   return gplist
 
 def savesettings():

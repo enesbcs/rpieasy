@@ -41,16 +41,18 @@ class Plugin(plugin.PluginProto):
   self.uservar[0] = 0
   self.initialized = False
   if self.enabled:
-   i2cport = -1
    try:
-    for i in range(0,2):
-     if gpios.HWPorts.is_i2c_usable(i) and gpios.HWPorts.is_i2c_enabled(i):
-      i2cport = i
-      break
+     i2cl = self.i2c
    except:
-    i2cport = -1
+     i2cl = -1
+   try:
+    i2cport = gpios.HWPorts.geti2clist()
+    if i2cl==-1:
+      i2cl = int(i2cport[0])
+   except:
+    i2cport = []
    e = ""
-   if i2cport>-1:
+   if len(i2cport)>0 and i2cl>-1:
     if self.interval>2:
       nextr = self.interval-2
     else:
@@ -58,7 +60,7 @@ class Plugin(plugin.PluginProto):
     self._lastdataservetime = rpieTime.millis()-(nextr*1000)
     try:
      if int(self.taskdevicepluginconfig[0])>0:
-      self.vl = VL53L0X.VL53L0X(busnum=i2cport,i2c_address=int(self.taskdevicepluginconfig[0]))
+      self.vl = VL53L0X.VL53L0X(busnum=i2cl,i2c_address=int(self.taskdevicepluginconfig[0]))
       self.initialized = self.vl.initialized
     except Exception as e:
      self.initialized = False
