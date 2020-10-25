@@ -486,6 +486,9 @@ class Controller(controller.ControllerProto):
            gval += '"battery":'+ str(bval)+ ','
           if userssi != -1:
            gval += '"rssi":'+ str(userssi)+ ','
+          ps = str(Settings.Tasks[tasknum].ports)
+          if ps != "0" and ps != "":
+           gval += '"port":"'+ str(ps)+ '",'
           gval = gval[:-1]+"}"
        mres = 1
        try:

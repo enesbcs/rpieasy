@@ -257,6 +257,11 @@ modulelist = [
  "pip": ["spidev"],
  "testcmd": "import spidev",
  "installed":-1},
+{"name":"pytz",
+ "apt": ["python3-pip","python3-setuptools"],
+ "pip": ["pytz"],
+ "testcmd": "from pytz import timezone",
+ "installed":-1},
 
 ]
 
@@ -504,7 +509,7 @@ plugindependencies = [
 {"pluginid": "512", # BLE Xiaomi Temp
  "modules":["bluepy"]},
 {"pluginid": "513", # BLE LYWSD02
- "modules":["lywsd"]},
+ "modules":["lywsd","pytz"]},
 {"pluginid": "514", # USB-Dallas
  "supported_os_level": [1,2,3,10],
  "modules":["pyserial","pydigitemp"]},

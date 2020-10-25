@@ -47,6 +47,7 @@ class Plugin(plugin.PluginProto):
   self._lastdataservetime = 0
   self._nextdataservetime = 0
   self.blestatus = None
+  self._lastclockupdate = 0
 
  def webform_load(self): # create html page for settings
   webserver.addFormTextBox("Device Address","plugin_513_addr",str(self.taskdevicepluginconfig[0]),20)
@@ -72,6 +73,11 @@ class Plugin(plugin.PluginProto):
   else:
    self.valuecount = 2
    self.vtype = rpieGlobals.SENSOR_TYPE_TEMP_HUM
+  try:
+   if self._lastclockupdate:
+    pass
+  except:
+   self._lastclockupdate = 0
   self.plugin_init()
   return True
 
@@ -81,6 +87,7 @@ class Plugin(plugin.PluginProto):
   self.readinprogress = 0
 #  self.uservar[0] = 0
 #  self.uservar[1] = 0
+  self._lastclockupdate = 0
   if self.taskdevicepluginconfig[3]<5:
    self.taskdevicepluginconfig[3]=240
   self.connected = False
@@ -104,15 +111,25 @@ class Plugin(plugin.PluginProto):
     if self.connected:
       self.initialized = True
       self.ports = str(self.taskdevicepluginconfig[0])
-      if self.taskdevicepluginconfig[2]:
-       try:
-        misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"Sync LWSD02 time")
-        self.BLEPeripheral.time = datetime.now()
-       except:
-        pass
       self._lastdataservetime = rpieTime.millis() - ((self.interval-1)*1000)
       self.timer1s = False
     self.conninprogress=False
+  if self.enabled and self.connected:
+      if self.taskdevicepluginconfig[2]:
+       try:
+        if (time.time() - self._lastclockupdate)>604800:
+         misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"Sync LWSD02 time")
+         try:
+          from pytz import reference
+          localtime = reference.LocalTimezone()
+          today = datetime.now(localtime)
+          self.BLEPeripheral.tz_offset = localtime.utcoffset(today).seconds//3600 #set timezone
+         except Exception as e:
+          today = datetime.now()
+         self.BLEPeripheral.time = today
+         self._lastclockupdate = time.time()
+       except Exception as e:
+        self._lastclockupdate = 0
 
  def connect(self):
    try:
