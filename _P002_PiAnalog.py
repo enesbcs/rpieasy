@@ -33,6 +33,7 @@ class Plugin(plugin.PluginProto):
   self.timer100ms = False
   self.readinprogress = False
   self.adc = None
+  self.formulaoption = True
 
  def webform_load(self): # create html page for settings
   webserver.addFormNote("Pin1 is A, Pin2 is B, for wiring, see <a href='https://github.com/simonmonk/pi_analog'>https://github.com/simonmonk/pi_analog</a>")

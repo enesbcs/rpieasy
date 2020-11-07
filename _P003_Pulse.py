@@ -39,6 +39,7 @@ class Plugin(plugin.PluginProto):
   self.readinprogress = False
   self.irqinprogress = False
   self.prevval = -1
+  self.formulaoption = True
 
  def webform_load(self): # create html page for settings
   webserver.addFormNote("Select an input pin.")

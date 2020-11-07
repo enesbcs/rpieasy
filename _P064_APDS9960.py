@@ -39,6 +39,7 @@ class Plugin(plugin.PluginProto):
   self.apds = None
   self.timer100ms = False
   self.readinprogress = False
+  self.formulaoption = True
 
  def __del__(self):
    if self.taskdevicepin[0]>=0 and self.enabled:
