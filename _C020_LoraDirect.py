@@ -196,11 +196,11 @@ class Controller(controller.ControllerProto):
   if self.enabled:
     dp = p2pbuffer.data_packet()
     dp.buffer = payload
-    print(payload,dp.buffer) # debug
+#    print(payload,dp.buffer) # debug
     dp.decode()
     if dp.pkgtype!=0:
         if dp.pkgtype==1:
-         print(dp.infopacket) # debug
+#         print(dp.infopacket) # debug
          if int(dp.infopacket["unitno"]) == int(Settings.Settings["Unit"]): # skip own messages
           return False
          un = getunitordfromnum(dp.infopacket["unitno"]) # process incoming alive reports
@@ -451,7 +451,7 @@ class LoRaRcvCont(LoRa):
         return False
        self.tx_start = millis()
        self.set_mode(MODE.TX)
-       print("Sending ",payload) #DEBUG
+#       print("Sending ",payload) #DEBUG
        return True
 
 # Helper functions
