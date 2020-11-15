@@ -26,6 +26,8 @@ from SX127x.LoRa import *
 from SX127x.board_config import BOARD
 
 CAPABILITY_BYTE = (1+2) # send and receive
+REPORTINTERVAL = 1800#sec
+#REPORTINTERVAL = 60#debug
 
 class Controller(controller.ControllerProto):
  CONTROLLER_ID = 20
@@ -37,7 +39,7 @@ class Controller(controller.ControllerProto):
   self.onmsgcallbacksupported = False # use direct set_value() instead of generic callback to make sure that values setted anyway
   self.controllerport = 1
   self.lora = None
-  self.sysinfosent=False
+  self.sysinfosent=0
   self.timer30s = True
   self.sf = 9
   self.bw = BW.BW250
@@ -47,6 +49,7 @@ class Controller(controller.ControllerProto):
   self.duty = 10
   self.defaultunit = 0
   self.enablesend = True
+  self.noirq = False
 
  def controller_init(self,enablecontroller=None):
   if enablecontroller != None:
@@ -75,7 +78,7 @@ class Controller(controller.ControllerProto):
 
  def connect(self):
   self.connected = False
-  self.sysinfosent = False
+  self.sysinfosent = 0
   try:
    if self.lora is not None:
     self.lora.set_mode(MODE.STDBY)
@@ -130,6 +133,7 @@ class Controller(controller.ControllerProto):
    webserver.addHtml("<tr><td>DIO2<td>GPIO"+str(BOARD.DIO2))
    webserver.addHtml("<tr><td>DIO3<td>GPIO"+str(BOARD.DIO3))
    webserver.addHtml("<tr><td>RST<td>GPIO"+str(BOARD.RST))
+
    webserver.addTableSeparator("LoRa settings",2,3)
    webserver.addFormFloatNumberBox("Frequency","freq",self.freq,433,928)
    webserver.addUnit("Mhz")
@@ -192,11 +196,11 @@ class Controller(controller.ControllerProto):
   if self.enabled:
     dp = p2pbuffer.data_packet()
     dp.buffer = payload
-#    print(payload,dp.buffer)
+    print(payload,dp.buffer) # debug
     dp.decode()
     if dp.pkgtype!=0:
         if dp.pkgtype==1:
-#         print(dp.infopacket)
+         print(dp.infopacket) # debug
          if int(dp.infopacket["unitno"]) == int(Settings.Settings["Unit"]): # skip own messages
           return False
          un = getunitordfromnum(dp.infopacket["unitno"]) # process incoming alive reports
@@ -349,8 +353,12 @@ class Controller(controller.ControllerProto):
      return self.lora.lorasend(dpc.buffer)
 
  def timer_thirty_second(self):
-  if self.enabled and (self.sysinfosent==False) and self.initialized:
-   self.sysinfosent = self.sendsysinfo()
+  try:
+   if self.enabled and (time.time()>self.sysinfosent+REPORTINTERVAL) and self.initialized:
+    if self.sendsysinfo():
+     self.sysinfosent = time.time()
+  except Exception as e:
+   self.sysinfosent = 0
 
  def sendsysinfo(self):
   if self.enabled and self.initialized and self.enablesend:
@@ -443,7 +451,7 @@ class LoRaRcvCont(LoRa):
         return False
        self.tx_start = millis()
        self.set_mode(MODE.TX)
-#       print("Sending ",payload) # DEBUG
+       print("Sending ",payload) #DEBUG
        return True
 
 # Helper functions
@@ -453,4 +461,3 @@ def getunitordfromnum(unitno):
    if int(Settings.p2plist[n]["unitno"]) == int(unitno) and str(Settings.p2plist[n]["protocol"]) == "LORA":
     return n
   return -1
-
