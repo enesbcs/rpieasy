@@ -130,9 +130,18 @@ class SerialPort:
 
 def serial_portlist():
   ports = []
-  for port in serial.tools.list_ports.comports():
-   ports.append(str(port.device))
+  try:
+   for port in serial.tools.list_ports.comports(True): #include symlinks
+    ports.append(str(port.device))
+  except:
+   pass
   if len(ports)<1:
+   try:
+    for port in serial.tools.list_ports.comports(): #failsafe
+     ports.append(str(port.device))
+   except:
+    pass
+  if len(ports)<1: #alternative systems like orangepi
           import glob
           try:
            devlist1 = glob.glob('/dev/ttyS*')

@@ -409,6 +409,15 @@ def getRPIVer():
        "lan":"1",
        "bt":"1"
       }
+     elif (hwid == "c03130"):
+      hwarr = { 
+       "name": "Pi 400 Rev1",
+       "ram": "4GB",
+       "pins": "40",
+       "wlan": "1",
+       "lan":"1",
+       "bt":"1"
+      }
      elif (hwid == "d03114"):
       hwarr = { 
        "name": "Pi 4 Model B",

@@ -12,6 +12,7 @@
 #  serialwrite,0xFF01            - sends two bytes (written in hexadecimal form): 255,1
 #  serialwrite,0x1045AA          - sends three bytes (written in hexadecimal form): 16,69,170
 #  serialwrite,this is a message - sends a simple string "this is a message"
+#  serialwriteln,this is a message - sends a simple string "this is a message\n"
 #
 # Copyright (C) 2018-2019 by Alexander Nagy - https://bitekmindenhol.blog.hu/
 #
@@ -65,7 +66,7 @@ class Plugin(plugin.PluginProto):
   plugin.PluginProto.plugin_init(self,enableplugin)
   try:
    if str(self.taskdevicepluginconfig[0])!="0" and str(self.taskdevicepluginconfig[0]).strip()!="" and self.baud != 0:
-    self.serdev = None
+#    self.serdev = None
     self.initialized = False
     if self.enabled:
      self.calctimeout()
@@ -80,6 +81,10 @@ class Plugin(plugin.PluginProto):
     else:
      self.baud = 0
      self.ports = 0
+     try:
+      self.serdev.close() # close in case if already opened by ourself
+     except:
+      pass
   except Exception as e:
      misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,str(e))
 
@@ -193,7 +198,12 @@ class Plugin(plugin.PluginProto):
 
  def connect(self):
     try:
+     self.serdev.close() # close in case if already opened by ourself
+    except:
+     pass
+    try:
      self.serdev = rpiSerial.SerialPort(self.taskdevicepluginconfig[0],self.baud,ptimeout=self.timeout,pbytesize=self.bsize,pstopbits=self.sbit)
+     misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"Serial connected "+str(self.taskdevicepluginconfig[0]))
     except Exception as e:
      misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Serial failed "+str(e))
     try:
@@ -233,7 +243,7 @@ class Plugin(plugin.PluginProto):
   res = False
   cmdarr = cmd.split(",")
   cmdarr[0] = cmdarr[0].strip().lower()
-  if cmdarr[0] == "serialwrite":
+  if cmdarr[0] == "serialwrite" or cmdarr[0] == "serialwriteln":
    res = True
    sepp = cmd.find(',')
    text = cmd[sepp+1:]
@@ -249,6 +259,8 @@ class Plugin(plugin.PluginProto):
      sbuf = str(text)
    else:
     sbuf = str(text)
+   if cmdarr[0] == "serialwriteln":
+    sbuf += "\n"
    if self.serdev is not None:
     try:
      self.serdev.write(sbuf)
