@@ -286,6 +286,7 @@ class Plugin(plugin.PluginProto):
     self.initprogress = False
 
  def webform_load(self): # create html page for settings
+  webserver.addFormNote("SPI selector unused as library do not support changing wiring, it is hardcoded!")
   choice1 = str(self.taskdevicepluginconfig[0]) # store display type
   options = ['1.54" (200x200)','1.54"B (200x200)','1.54"C (150x150)','2.13" (250x122)','2.13"B (212x104)','2.7" (264x176)','2.7"B (264x176)','2.9" (296x128)','2.9"B (296x128)','4.2" (400x300)','4.2"B (400x300)','7.5" (800x480)','7.5"B (800x480)','9.7" (1200x825)']
   optionvalues = ["154","154b","154c","213","213b","270","270b","290","290b","420","420b","750","750b","970"]

@@ -1423,6 +1423,16 @@ def handle_devices(self):
              TXBuffer += "<BR>"+str(i2cpins[1])
             except:
              TXBuffer += "NO-I2C"
+        elif (Settings.Tasks[x].dtype == rpieGlobals.DEVICE_TYPE_SPI):
+            try:
+             c = Settings.Tasks[x].spi
+            except:
+             c = -1
+             Settings.Tasks[x].spi = -1
+            try:
+             TXBuffer += "SPI"+str(c)
+            except:
+             TXBuffer += "NO-SPI"
         try:
          for tp in range(0,len(Settings.Tasks[x].taskdevicepin)):
           if int(Settings.Tasks[x].taskdevicepin[tp])>=0:
@@ -1633,6 +1643,27 @@ def handle_devices(self):
           Settings.Tasks[taskIndex].i2c = int(arg("i2c",responsearr))
          except:
           pass
+        elif (Settings.Tasks[taskIndex].dtype==rpieGlobals.DEVICE_TYPE_SPI):
+         try:
+          if Settings.Tasks[taskIndex].spi>-1:
+           pass
+         except:
+          Settings.Tasks[taskIndex].spi = -1 # set to default in case of error
+         try:
+          Settings.Tasks[taskIndex].spi = int(arg("spi",responsearr))
+         except:
+          pass
+         try:
+          if Settings.Tasks[taskIndex].spidnum>-1:
+           pass
+         except:
+          Settings.Tasks[taskIndex].spidnum = -1 # set to default in case of error
+         try:
+          Settings.Tasks[taskIndex].spidnum = int(arg("spidnum",responsearr))
+         except:
+          pass
+
+
         if Settings.Tasks[taskIndex].taskname=="":
          Settings.Tasks[taskIndex].enabled = False
         Settings.savetasks() # savetasksettings!!!
@@ -1673,6 +1704,29 @@ def handle_devices(self):
           for d in range(len(options)):
            try:
             addSelector_Item("I2C"+str(options[d]),options[d],(Settings.Tasks[taskIndex].i2c==options[d]),False)
+           except:
+            pass
+          addSelector_Foot()
+      elif (Settings.Tasks[taskIndex].dtype==rpieGlobals.DEVICE_TYPE_SPI):
+          try:
+           import gpios
+           options1, options2 = gpios.HWPorts.getspilist()
+          except Exception as e:
+           options1 = []
+           options2 = []
+          addHtml("<tr><td>SPI line:<td>")
+          addSelector_Head("spi",False)
+          for d in range(len(options1)):
+           try:
+            addSelector_Item("SPI"+str(options1[d]),options1[d],(Settings.Tasks[taskIndex].spi==options1[d]),False)
+           except:
+            pass
+          addSelector_Foot()
+          addHtml("<tr><td>SPI device num:<td>")
+          addSelector_Head("spidnum",False)
+          for d in range(len(options2)):
+           try:
+            addSelector_Item("CE"+str(options2[d]),options2[d],(Settings.Tasks[taskIndex].spidnum==options2[d]),False)
            except:
             pass
           addSelector_Foot()

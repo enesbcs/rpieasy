@@ -1100,6 +1100,16 @@ class hwports:
     resarr.append(i)
   return resarr
 
+ def getspilist(self):
+  resarr = []
+  darr = []
+  for i in range(20):
+   if self.is_spi_usable(i):
+    resarr.append(i)
+  for i in range(6): # provisoric
+   darr.append(i)
+  return resarr, darr
+
  def removedevpinout(self,ftdidevicename,devtype=""):
   for p in reversed(range(len(Settings.Pinout))):
    try:

@@ -1015,6 +1015,16 @@ class hwports:
     resarr.append(i)
   return resarr
 
+ def getspilist(self):
+  resarr = []
+  darr = []
+  for i in range(10): #needs some enhancement!
+   if self.is_spi_usable(i):
+    resarr.append(i)
+  for i in range(2): #provisoric
+    darr.append(i)
+  return resarr, darr
+
  def createpinout(self,pinout):
   global PINOUT40
   if ("40" in pinout and len(Settings.Pinout)<41) or ("26" in pinout and len(Settings.Pinout)<27):

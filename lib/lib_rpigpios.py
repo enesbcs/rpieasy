@@ -1391,6 +1391,29 @@ class hwports:
       rlist = []
      return rlist
 
+ def getspilist(self):
+     import glob
+     sch = []
+     sdev = []
+     try:
+      devlist = glob.glob('/dev/spi*')
+      if len(devlist)>0:
+       for d in devlist:
+        try:
+         dstr = d.replace("/dev/spidev","")
+         d2str = dstr.split(".")
+         if int(d2str[0]) not in sch:
+          sch.append(int(d2str[0]))
+         if int(d2str[1]) not in sdev:
+          sdev.append(int(d2str[1]))
+        except:
+         pass
+      sch.sort()
+      sdev.sort()
+     except:
+      rlist = []
+     return sch, sdev
+
  def createpinout(self,pinout):
   global PINOUT40, PINOUT26R1_DELTA, PINOUT26R2_DELTA
   if pinout == "40" and len(Settings.Pinout)!=41:

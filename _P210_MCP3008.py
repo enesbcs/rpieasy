@@ -46,9 +46,15 @@ class Plugin(plugin.PluginProto):
       nextr = self.interval
     self._lastdataservetime = rpieTime.millis()-(nextr*1000)
     self.preread = self.samples*1000
-    self.ports = "SPI"+str(self.taskdevicepluginconfig[0])+"/"+str(self.taskdevicepluginconfig[1])+" CH"+str(self.taskdevicepluginconfig[2])
     try:
-      self.adc = ADC.request_adc_device(int(self.taskdevicepluginconfig[0]),int(self.taskdevicepluginconfig[1]))
+      if self.spi<0 or self.spidnum<0:
+        return
+    except:
+     self.spi = 0
+     self.spidnum = 0
+    self.ports = "SPI"+str(self.spi)+"/"+str(self.spidnum)+" CH"+str(self.taskdevicepluginconfig[2])
+    try:
+      self.adc = ADC.request_adc_device(int(self.spi),int(self.spidnum))
       self.initialized = self.adc.initialized
     except Exception as e:
       misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"ADC can not be initialized! "+str(e))
@@ -57,32 +63,7 @@ class Plugin(plugin.PluginProto):
      self.ports = ""
 
  def webform_load(self): # create html page for settings
-  ok = True
-  spichannels = []
-  try:
-   for i in range(4):
-    if gpios.HWPorts.is_spi_usable(i) and gpios.HWPorts.is_spi_enabled(i):
-     spichannels.append(i)
-  except:
-   pass
-  options = []
-  optionvalues = []
-  for i in range(len(spichannels)):
-   options.append(str(spichannels[i]))
-   optionvalues.append(int(spichannels[i]))
-  choice1 = self.taskdevicepluginconfig[0]
-  webserver.addFormSelector("SPI bus","p210_bus",len(options),options,optionvalues,None,int(choice1))
-  if len(spichannels)<1:
-   webserver.addFormNote("No usable SPI channel found, be sure to enable it at <a href='pinout'>hardware settings</a>!")
-   ok = False
-  if ok:
-    choice2 = self.taskdevicepluginconfig[1]
-    options = []
-    optionvalues = []
-    for i in range(4):
-     options.append("CE"+str(i))
-     optionvalues.append(int(i))
-    webserver.addFormSelector("Device number","p210_addr",len(options),options,optionvalues,None,int(choice2))
+    ok = True
     choice3 = self.taskdevicepluginconfig[2]
     options = []
     optionvalues = []
@@ -91,19 +72,9 @@ class Plugin(plugin.PluginProto):
      optionvalues.append(int(i))
     webserver.addFormSelector("Channel number","p210_chan",len(options),options,optionvalues,None,int(choice3))
     webserver.addFormCheckBox("Oversampling","p210_over",self.timer1s)
-  return True
+    return True
 
  def webform_save(self,params): # process settings post reply
-   par = webserver.arg("p210_bus",params)
-   if par == "":
-    par = 0
-   self.taskdevicepluginconfig[0] = int(par)
-
-   par = webserver.arg("p210_addr",params)
-   if par == "":
-    par = 0
-   self.taskdevicepluginconfig[1] = int(par)
-
    par = webserver.arg("p210_chan",params)
    if par == "":
     par = 0

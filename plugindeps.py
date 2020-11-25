@@ -257,6 +257,11 @@ modulelist = [
  "pip": ["spidev"],
  "testcmd": "import spidev",
  "installed":-1},
+{"name":"mfrc522",
+ "apt": [],
+ "pip": ["mfrc522"],
+ "testcmd": "import mfrc522",
+ "installed":-1},
 {"name":"pytz",
  "apt": ["python3-pip","python3-setuptools"],
  "pip": ["pytz"],
@@ -488,6 +493,9 @@ plugindependencies = [
 {"pluginid": "210", #MCP3008
  "supported_os_level": [3,10],
  "modules":["GPIO","spidev"]},
+{"pluginid": "211", #RC522
+ "supported_os_level": [10],
+ "modules":["GPIO","spidev","mfrc522"]},
 {"pluginid": "501", # USB relay
  "modules":["hidapi"]},
 {"pluginid": "502", # pygame play wav/mp3

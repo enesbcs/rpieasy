@@ -33,6 +33,7 @@ class PluginProto: # Skeleton for every plugin! Override necessary functions and
   self.uart = -1
   self.i2c  = -1
   self.spi  = -1
+  self.spidnum = -1
 #  self.pullupoption = False
 #  self.pullup = False
   self.inverselogicoption = False
