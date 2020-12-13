@@ -186,6 +186,19 @@ def preinit(gpiotype):
   PUD_UP=GPIOHW.PUD_UP
   PUD_DOWN=GPIOHW.PUD_DOWN
   HWPorts = hwports()
+ elif gpiotype==9: # RockPI
+  import lib.lib_rockgpios as GPIOHW
+  from lib.lib_rockgpios import hwports
+  BOTH=GPIOHW.BOTH
+  RISING=GPIOHW.RISING
+  FALLING=GPIOHW.FALLING
+  IN=GPIOHW.IN
+  OUT=GPIOHW.OUT
+  PUD_UP=GPIOHW.PUD_UP
+  PUD_DOWN=GPIOHW.PUD_DOWN
+  OUT_HIGH=GPIOHW.OUT_HIGH
+  OUT_LOW=GPIOHW.OUT_LOW
+  HWPorts = hwports()
  elif gpiotype==19: # FTDI
   import lib.lib_ftdigpios as GPIOHW
   from lib.lib_ftdigpios import hwports

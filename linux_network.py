@@ -35,11 +35,18 @@ wpa2Re = re.compile(r"IE:\ IEEE\ 802\.11i/WPA2\ Version\ 1$")
 
 def get_ssid(devicename):
      ssid = ""
+     ssid2 = ""
      output = os.popen('iwconfig '+devicename+' | grep '+devicename+" 2>/dev/null")
-#     output = os.popen('iwconfig | grep '+devicename+" >/dev/null 2>&1")
      for line in output:
       if line.startswith(devicename) and ("SSID:" in line):
-       ssid = line[line.find("SSID:")+5:].strip().replace('"',"")
+       ssid2 = line[line.find("SSID:")+5:].strip().replace('"',"")
+       try:
+        ssida = line[line.find("SSID:")+5:].strip().split('"')
+        ssid = ssida[1]
+       except:
+        pass
+     if ssid == "":
+      ssid = ssid2
      return ssid
 
 def scanwifi(devicename):

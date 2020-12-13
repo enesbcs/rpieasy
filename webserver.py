@@ -371,7 +371,7 @@ def handle_config(self):
  addSubmitButton()
  netmanager = OS.detectNM()
  oslvl = misc.getsupportlevel(1)
- if oslvl in [1,2,3,10]: # maintain supported system list!!!
+ if oslvl in [1,2,3,9,10]: # maintain supported system list!!!
   addFormSeparator(2)
   if oslvl != 2:
    if netmanager:
@@ -646,19 +646,26 @@ def handle_hardware(self):
   return self.redirect('/setup')
  if (not isLoggedIn(self.get,self.cookie)):
   return self.redirect('/login')
+
  sendHeadandTail("TmplStd",_HEAD)
- suplvl = misc.getsupportlevel()
- if suplvl[0] != "N":
-  ar = OS.autorun()
-  ar.readconfig()
+ try:
+  suplvl = misc.getsupportlevel()
+  if suplvl[0] != "N":
+   ar = OS.autorun()
+   ar.readconfig()
+ except:
+  suplvl = 0
 
  if self.type == "GET":
   responsearr = self.get
  else:
   responsearr = self.post
 
- if (arg('nokernelserial',responsearr) != ""):
-  OS.disable_serialsyslog()
+ try:
+  if (arg('nokernelserial',responsearr) != ""):
+   OS.disable_serialsyslog()
+ except:
+  pass
 
  if (arg('volume',responsearr) != ""):
   try:
@@ -669,76 +676,86 @@ def handle_hardware(self):
  submit = arg("Submit",responsearr)
 
  if (submit=="Submit") and (suplvl[0] != "N"):
-  stat = arg("rpiauto",responsearr)
-  if stat=="on":
-   ar.rpiauto=True
-  else:
-   ar.rpiauto=False
-  stat = arg("hdmienabled",responsearr)
-  if stat=="on":
-   ar.hdmienabled=True
-  else:
-   ar.hdmienabled=False
-  snddev = arg("snddev",responsearr)
-  snddev = snddev.strip()
-  if OS.check_permission():
-   ar.saveconfig()
   try:
-   if int(snddev)>=0:
-    OS.updateaudiocard(snddev)
+   stat = arg("rpiauto",responsearr)
+   if stat=="on":
+    ar.rpiauto=True
+   else:
+    ar.rpiauto=False
+   stat = arg("hdmienabled",responsearr)
+   if stat=="on":
+    ar.hdmienabled=True
+   else:
+    ar.hdmienabled=False
+   snddev = arg("snddev",responsearr)
+   snddev = snddev.strip()
+   if OS.check_permission():
+    ar.saveconfig()
+   try:
+    if int(snddev)>=0:
+     OS.updateaudiocard(snddev)
+   except:
+    pass
   except:
    pass
 
- TXBuffer += "<form name='frmselect' method='post'><table class='normal'><tr><TH style='width:150px;' align='left' colspan=2>System"
- TXBuffer += "<TR><TD>Type:<TD>"+suplvl
+ try:
+  TXBuffer += "<form name='frmselect' method='post'><table class='normal'><tr><TH style='width:150px;' align='left' colspan=2>System"
+  TXBuffer += "<TR><TD>Type:<TD>"+suplvl
 
- if suplvl[0] != "N":
-  TXBuffer += "<TR><TD>OS:<TD>"+str(rpieGlobals.osinuse)+" "+str(misc.getosname(1))
- if "Linux" in suplvl:
-  TXBuffer += "<TR><TD>OS full name:<TD>"+str(OS.getosfullname())
- if suplvl[0] == "L":
-  TXBuffer += "<TR><TD>Hardware:<TD>"+str(OS.gethardware())
- if "RPI" in suplvl:
-  rpv = OS.getRPIVer()
-  if len(rpv)>1:
-   TXBuffer += "<TR><TD>Hardware:<TD>"+rpv["name"]+" "+rpv["ram"]
- if "OPI" in suplvl:
-  opv = OS.getarmbianinfo()
-  if len(opv)>0:
-   TXBuffer += "<TR><TD>Hardware:<TD>"+opv["name"]
- if suplvl[0] != "N":
-  addFormSeparator(2)
-  racc = OS.check_permission()
-  rstr = str(racc)
-  if racc == False:
-   rstr = "<font color=red>"+rstr+"</font> (system-wide settings are only for root)"
-  TXBuffer += "<TR><TD>Root access:<TD>"+rstr
-  TXBuffer += "<TR><TD>Sound playback device:<TD>"
-  try:
-   sounddevs = OS.getsounddevs()
-   defaultdev = OS.getsoundsel()
-  except Exception as e:
-   print("Sound device:",e)
-  if len(sounddevs)>0: 
-   addSelector_Head('snddev',False)
-   for i in range(0,len(sounddevs)):
-    addSelector_Item(sounddevs[i][1],int(sounddevs[i][0]),(int(sounddevs[i][0])==int(defaultdev)),False)
-   addSelector_Foot()
-   vol = 100
+  if suplvl[0] != "N":
+   TXBuffer += "<TR><TD>OS:<TD>"+str(rpieGlobals.osinuse)+" "+str(misc.getosname(1))
+  if "Linux" in suplvl:
+   TXBuffer += "<TR><TD>OS full name:<TD>"+str(OS.getosfullname())
+  if suplvl[0] == "L":
+   TXBuffer += "<TR><TD>Hardware:<TD>"+str(OS.gethardware())
+  if "RPI" in suplvl:
+   rpv = OS.getRPIVer()
+   if len(rpv)>1:
+    TXBuffer += "<TR><TD>Hardware:<TD>"+rpv["name"]+" "+rpv["ram"]
+  elif "RockPI" in suplvl:
+   ropv = OS.getRockPIVer()
+   if len(ropv)>0:
+    TXBuffer += "<TR><TD>Hardware:<TD>"+ropv["name"]
+  elif "OPI" in suplvl:
+   opv = OS.getarmbianinfo()
+   if len(opv)>0:
+    TXBuffer += "<TR><TD>Hardware:<TD>"+opv["name"]
+  if suplvl[0] != "N":
+   addFormSeparator(2)
+   racc = OS.check_permission()
+   rstr = str(racc)
+   if racc == False:
+    rstr = "<font color=red>"+rstr+"</font> (system-wide settings are only for root)"
+   TXBuffer += "<TR><TD>Root access:<TD>"+rstr
+   TXBuffer += "<TR><TD>Sound playback device:<TD>"
    try:
-    vol = OS.getvolume()
+    sounddevs = OS.getsounddevs()
+    defaultdev = OS.getsoundsel()
    except Exception as e:
-    print("GetVolume:",e)
-   TXBuffer += '<TR><TD>Sound volume:<TD><input type="range" id="volume" name="volume" min="0" max="100" value="'+str(vol)+'">'
-  else:
-   TXBuffer += "No device"
+    print("Sound device:",e)
+   if len(sounddevs)>0: 
+    addSelector_Head('snddev',False)
+    for i in range(0,len(sounddevs)):
+     addSelector_Item(sounddevs[i][1],int(sounddevs[i][0]),(int(sounddevs[i][0])==int(defaultdev)),False)
+    addSelector_Foot()
+    vol = 100
+    try:
+     vol = OS.getvolume()
+    except Exception as e:
+     print("GetVolume:",e)
+    TXBuffer += '<TR><TD>Sound volume:<TD><input type="range" id="volume" name="volume" min="0" max="100" value="'+str(vol)+'">'
+   else:
+    TXBuffer += "No device"
 
-  addFormCheckBox("RPIEasy autostart at boot","rpiauto",ar.rpiauto)
-  if OS.checkRPI():
-   addFormCheckBox("Enable HDMI at startup","hdmienabled",ar.hdmienabled)
-  if OS.check_permission():
-   TXBuffer += "<tr><td colspan=2>"
-   addSubmitButton() 
+   addFormCheckBox("RPIEasy autostart at boot","rpiauto",ar.rpiauto)
+   if OS.checkRPI():
+    addFormCheckBox("Enable HDMI at startup","hdmienabled",ar.hdmienabled)
+   if OS.check_permission():
+    TXBuffer += "<tr><td colspan=2>"
+    addSubmitButton() 
+ except Exception as e:
+   misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"HW page error "+str(e))
 
  addFormSeparator(2)
  TXBuffer += "<TR><TD HEIGHT=30>"
@@ -752,10 +769,13 @@ def handle_hardware(self):
  TXBuffer += "<TR><TD HEIGHT=30>"
  addWideButton("blescanner", "Scan Bluetooth LE", "")
 
- bpcont = OS.get_bootparams()
- if ("ttyAMA" in bpcont) or ("ttyS" in bpcont) or ("serial" in bpcont):
-  addFormSeparator(2)
-  addSubmitButton("Disable Serial port usage by kernel","nokernelserial")
+ try:
+  bpcont = OS.get_bootparams()
+  if ("ttyAMA" in bpcont) or ("ttyS" in bpcont) or ("serial" in bpcont):
+   addFormSeparator(2)
+   addSubmitButton("Disable Serial port usage by kernel","nokernelserial")
+ except:
+  pass
 
  TXBuffer += "</table></form>"
  sendHeadandTail("TmplStd",_TAIL)
@@ -1998,12 +2018,15 @@ def handle_tools(self):
   return self.redirect('/login')
  sendHeadandTail("TmplStd",_HEAD); 
 
- if self.type == "GET":
-  responsearr = self.get
- else:
-  responsearr = self.post
+ try:
+  if self.type == "GET":
+   responsearr = self.get
+  else:
+   responsearr = self.post
 
- webrequest = arg("cmd",responsearr)
+  webrequest = arg("cmd",responsearr)
+ except:
+  webrequest = ""
 
  TXBuffer += "<form><table class='normal'>"
  addFormHeader("Tools")
@@ -2019,6 +2042,7 @@ def handle_tools(self):
  responsestr = ""
  if len(webrequest)>0:
   responsestr = str(commands.doExecuteCommand(webrequest))  # response ExecuteCommand(VALUE_SOURCE_WEB_FRONTEND, webrequest.c_str());
+
  if len(responsestr)>0:
   try:
    TXBuffer += "<TR><TD colspan='2'>Command Output<BR><textarea readonly rows='10' wrap='on'>"
@@ -2122,7 +2146,7 @@ def handle_tools(self):
 
  TXBuffer += "</table></form>"
 
- sendHeadandTail("TmplStd",_TAIL);
+ sendHeadandTail("TmplStd",_TAIL)
  return TXBuffer
 
 @WebServer.route('/i2cscanner')
@@ -2822,17 +2846,22 @@ def handle_sysinfo(self):
   if thw != "":
    TXBuffer += "<TR><TD>Hardware:<TD>"+thw
 
- if suplvl[0] == "R":
-  rpv = OS.getRPIVer()
-  if len(rpv)>1:
-   TXBuffer += "<TR><TD>Hardware:<TD>"+rpv["name"]+" "+rpv["ram"]
- if suplvl[0] != "N":
-  racc = OS.check_permission()
-  rstr = str(racc)
-  TXBuffer += "<TR><TD>Root access:<TD>"+rstr
-
+ try:
+  if suplvl[0] == "R":
+   rpv = OS.getRPIVer()
+   if len(rpv)>1:
+    TXBuffer += "<TR><TD>Hardware:<TD>"+rpv["name"]+" "+rpv["ram"]
+ except:
+  pass
+ try:
+  if suplvl[0] != "N":
+   racc = OS.check_permission()
+   rstr = str(racc)
+   TXBuffer += "<TR><TD>Root access:<TD>"+rstr
+ except:
+  pass
  TXBuffer += "</table>"
- sendHeadandTail("TmplStd",_TAIL);
+ sendHeadandTail("TmplStd",_TAIL)
  return TXBuffer
 
 @WebServer.route('/filelist')

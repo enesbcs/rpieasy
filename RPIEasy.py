@@ -64,6 +64,11 @@ def hardwareInit():
    if rpv:
      pinout = rpv["pins"]
      misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,str(rpv["name"])+" "+str(rpv["pins"])+" pins")
+  elif rpieGlobals.ossubtype == 9: # rockpi
+   ropv = OS.getRockPIVer()
+   if ropv:
+    pinout = ropv["pins"]
+    misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,str(ropv["name"])+" "+str(ropv["pins"])+" pins")
   elif rpieGlobals.ossubtype == 3: # opi
    opv = OS.getarmbianinfo()
    if opv:
@@ -96,7 +101,7 @@ def hardwareInit():
    gpios.preinit(hwtype) # create HWPorts variable
   except Exception as e:
    print("init",e)
-  if (("40" in pinout) and (len(Settings.Pinout)<41)) or (("26" in pinout) and (len(Settings.Pinout)<27)) or (pinout=="ftdi" and len(Settings.Pinout)<1):
+  if (("40" in pinout) and (len(Settings.Pinout)<41)) or (("26" in pinout) and (len(Settings.Pinout)!=27) and (len(Settings.Pinout)!=53) ) or (pinout=="ftdi" and len(Settings.Pinout)<1):
    print("Creating new pinout")
    try:
     gpios.HWPorts.createpinout(pinout)
@@ -106,7 +111,6 @@ def hardwareInit():
   try:
    gpios.HWPorts.readconfig()
   except Exception as e:
-#   print(e) # debug
    perror = True
   if perror or len(Settings.Pinout)<1:
    misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Your GPIO can not be identified!")

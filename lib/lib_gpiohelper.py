@@ -274,7 +274,10 @@ def setservoangle(servopin,angle):
 
 def play_tone(pin,freq,delay):
   gpios.HWPorts.output_pwm(pin,50,freq) # generate 'freq' sound
-  s = float(delay/1000)
+  try:
+   s = float(delay/1000)
+  except:
+   s = 0.5
   time.sleep(s)
 
 def play_rtttl(pin,notestr):
@@ -291,4 +294,4 @@ def play_rtttl(pin,notestr):
     play_tone(pin,int(note['frequency']),float(note['duration']))
    except:
     pass
-  gpios.HWPorts.output_pwm(pin,0,0) # stop sound
+   gpios.HWPorts.output_pwm(pin,0,0) # stop sound

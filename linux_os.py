@@ -201,6 +201,8 @@ def get_rssi():
     resstr = ""
     try:
      resstr = os.popen("/bin/cat /proc/net/wireless | awk 'NR==3 {print $4}' | sed 's/\.//'").readline().strip()
+     if resstr == "0" or resstr == "-256":
+      resstr = os.popen("/bin/cat /proc/net/wireless | awk 'NR==4 {print $4}' | sed 's/\.//'").readline().strip() # try next line
     except:
      resstr = ""
     if resstr=="":
@@ -442,7 +444,7 @@ def getsounddevs(playbackdevs = True):
        tarr = line.split(':')
        devpos = tarr[0][len(tarr[0])-1].strip()
        if devpos and len(devpos) > 0:
-        tarr2 = tarr[1].split(',')
+        tarr2 = tarr[1].split(', ')
         devname = tarr2[0].strip()
       if devname!="":
        devlist.append([devpos,devname])
@@ -779,7 +781,7 @@ def getsoundmixer():
     for line in output:
       if cc == 0 and soundmixer=="":
        lc = line.split("'")
-       soundmixer = str(lc[1])
+       soundmixer = "'"+str(lc[1])+"'"
        cc = 1
        return soundmixer
    except Exception as e:
@@ -789,7 +791,7 @@ def getsoundmixer():
 def getvolume(): # volume in percentage
   vol = 0
   try:
-   output = os.popen('amixer get '+getsoundmixer())
+   output = os.popen("amixer get "+getsoundmixer())
    for line in output:
      if '%' in line:
       line2 = line.replace("[","%").replace("]","%")
@@ -825,3 +827,45 @@ def detectNM():
     except:
      pass
    return nm
+
+def checkRockPI():
+  rpi = False
+  try:
+   output = os.popen('uname -a')
+   for line in output:
+     if '-rockchip-' in line:
+      rpi = True
+  except Exception as e:
+   pass
+  return rpi
+
+def getRockPIVer():
+    hwarr = { 
+      "name": "Unknown model",
+      "pins": "0",
+      "ver" : "0.0"}
+    notrock = False
+    try:
+     import lib.lib_rockgpios as GPIO
+     ta = GPIO.getmraa()
+     if ta[0][0] != "U":
+      hwarr["name"] = ta[0]
+      hwarr["pins"] = ta[1]
+      hwarr["ver"]  = ta[2]
+      return hwarr 
+    except Exception as e:
+     notrock = True
+    try:
+     output = os.popen('mraa-gpio version') 
+     for line in output:
+      if 'rock' in line.lower():
+       tf = line.find(" on")
+       if tf>-1:
+        hwarr["name"] = line[tf+3:].strip()
+    except Exception as e:
+     notrock = True
+    if notrock or ("Unknown" in hwarr["name"]):
+     if checkRockPI():
+      hwarr["name"] = "Unknown Rockchip"
+      hwarr["pins"] = "X"
+    return hwarr

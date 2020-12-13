@@ -134,11 +134,17 @@ def convert_note(note, defaults):
         'b':  493.9,
         'h':  493.9
     }
-    msec_per_beat = (60.0 / defaults['bpm']) * 4 * 1000
+    try:
+     msec_per_beat = (60.0 / defaults['bpm']) * 4 * 1000
+    except Exception as e:
+     print("bpm",e,defaults)#debug
     frequency = pitch_frequencies[note['pitch']] * octave_multiplier[note['octave'] or defaults['octave']]
     if note['dot']:
         multiplier = 1.5
     else:
         multiplier = 1
-    duration = round((msec_per_beat / (note['duration'] or defaults['duration'])) * multiplier, 3)
+    try:
+     duration = round((msec_per_beat / (note['duration'] or defaults['duration'])) * multiplier, 3)
+    except Exception as e:
+     print("dur",e,defaults)#debug
     return {'frequency': frequency, 'duration': duration}

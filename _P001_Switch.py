@@ -46,15 +46,12 @@ class Plugin(plugin.PluginProto):
   self.inverselogicoption = True
   self.recdataoption = False
 
- def __del__(self):
+ def plugin_exit(self):
   if self.enabled and self.timer100ms==False:
    try:
     gpios.HWPorts.remove_event_detect(int(self.taskdevicepin[0]))
    except:
     pass
-
- def plugin_exit(self):
-  self.__del__()
   return True
 
  def plugin_init(self,enableplugin=None):
@@ -78,10 +75,11 @@ class Plugin(plugin.PluginProto):
    except:
     self.taskdevicepluginconfig[3] = gpios.BOTH
    try:
-    self.__del__()
+    self.plugin_exit()
     if self.taskdevicepluginconfig[0]:
      misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"Registering 10/sec timer as asked")
      self.timer100ms = True
+     self.initialized = True
      return True
     if int(self.taskdevicepluginconfig[1])>0:
      gpios.HWPorts.add_event_detect(int(self.taskdevicepin[0]),int(self.taskdevicepluginconfig[3]),self.p001_handler,int(self.taskdevicepluginconfig[1]))
@@ -90,6 +88,7 @@ class Plugin(plugin.PluginProto):
     misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"Event registered to pin "+str(self.taskdevicepin[0]))
     self.timer100ms = False
     self._lastdataservetime = 0
+
     if self.taskdevicepluginconfig[4]>0:
      self.valuecount = 3
      self.uservar[1]=-1

@@ -11,7 +11,7 @@ from datetime import datetime
 import Settings
 import socket
 
-supportedsys = ['Not supported', 'Linux-apt (partially supported)', 'Linux-pacman (experimental support)','OPI-Linux-armbian (experimental)','-Reserved','-Reserved','-Reserved','-Reserved','-Reserved','-Reserved','RPI-Linux-apt (supported)']
+supportedsys = ['Not supported', 'Linux-apt (partially supported)', 'Linux-pacman (experimental support)','OPI-Linux-armbian (experimental)','-Reserved','-Reserved','-Reserved','-Reserved','-Reserved','RockPI-Linux-apt (supported)','RPI-Linux-apt (supported)']
 
 SystemLog = []
 ShadowLog = []
@@ -38,6 +38,8 @@ def getsupportlevel(of=0):
    lvl = 1
    if linux_os.checkRPI():
     lvl = 10
+   elif linux_os.checkRockPI():
+    lvl = 9
    elif linux_os.checkOPI():
     lvl = 3
   elif (linux_os.is_command_found('pacman')):

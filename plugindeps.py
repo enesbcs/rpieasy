@@ -296,148 +296,148 @@ notifierdependencies = [
 
 plugindependencies = [
 {"pluginid": "1", #Switch
- "supported_os_level": [3,10],
+ "supported_os_level": [3,9,10],
  "ext":128,
  "modules":["GPIO"]},
 {"pluginid": "2", #PiAnalog
- "supported_os_level": [10],
+ "supported_os_level": [9,10],
  "modules":["GPIO"]},
 {"pluginid": "3", #Pulse
- "supported_os_level": [3,10],
+ "supported_os_level": [3,9,10],
  "ext":128,
  "modules":["GPIO"]},
 {"pluginid": "4", #DS18b20
- "supported_os_level": [1,2,3,10],
+ "supported_os_level": [1,2,3,9,10],
  "modules":["linux-kernel"]},
 {"pluginid": "5", # DHT
- "supported_os_level": [10],
+ "supported_os_level": [3,9,10],
  "modules":["Adafruit_DHT"]},
 {"pluginid": "8", # Wiegand GPIO
  "supported_os_level": [10],
  "modules":["GPIO","wpi","wiegand_io2"]},
 {"pluginid": "7", # PCF8591
- "supported_os_level": [3,10],
+ "supported_os_level": [3,9,10],
  "ext":256,
  "modules":["i2c"]},
 {"pluginid": "9", # MCP
  "supported_os_level": [10],
  "modules":["GPIO","i2c","MCP"]},
 {"pluginid": "10", # BH1750
- "supported_os_level": [3,10],
+ "supported_os_level": [3,9,10],
  "ext":256,
  "modules":["i2c"]},
 {"pluginid": "11", # PME
- "supported_os_level": [3,10],
+ "supported_os_level": [3,9,10],
  "modules":["i2c"]},
 {"pluginid": "12", # LCD
  "supported_os_level": [10],
  "ext":256,
  "modules":["i2c","LCD"]},
 {"pluginid": "13", #SR04
- "supported_os_level": [3,10],
+ "supported_os_level": [3,9,10],
  "ext":128,
  "modules":["GPIO"]},
 {"pluginid": "14", # Si7021
- "supported_os_level": [3,10],
+ "supported_os_level": [3,9,10],
  "modules":["i2c"]},
 {"pluginid": "15", # tsl2561
- "supported_os_level": [3,10],
+ "supported_os_level": [3,9,10],
  "ext":256,
  "modules":["i2c"]},
 {"pluginid": "16", #IR
- "supported_os_level": [1,2,10],
+ "supported_os_level": [1,2,9,10],
  "modules":["irkey"]},
 {"pluginid": "17", # PN532
  "supported_os_level": [10], #rpigpio
  "modules":["GPIO","i2c"]},
 {"pluginid": "19", # PCF8574
- "supported_os_level": [3,10],
+ "supported_os_level": [3,9,10],
  "ext":256,
  "modules":["GPIO","i2c"]},
 {"pluginid": "22", # PCA9685
- "supported_os_level": [3,10],
+ "supported_os_level": [3,9,10],
  "modules":["GPIO","i2c","pca9685"]},
 {"pluginid": "23", # OLED
- "supported_os_level": [3,10],
+ "supported_os_level": [3,9,10],
  "ext":256,
  "modules":["i2c","OLED"]},
 {"pluginid": "24", # mlx90614
- "supported_os_level": [3,10],
+ "supported_os_level": [3,9,10],
  "ext":256,
  "modules":["i2c"]},
 {"pluginid": "25", # ADS1x15
  "supported_os_level": [10],
  "modules":["i2c","Adafruit_ADS1x15"]},
 {"pluginid": "26", #SysInfo
- "supported_os_level": [1,2,3,10]},
+ "supported_os_level": [1,2,3,9,10]},
 {"pluginid": "27", # INA219
  "supported_os_level": [10],
  "modules":["i2c","ina219"]},
 {"pluginid": "28", # BMP280
- "supported_os_level": [3,10],
+ "supported_os_level": [3,9,10],
  "ext":256,
  "modules":["i2c"]},
 {"pluginid": "29", # DomoOutput nem csak gpio??
- "supported_os_level": [3,10],
+ "supported_os_level": [3,9,10],
  "ext":128,
  "modules":["GPIO"]},
 {"pluginid": "35", #IRTrans
- "supported_os_level": [1,2,10],
+ "supported_os_level": [1,2,9,10],
  "modules":["irkey"]},
 {"pluginid": "36", # FramedOLED
- "supported_os_level": [3,10],
+ "supported_os_level": [3,9,10],
  "ext":256,
  "modules":["i2c","OLED"]},
 {"pluginid": "38", # Neopixel
  "supported_os_level": [10],
  "modules":["GPIO","ws2812"]},
 {"pluginid": "45", # MPU6050
- "supported_os_level": [3,10],
+ "supported_os_level": [3,9,10],
  "ext":256,
  "modules":["i2c","mpu6050"]},
 {"pluginid": "49", #MH-Z19
- "supported_os_level": [1,2,3,10],
+ "supported_os_level": [1,2,3,9,10],
  "modules":["pyserial"]},
 {"pluginid": "51", # AM2320
- "supported_os_level": [3,10],
+ "supported_os_level": [3,9,10],
  "ext":256,
  "modules":["i2c"]},
 {"pluginid": "57", # HT16K33 LED
- "supported_os_level": [3,10],
+ "supported_os_level": [3,9,10],
  "ext":256,
  "modules":["i2c"]},
 {"pluginid": "58", # HT16K33 Key
- "supported_os_level": [3,10],
+ "supported_os_level": [3,9,10],
  "ext":256,
  "modules":["i2c"]},
 {"pluginid": "59", #Rotary
- "supported_os_level": [3,10],
+ "supported_os_level": [3,9,10],
  "ext":128,
  "modules":["GPIO"]},
 {"pluginid": "62", # MPR121
- "supported_os_level": [3,10],
+ "supported_os_level": [3,9,10],
  "ext":256,
  "modules":["GPIO","i2c"]},
 {"pluginid": "64", # APDS9960
- "supported_os_level": [3,10],
+ "supported_os_level": [3,9,10],
  "ext":256,
  "modules":["i2c","apds"]},
 {"pluginid": "68", # SHT30
- "supported_os_level": [3,10],
+ "supported_os_level": [3,9,10],
  "ext":256,
  "modules":["i2c"]},
 {"pluginid": "69", # LM75
- "supported_os_level": [3,10],
+ "supported_os_level": [3,9,10],
  "ext":256,
  "modules":["i2c"]},
 {"pluginid": "73", # 7DGT
  "supported_os_level": [10],
  "modules":["wpi","tm1637"]},
 {"pluginid": "82", #GPS
- "supported_os_level": [1,2,3,10],
+ "supported_os_level": [1,2,3,9,10],
  "modules":["pyserial"]},
 {"pluginid": "84", # VEML6070
- "supported_os_level": [3,10],
+ "supported_os_level": [3,9,10],
  "modules":["i2c"]},
 {"pluginid": "111", #RF433 receiver
  "supported_os_level": [10],
@@ -446,52 +446,52 @@ plugindependencies = [
  "supported_os_level": [10],
  "modules":["GPIO","wpi","rcswitch"]},
 {"pluginid": "126", #Ping
- "supported_os_level": [1,2,3,10],
+ "supported_os_level": [1,2,3,9,10],
  "modules":["ping"]},
 {"pluginid": "133", # VL53L0X
- "supported_os_level": [3,10],
+ "supported_os_level": [3,9,10],
  "ext":256,
  "modules":["i2c"]},
 {"pluginid": "153", # MAX44009
- "supported_os_level": [3,10],
+ "supported_os_level": [3,9,10],
  "ext":256,
  "modules":["i2c"]},
 {"pluginid": "200", #Dual Switch
- "supported_os_level": [3,10],
+ "supported_os_level": [3,9,10],
  "modules":["GPIO"]},
 {"pluginid": "201", #Generic Serial
- "supported_os_level": [1,2,3,10],
+ "supported_os_level": [1,2,3,9,10],
  "modules":["pyserial"]},
 {"pluginid": "202", # MCP9808
- "supported_os_level": [3,10],
+ "supported_os_level": [3,9,10],
  "ext":256,
  "modules":["i2c"]},
 {"pluginid": "203", # MCP4725
- "supported_os_level": [3,10],
+ "supported_os_level": [3,9,10],
  "ext":256,
  "modules":["i2c"]},
 {"pluginid": "204", #Stepper motor
- "supported_os_level": [3,10],
+ "supported_os_level": [3,9,10],
  "ext":128,
  "modules":["GPIO"]},
 {"pluginid": "205", #E-paper SPI
  "supported_os_level": [10],
  "modules":["epd"]},
 {"pluginid": "206", #PZEM016
- "supported_os_level": [1,2,3,10],
+ "supported_os_level": [1,2,3,9,10],
  "modules":["pyserial","modbus"]},
 {"pluginid": "207", # MPU9250
- "supported_os_level": [3,10],
+ "supported_os_level": [3,9,10],
  "ext":256,
  "modules":["i2c","rtimu"]},
 {"pluginid": "208", #PFM
- "supported_os_level": [1,2,3,10],
+ "supported_os_level": [1,2,3,9,10],
  "modules":["pyserial","pfm","pil"]},
 {"pluginid": "209", # AMG
  "supported_os_level": [10],
  "modules":["i2c","amg","pil"]},
 {"pluginid": "210", #MCP3008
- "supported_os_level": [3,10],
+ "supported_os_level": [3,9,10],
  "modules":["GPIO","spidev"]},
 {"pluginid": "211", #RC522
  "supported_os_level": [10],
@@ -499,19 +499,19 @@ plugindependencies = [
 {"pluginid": "501", # USB relay
  "modules":["hidapi"]},
 {"pluginid": "502", # pygame play wav/mp3
- "supported_os_level": [1,2,3,10],
+ "supported_os_level": [1,2,3,9,10],
  "modules":["pygame"]},
 {"pluginid": "503", # pygame play wav/mp3
- "supported_os_level": [1,2,3,10],
+ "supported_os_level": [1,2,3,9,10],
  "modules":["pygame"]},
 {"pluginid": "505", # vlc radio play
- "supported_os_level": [1,2,3,10],
+ "supported_os_level": [1,2,3,9,10],
  "modules":["vlc"]},
 {"pluginid": "506", # pocketsphinx
- "supported_os_level": [1,2,3,10],
+ "supported_os_level": [1,2,3,9,10],
  "modules":["pocketsphinx"]},
 {"pluginid": "508", #Temper
- "supported_os_level": [1,2,3,10],
+ "supported_os_level": [1,2,3,9,10],
  "modules":["pyserial","linux-kernel"]},
 {"pluginid": "509", # EVDEV
  "modules":["linux-kernel"]},
@@ -522,7 +522,7 @@ plugindependencies = [
 {"pluginid": "513", # BLE LYWSD02
  "modules":["lywsd","pytz"]},
 {"pluginid": "514", # USB-Dallas
- "supported_os_level": [1,2,3,10],
+ "supported_os_level": [1,2,3,9,10],
  "modules":["pyserial","pydigitemp"]},
 {"pluginid": "515", # BLE MiFlora
  "modules":["bluepy"]},
@@ -533,24 +533,24 @@ plugindependencies = [
 {"pluginid": "518", # BLE CGG1
  "modules":["bluepy"]},
 {"pluginid": "519", #Volume
- "supported_os_level": [1,2,3,10],
+ "supported_os_level": [1,2,3,9,10],
  "modules":["linux-kernel"]},
 {"pluginid": "520", # BLE Scan
  "modules":["bluepy"]},
 {"pluginid": "521", # GoogleTTS
- "supported_os_level": [1,2,3,10],
+ "supported_os_level": [1,2,3,9,10],
  "modules":["gtts","pygame"]},
 {"pluginid": "522", # RTSP
- "supported_os_level": [1,2,3,10],
+ "supported_os_level": [1,2,3,9,10],
  "modules":["opencv","pil"]},
 {"pluginid": "523", # Jami Connector
- "supported_os_level": [1,2,3,10],
+ "supported_os_level": [1,2,3,9,10],
  "modules":["dbus"]},
 {"pluginid": "524", #Keypad
  "supported_os_level": [10],
  "modules":["GPIO"]},
 {"pluginid": "525", # snapc
- "supported_os_level": [1,2,3,10],
+ "supported_os_level": [1,2,3,9,10],
  "modules":["snapclient"]},
 {"pluginid": "527", # BLE Sniff
  "modules":["bluepy"]},
@@ -602,7 +602,7 @@ def installdeps2(modulename):
        if "python3-pip" in modulelist[i]["apt"][j]:
         modulelist[i]["apt"][j].replace("python3-pip","python-pip")
       installprog += modulelist[i]["apt"][j] + " "
-     if rpieGlobals.ossubtype in [1,3,10]:
+     if rpieGlobals.ossubtype in [1,3,9,10]:
       installprog = OS.cmdline_rootcorrect("sudo apt-get update && sudo apt-get install -y "+ installprog.strip())
      elif rpieGlobals.ossubtype==2:
       installprog = OS.cmdline_rootcorrect("yes | sudo pacman -S "+ installprog.strip())
