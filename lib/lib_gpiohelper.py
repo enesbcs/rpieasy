@@ -83,18 +83,43 @@ def gpio_commands(cmd):
    except:
     pin = -1
     prop = -1
+   fade = 0
+   try:
+    fade = int(cmdarr[3].strip())
+   except:
+    fade = 0
    freq = 1000
    try:
-    freq = int(cmdarr[3].strip())
+    freq = int(cmdarr[4].strip())
    except:
     freq = 1000
    if pin>-1 and prop>-1:
     suc = False
     try:
      suc = True
-     gpios.HWPorts.output_pwm(pin,prop,freq)
-     logline = "BCM"+str(pin)+" PWM "+str(prop)+"% "+str(freq)+"Hz"
-     misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,logline)
+     if fade==0:
+      gpios.HWPorts.output_pwm(pin,prop,freq)
+      logline = "BCM"+str(pin)+" PWM "+str(prop)+"% "+str(freq)+"Hz"
+      misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,logline)
+     else:
+      cs = gpios.GPIO_get_statusid(pin)
+      prev_value = 0
+      try:
+       if cs>-1:
+        if gpios.GPIOStatus[cs]["mode"] == "pwm":
+         prev_value = int(gpios.GPIOStatus[cs]["state"])
+      except:
+       prev_value = 0
+      step_value = (int(prop - prev_value) << 12) / fade
+      curr_value = int(prev_value) << 12
+      i = fade
+      while i>0:
+       curr_value += step_value
+       new_value = int(curr_value) >> 12
+       gpios.HWPorts.output_pwm(pin,new_value,freq)
+       time.sleep(0.001) # 1 millisecond in theory, more in reality..
+       i -= 1
+      gpios.HWPorts.output_pwm(pin,prop,freq)
      gi = gpios.GPIO_refresh_status(pin,pstate=prop,pluginid=1,pmode="pwm",logtext=logline)
     except Exception as e:
      misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"BCM"+str(pin)+" PWM "+str(e))
@@ -294,4 +319,4 @@ def play_rtttl(pin,notestr):
     play_tone(pin,int(note['frequency']),float(note['duration']))
    except:
     pass
-   gpios.HWPorts.output_pwm(pin,0,0) # stop sound
+  gpios.HWPorts.output_pwm(pin,0,0) # stop sound

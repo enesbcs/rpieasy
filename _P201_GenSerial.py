@@ -78,6 +78,8 @@ class Plugin(plugin.PluginProto):
       self.bgproc = threading.Thread(target=self.bgreceiver)
       self.bgproc.daemon = True
       self.bgproc.start()
+     else:
+      misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Serial init failed")
     else:
      self.baud = 0
      self.ports = 0
@@ -124,7 +126,7 @@ class Plugin(plugin.PluginProto):
    choice6 = self.taskdevicepluginconfig[6]
    options = ["Hex values","String"]
    optionvalues = [0,1]
-   webserver.addFormSelector("Data format","p201_fmt",len(optionvalues),options,optionvalues,None,int(choice6))
+   webserver.addFormSelector("Input Data format","p201_fmt",len(optionvalues),options,optionvalues,None,int(choice6))
   else:
    webserver.addFormNote("No serial ports found")
   return True
@@ -132,7 +134,7 @@ class Plugin(plugin.PluginProto):
  def webform_save(self,params):
   par = webserver.arg("p201_addr",params)
   self.taskdevicepluginconfig[0] = str(par)
-  try: 
+  try:
    baud = webserver.arg("p201_spd",params)
    self.taskdevicepluginconfig[1] = int(baud)
   except:
@@ -158,7 +160,7 @@ class Plugin(plugin.PluginProto):
   self.calctimeout()
   self.plugin_init()
   return True
-  
+
  def convert(self,inbuf):
   res = ""
   if len(inbuf)>0:
@@ -194,7 +196,7 @@ class Plugin(plugin.PluginProto):
         res += "0x"+str(inbuf[s].hex())
        except:
         res += str(inbuf[s])
-  return res 
+  return res
 
  def connect(self):
     try:
@@ -215,6 +217,7 @@ class Plugin(plugin.PluginProto):
  def bgreceiver(self):
   if self.initialized:
    recdata = []
+   askreconnect = 0
    while self.enabled:
     if self.serdev is not None:
 #     tt = rpieTime.millis()
@@ -233,7 +236,13 @@ class Plugin(plugin.PluginProto):
        time.sleep(0.001)
      except Exception as e:
       time.sleep(0.5)
-#      self.connect()
+      if askreconnect==0:
+       askreconnect = time.time()
+    if askreconnect>0:
+      if time.time()-askreconnect>10:
+       askreconnect = 0
+       if self.serdev.isopened()==False: #for some reason it will never be false?
+        self.connect()                   #may cause a lot problems as it is running from separated thread
    try:
      self.serdev.close()
    except:
@@ -261,9 +270,17 @@ class Plugin(plugin.PluginProto):
     sbuf = str(text)
    if cmdarr[0] == "serialwriteln":
     sbuf += "\n"
+   written = 0
    if self.serdev is not None:
     try:
-     self.serdev.write(sbuf)
+     written = self.serdev.write(sbuf)
     except Exception as e:
      pass
-  return res
+   if written<=0:
+    self.connect()
+    if self.serdev is not None:
+     try:
+      written = self.serdev.write(sbuf)
+     except Exception as e:
+      pass
+  return (written>0)

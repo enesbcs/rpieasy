@@ -41,6 +41,7 @@ class Controller(controller.ControllerProto):
   self.certfile = ""
   self.laststatus = -1
   self.keepalive = 60
+  self.useping = True
 
  def controller_init(self,enablecontroller=None):
   if enablecontroller != None:
@@ -50,6 +51,10 @@ class Controller(controller.ControllerProto):
    ls = self.laststatus
   except:
    self.laststatus = -1
+  try:
+   ls = self.useping
+  except:
+   self.useping = True
   self.mqttclient = DMQTTClient()
   self.mqttclient.subscribechannel = self.outchannel
   self.mqttclient.controllercb = self.on_message
@@ -119,6 +124,7 @@ class Controller(controller.ControllerProto):
     self.mqttclient.loop_start()
    except Exception as e:
     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"MQTT controller: "+self.controllerip+":"+str(self.controllerport)+" connection failed "+str(e))
+    self.laststatus = 0
   return self.isconnected()
 
  def disconnect(self):
@@ -139,19 +145,25 @@ class Controller(controller.ControllerProto):
   res = False
   if self.enabled and self.initialized:
    if ForceCheck==False:
-    return self.laststatus
+    return (self.laststatus==1)
    if self.mqttclient is not None:
-    gtopic = self.inchannel
-    gval   = "PING"
-    mres = 1
-    try:
-     (mres,mid) = self.mqttclient.publish(gtopic,gval)
-    except:
-      mres = 1
-    if mres==0:
-     res = 1 # connected
+    if self.useping==False:
+     try:
+      res = self.mqttclient.is_connected()
+     except:
+      res = 0
     else:
-     res = 0 # not connected
+     gtopic = self.inchannel
+     gval   = "PING"
+     mres = 1
+     try:
+      (mres,mid) = self.mqttclient.publish(gtopic,gval)
+     except:
+       mres = 1
+     if mres==0:
+      res = 1 # connected
+     else:
+      res = 0 # not connected
    if res != self.laststatus:
     if res==0:
      commands.rulesProcessing("DomoMQTT#Disconnected",rpieGlobals.RULE_SYSTEM)
@@ -169,6 +181,10 @@ class Controller(controller.ControllerProto):
    kp = self.keepalive
   except:
    kp = 60
+  try:
+   p = self.useping
+  except:
+   p = True
   webserver.addFormNumericBox("Keepalive time","keepalive",kp,2,600)
   webserver.addUnit("s")
   try:
@@ -183,6 +199,8 @@ class Controller(controller.ControllerProto):
   webserver.addFormTextBox("Server certificate file","c002_cert",str(fname),120)
   webserver.addBrowseButton("Browse","c002_cert",startdir=str(fname))
   webserver.addFormNote("Upload certificate first at <a href='filelist'>filelist</a> then select here!")
+  webserver.addFormCheckBox("Check conn & reconnect if needed at every 30 sec","c002_reconnect",self.timer30s)
+  webserver.addFormCheckBox("Use PING messages to check connection","c002_ping",self.useping)
   return True
 
  def webform_save(self,params): # process settings post reply
@@ -212,11 +230,26 @@ class Controller(controller.ControllerProto):
    self.keepalive = 60
   if pval != self.keepalive:
    pchange = True
+  if (webserver.arg("c002_reconnect",params)=="on"):
+   self.timer30s = True
+  else:
+   self.timer30s = False
+  if (webserver.arg("c002_ping",params)=="on"):
+   self.useping = True
+  else:
+   self.useping = False
   if pchange and self.enabled:
    self.disconnect()
    time.sleep(0.1)
    self.connect()
   return True
+
+ def timer_thirty_second(self):
+  if self.enabled:
+   if self.isconnected()==False:
+    misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"MQTT: Try to reconnect")
+    self.connect()
+  return self.timer30s
 
  def on_message(self, msg):
   if self.enabled:
