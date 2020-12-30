@@ -13,6 +13,7 @@ import webserver
 import rpieGlobals
 import rpieTime
 import misc
+import commands
 
 class Plugin(plugin.PluginProto):
  PLUGIN_ID = 33
@@ -78,6 +79,8 @@ class Plugin(plugin.PluginProto):
   result = False
   if self.initialized:
    for x in range(self.valuecount):
+    if len(self.formula[x])>1 and ("%" in self.formula[x]) and ("value" not in self.formula[x].lower()):
+     self.uservar[x] = commands.parsevalue(self.formula[x])
     logs = self.gettaskname()+"#"+self.valuenames[x]+"="+str(misc.formatnum(self.uservar[x],self.decimals[x]))
     misc.addLog(rpieGlobals.LOG_LEVEL_INFO,logs)
    self._lastdataservetime = rpieTime.millis()

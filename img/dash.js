@@ -2,7 +2,9 @@ function getDatas() {
  var taskstr = ""
  var i;
  for (i=0;i<elements.length;i++) {
-  taskstr = taskstr + elements[i].toString()+",";
+  if ((elements[i] != "") && (elements[i] != "_")) {
+   taskstr = taskstr + elements[i].toString()+",";
+  }
  }
  commandurl = ownurl+'/csv?header=0&tasks='+ taskstr;
  console.log(commandurl);
@@ -19,14 +21,22 @@ function setDatas(datas){
 function refreshDatas() {
  var i;
  for (i=0;i<elements.length;i++) {
-  setevalue("value_"+elements[i].toString());
+  if ((elements[i] != "") && (elements[i] != "_")) {
+   setevalue("value_"+elements[i].toString());
+  }
  }
 }
 
 function setGaugeValue(gauge, value, minv,maxv) {
   valueold = value
+  if (value<minv) {
+   value = minv;
+  }
+  if (value>maxv) {
+   value = maxv;
+  }
   if ((minv != 0) && (maxv != 100)) {
-   value = (value * (maxv - minv) / (maxv+minv)) + minv
+   value = (value-minv) * (100 /(maxv- minv));
   }
   if (value<0) {
    value = 0;
@@ -34,23 +44,32 @@ function setGaugeValue(gauge, value, minv,maxv) {
   if (value>100){
    value = 100;
   }
+  console.log(minv,maxv,value,valueold,(value/200));
   gauge.querySelector(".gauge__fill").style.transform = `rotate(${
     value / 200
   }turn)`;
   gauge.querySelector(".gauge__cover").textContent = `${Math.round(
-    valueold
-  )}`;
+    valueold*100
+  )/100}`;
 }
 
 function setevalue(valname){
-  var j,i;
+  var j,i,h;
   i=0;
-  for (j=0;j<elements.length;j++) {
-   if ('value_'+elements[j] == valname) {
-    i=j;
-    break
+  h=0;
+  j=0;
+  do {
+   if (elements[j] != "_") {
+    if ('value_'+elements[j] == valname) {
+     i=h;
+     break
+    }
+    h = h + 1;
    }
-  }
+   j = j + 1;
+  } while (j<elements.length);
+
+  console.log(values,i,j,h);
   aElement = document.getElementById(valname);
   if (aElement) {
    mtype = aElement.tagName.toLowerCase();
@@ -64,17 +83,17 @@ function setevalue(valname){
      break
      case "state":
      case "cmn-toggle cmn-toggle-round":
-      aElement.checked = Boolean(Number(values[i]));
+      aElement.checked = Boolean(parseFloat(values[i]));
      break
      case "meter":
      case "slider":
      case "select":
-      aElement.value = Number(values[i]);
+      aElement.value = parseFloat(values[i]);
      break
      case "gauge":
-      minv = Number(props[i][0])
-      maxv = Number(props[i][1])
-      setGaugeValue(aElement,Number(values[i]),minv,maxv);
+      minv = parseFloat(props[j][0]);
+      maxv = parseFloat(props[j][1]);
+      setGaugeValue(aElement,parseFloat(values[i]),minv,maxv);
      break
     }
   }  // aElement end

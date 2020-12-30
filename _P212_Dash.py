@@ -39,6 +39,11 @@ class Plugin(plugin.PluginProto):
 
  def webform_load(self): # create html page for settings
   webserver.addFormCheckBox("Use standard HTML head","p212_head",self.taskdevicepluginconfig[2])
+  try:
+   sp = Settings.AdvSettings["startpage"]
+  except:
+   sp = "/"
+  webserver.addFormCheckBox("Set as startpage","p212_start",(sp=="/dash"))
   webserver.addHtml("<tr><td>Columns:<td>")
   webserver.addSelector_Head("p212_cols",False)
   for o in range(7):
@@ -64,8 +69,8 @@ class Plugin(plugin.PluginProto):
        options2.append("T"+str(t+1)+"-"+str(v+1)+" / "+str(Settings.Tasks[t].taskname)+"-"+str(Settings.Tasks[t].valuenames[v]))
        optionvalues2.append(str(t)+"_"+str(v))
 
-   for c in range(int(self.taskdevicepluginconfig[0])):
-    for r in range(int(self.taskdevicepluginconfig[1])):
+   for r in range(int(self.taskdevicepluginconfig[1])):
+    for c in range(int(self.taskdevicepluginconfig[0])):
      offs = (r * int(self.taskdevicepluginconfig[1])) + c
      try:
       adata = self.celldata[offs]
@@ -74,9 +79,14 @@ class Plugin(plugin.PluginProto):
      dtype = -1
      if "type" in adata:
       dtype = int(adata["type"])
-     webserver.addHtml("<tr><td><b>Cell"+str(offs)+" (x"+str(c)+"y"+str(r)+")</b><td>")
-     webserver.addFormSelector("Type","p212_type_"+str(offs),len(options1),options1,optionvalues1,None,dtype)
+     webserver.addHtml("<tr><td><b>Cell"+str(offs)+" (y"+str(r)+"x"+str(c)+")</b><td>")
 
+     dname = ""
+     if "name" in adata:
+      dname = str(adata["name"])
+     webserver.addFormTextBox("Name overwrite","p212_names_"+str(offs),dname,64)
+
+     webserver.addFormSelector("Type","p212_type_"+str(offs),len(options1),options1,optionvalues1,None,dtype)
      webserver.addHtml("<tr><td>Data source:<td>")
      ddata = "_"
      if "data" in adata:
@@ -94,15 +104,15 @@ class Plugin(plugin.PluginProto):
       webserver.addFormTextBox("Unit","p212_unit_"+str(offs),udata,16)
      if dtype in (3,4,5):
       try:
-       umin = str(adata["min"])
+       umin = float(adata["min"])
       except:
        umin = 0
       try:
-       umax = str(adata["max"])
+       umax = float(adata["max"])
       except:
        umax = 100
-      webserver.addFormNumericBox("Min value","p212_min_"+str(offs),umin,-65535,65535)
-      webserver.addFormNumericBox("Max value","p212_max_"+str(offs),umax,-65535,65535)
+      webserver.addFormFloatNumberBox("Min value","p212_min_"+str(offs),umin,-65535.0,65535.0)
+      webserver.addFormFloatNumberBox("Max value","p212_max_"+str(offs),umax,-65535.0,65535.0)
      elif dtype == 6:
       try:
        uon = str(adata["optionnames"])
@@ -118,11 +128,28 @@ class Plugin(plugin.PluginProto):
   return True
 
  def webform_save(self,params): # process settings post reply
+   try:
+    sp = Settings.AdvSettings["startpage"]
+   except:
+    sp = "/"
+   if (webserver.arg("p212_start",params)=="on"):
+    try:
+     if sp != "/dash":
+      Settings.AdvSettings["startpage"]  = "/dash"
+    except:
+     pass
+   else:
+    try:
+     if sp == "/dash":
+      Settings.AdvSettings["startpage"]  = "/"
+    except:
+     pass
 
    if (webserver.arg("p212_head",params)=="on"):
     self.taskdevicepluginconfig[2] = True
    else:
     self.taskdevicepluginconfig[2] = False
+
    par = webserver.arg("p212_cols",params)
    try:
     self.taskdevicepluginconfig[0] = int(par)
@@ -155,13 +182,14 @@ class Plugin(plugin.PluginProto):
      except:
       pass
      try:
-      self.celldata[offs]["min"] = int(webserver.arg("p212_min_"+str(offs),params))
-      self.celldata[offs]["max"] = int(webserver.arg("p212_max_"+str(offs),params))
+      self.celldata[offs]["min"] = float(webserver.arg("p212_min_"+str(offs),params))
+      self.celldata[offs]["max"] = float(webserver.arg("p212_max_"+str(offs),params))
      except:
       pass
      try:
       self.celldata[offs]["optionnames"] = str(webserver.arg("p212_optionnames_"+str(offs),params))
       self.celldata[offs]["options"] = str(webserver.arg("p212_options_"+str(offs),params))
+      self.celldata[offs]["name"] = str(webserver.arg("p212_names_"+str(offs),params))
      except:
       pass
 
@@ -217,7 +245,13 @@ def handle_dash(self):
        tasknum = int(ti[0])
        valnum  = int(ti[1])
        vstr += '"'+ str(Settings.Tasks[tasknum].uservar[valnum]) +'",'
-       webserver.addHtml("<div class='div_l' id='valuename_"+ str(tid) + "'>"+ str(Settings.Tasks[tasknum].valuenames[valnum]) + "</div>")
+       try:
+        namestr = str(dashtask.celldata[offs]["name"])
+       except:
+         namestr = ""
+       if namestr.strip() == "":
+        namestr = str(Settings.Tasks[tasknum].gettaskname())+"#"+str(Settings.Tasks[tasknum].valuenames[valnum])
+       webserver.addHtml("<div class='div_d' id='valuename_"+ str(tid) + "'>"+ namestr + "</div>")
       except:
        dtype = -1
       try:
@@ -232,26 +266,34 @@ def handle_dash(self):
        webserver.addHtml("<div class='switch'><input id='value_"+str(tid)+ "' class='cmn-toggle cmn-toggle-round' type='checkbox' onchange='cboxchanged(this)'><label for='value_"+str(tid)+ "'></label></div>")
       elif dtype == 3:
        try:
-         umin = int(dashtask.celldata[offs]["min"])
+         umin = float(dashtask.celldata[offs]["min"])
        except:
          umin = 0
        try:
-         umax = int(dashtask.celldata[offs]["max"])
+         umax = float(dashtask.celldata[offs]["max"])
        except:
          umax = 100
-       webserver.addHtml("<meter id='value_"+str(tid)+ "' min='"+str(umin)+"' max='"+str(umax)+"' value='" + str(Settings.Tasks[tasknum].uservar[valnum]) + "' class='meter'></meter>")
+       webserver.addHtml("<div style='width:100%'><meter id='value_"+str(tid)+ "' min='"+str(umin)+"' max='"+str(umax)+"' value='" + str(Settings.Tasks[tasknum].uservar[valnum]) + "' class='meter'></meter>")
+       sval = umin
+       stepval = (umax-umin)/5
+       webserver.addHtml("<ul id='scale'><li style='width: 10%'><span></span></li>")
+       while sval < (umax-stepval):
+        sval = sval + stepval
+        webserver.addHtml("<li><span id='scale'>"+str(sval)+"</span></li>")
+       webserver.addHtml("<li style='width: 10%'><span id='scale'></span></li></ul></div>")
       elif dtype == 4:
        webserver.addHtml("<div class='gauge' id='value_"+str(tid)+ "'><div class='gauge__body'><div class='gauge__fill'></div><div class='gauge__cover'></div></div></div>")
       elif dtype == 5:
        try:
-         umin = int(dashtask.celldata[offs]["min"])
+         umin = float(dashtask.celldata[offs]["min"])
        except:
          umin = 0
        try:
-         umax = int(dashtask.celldata[offs]["max"])
+         umax = float(dashtask.celldata[offs]["max"])
        except:
          umax = 100
-       webserver.addHtml("<input type='range' min='" +str(umin) +"' max='"+ str(umax) +"' value='" + str(Settings.Tasks[tasknum].uservar[valnum]) + "' class='slider' id='value_"+str(tid)+ "' onchange='sselchanged(this)'>")
+       webserver.addHtml("<input type='range' min='" +str(umin) +"' max='"+ str(umax) +"' value='" + str(Settings.Tasks[tasknum].uservar[valnum]) + "' class='slider' id='value_"+str(tid)+ "' onchange='sselchanged(this)' oninput='this.nextElementSibling.value = this.value'>")
+       webserver.addHtml("<output>"+ str(Settings.Tasks[tasknum].uservar[valnum]) +"</output>")
       elif dtype == 6:
        webserver.addHtml("<div class='box'><select name='value_"+str(tid)+ "' id='value_"+str(tid)+ "' onchange='sselchanged(this)'>")
        optionnames = []
