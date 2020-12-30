@@ -218,6 +218,7 @@ class PerverHandler:
 		self.header = 'HTTP/1.1 ' + str(status) + '\r\n'
 		self.form_header('Accept-Charset', encoding)
 		self.form_header('Server', 'Perver/' + __version__)
+		self.form_header('Access-Control-Allow-Origin', '*')
 		
 		# Setting mime type (and encoding for text):
 		if type.startswith('text/'):

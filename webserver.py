@@ -75,13 +75,21 @@ def handle_root(self):
   responsearr = self.get
  else:
   responsearr = self.post
+ 
  cmdline = arg("cmd",responsearr).strip()
-
- sendHeadandTail("TmplStd",_HEAD)
-
  responsestr = ""
  if len(cmdline)>0:
   responsestr = str(commands.doExecuteCommand(cmdline))  # response ExecuteCommand(VALUE_SOURCE_HTTP, webrequest.c_str());
+
+ try:
+   startpage = Settings.AdvSettings["startpage"]
+ except:
+   startpage = "/"
+ if len(startpage)>1:   
+   return self.redirect(startpage)
+
+ sendHeadandTail("TmplStd",_HEAD)
+
  if len(responsestr)>0:
   TXBuffer += "<P>"
   TXBuffer += str(responsestr)
@@ -2440,6 +2448,10 @@ def handle_advanced(self):
   if len(portlist)<1:
    portlist = [80,8080,8008,591]
   Settings.AdvSettings["portlist"] = portlist
+  try:
+   Settings.AdvSettings["startpage"]  = str(arg("startpage",responsearr))
+  except:
+   Settings.AdvSettings["startpage"]  = "/"
   Settings.saveadvsettings()
 
  TXBuffer += "<form  method='post'><table class='normal'>"
@@ -2473,6 +2485,12 @@ def handle_advanced(self):
    except:
     pass
  TXBuffer += "</fieldset>"
+
+ try:
+  sp = Settings.AdvSettings["startpage"]
+ except:
+  sp = "/"
+ addFormTextBox("Start page", "startpage", sp,64)
 
  addFormSubHeader("Location Settings")
  try:
@@ -2698,6 +2716,107 @@ def handle_json(self):
  TXBuffer += '],'
  TXBuffer += '"TTL":'+str(ttl*1000)+'}'
 
+ return TXBuffer
+
+@WebServer.route('/csv')
+def handle_json(self):
+ import platform, sys
+ global TXBuffer, navMenuIndex
+ self.set_mime("text/csv")
+ TXBuffer=""
+ if (rpieGlobals.wifiSetup):
+  return self.redirect('/setup')
+ if (not isLoggedIn(self.get,self.cookie)):
+  return self.redirect('/login')
+
+ if self.type == "GET":
+  responsearr = self.get
+ else:
+  responsearr = self.post
+
+ tasknrstr = arg("tasknr",responsearr).strip()
+ sc = -1
+ if (len(tasknrstr)>0):
+  try:
+   sc = int(tasknrstr)
+  except:
+   sc = -1
+ tasknrstr = arg("tasks",responsearr).strip()
+ valnr = arg("valnr",responsearr)
+ try:
+  tv = int(valnr)
+ except:
+  tv = -1
+ rheader = (arg("header",responsearr)!="0")
+
+ if sc>=0:
+  if sc<len(Settings.Tasks) and Settings.Tasks[sc] != False and Settings.Tasks[sc].enabled:
+   if tv>-1:
+    if tv>=Settings.Tasks[sc].valuecount:#nono
+     return TXBuffer
+    if rheader:
+     TXBuffer += str(Settings.Tasks[sc].valuenames[tv])+';\n'
+    if str(Settings.Tasks[sc].uservar[tv])=="":
+      TXBuffer += '""'
+    else:
+      if str(Settings.Tasks[sc].decimals[tv]) == "-1":
+       ival = '"'+ str(Settings.Tasks[sc].uservar[tv]) + '"'
+      else:
+       try:
+        ival = float(Settings.Tasks[sc].uservar[tv])
+       except:
+        ival = '"'+ str(Settings.Tasks[sc].uservar[tv]) + '"'
+      TXBuffer += str(ival)
+    TXBuffer += ";\n"
+   else:
+    if rheader:
+     for tv in range(0,Settings.Tasks[sc].valuecount):
+      TXBuffer += str(Settings.Tasks[sc].valuenames[tv])+';'
+     TXBuffer += "\n"
+    for tv in range(0,Settings.Tasks[sc].valuecount):
+     if str(Settings.Tasks[sc].uservar[tv])=="":
+      TXBuffer += '""'
+     else:
+      if str(Settings.Tasks[sc].decimals[tv]) == "-1":
+       ival = '"'+ str(Settings.Tasks[sc].uservar[tv]) + '"'
+      else:
+       try:
+        ival = float(Settings.Tasks[sc].uservar[tv])
+       except:
+        ival = '"'+ str(Settings.Tasks[sc].uservar[tv]) + '"'
+      TXBuffer += str(ival)
+     TXBuffer += ";"
+    TXBuffer += "\n"
+ elif "_" in tasknrstr:
+  tia = tasknrstr.split(",")
+  for ti in tia:
+   try:
+    t = ti.split("_")
+    sc = int(t[0])
+    tv = int(t[1])
+    if sc<len(Settings.Tasks) and Settings.Tasks[sc] != False and Settings.Tasks[sc].enabled:
+     if tv>-1:
+      if tv>=Settings.Tasks[sc].valuecount:#nono
+        TXBuffer += '"";'
+        continue
+      if str(Settings.Tasks[sc].uservar[tv])=="":
+        TXBuffer += '""'
+      else:
+        if str(Settings.Tasks[sc].decimals[tv]) == "-1":
+         ival = '"'+ str(Settings.Tasks[sc].uservar[tv]) + '"'
+        else:
+         try:
+          ival = float(Settings.Tasks[sc].uservar[tv])
+         except:
+          ival = '"'+ str(Settings.Tasks[sc].uservar[tv]) + '"'
+        TXBuffer += str(ival)
+      TXBuffer += ";"
+     else:
+      TXBuffer += '"";'
+    else:
+      TXBuffer += '"";'
+   except Exception as e:
+    pass
  return TXBuffer
 
 @WebServer.route('/rules')
@@ -3508,6 +3627,7 @@ def addFormPasswordBox(label, fid, password, maxlength):
     TXBuffer += "*****"
   TXBuffer += "'>"
 
+
 def addFormLogLevelSelect(label, sid, choice):
   addRowLabel(label)
   addLogLevelSelect(sid,choice)
@@ -3553,7 +3673,7 @@ def addFormIPBox(label, fid, ip):
     sstrip = ""
   else:
     formatIP(ip, sstrip) # MISSING - not sure it will be needed anymore
-    
+
   addRowLabel(label)
   TXBuffer += "<input class='wide' type='text' name='"
   TXBuffer += str(fid)
