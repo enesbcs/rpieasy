@@ -71,7 +71,7 @@ class Plugin(plugin.PluginProto):
 
    for r in range(int(self.taskdevicepluginconfig[1])):
     for c in range(int(self.taskdevicepluginconfig[0])):
-     offs = (r * int(self.taskdevicepluginconfig[1])) + c
+     offs = (r * int(self.taskdevicepluginconfig[0])) + c
      try:
       adata = self.celldata[offs]
      except:
@@ -163,7 +163,7 @@ class Plugin(plugin.PluginProto):
 
    for c in range(int(self.taskdevicepluginconfig[0])):
     for r in range(int(self.taskdevicepluginconfig[1])):
-     offs = (r * int(self.taskdevicepluginconfig[1])) + c
+     offs = (r * int(self.taskdevicepluginconfig[0])) + c
      mknew = True
      try:
       self.celldata[offs]["type"] = int(webserver.arg("p212_type_"+str(offs),params))
@@ -232,11 +232,16 @@ def handle_dash(self):
     if int(dashtask.taskdevicepluginconfig[0])>1 and int(dashtask.taskdevicepluginconfig[0])<7:
      astr = " tab"+str(dashtask.taskdevicepluginconfig[0])
     webserver.addHtml("<table width='100%' class='tab "+astr+"'>")
+    offs = 0
     for r in range(int(dashtask.taskdevicepluginconfig[1])):
+     if offs>=len(dashtask.celldata):
+      break
      webserver.addHtml("<tr>")
      for c in range(int(dashtask.taskdevicepluginconfig[0])):
+      if offs>=len(dashtask.celldata):
+       break
       webserver.addHtml("<td>")
-      offs = (r * int(dashtask.taskdevicepluginconfig[1])) + c
+      offs = (r * int(dashtask.taskdevicepluginconfig[0])) + c
       try:
        dtype = int(dashtask.celldata[offs]["type"])
        tid = str(dashtask.celldata[offs]["data"])
@@ -338,7 +343,7 @@ def handle_dash(self):
    else:
     webserver.TXBuffer += "</body></html>"
   except Exception as e:
-   print(e)
+   print("Config error, try to delete and recreate task!")
   return webserver.TXBuffer
 
 def textparse(ostr):

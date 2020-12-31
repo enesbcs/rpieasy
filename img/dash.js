@@ -35,7 +35,7 @@ function setGaugeValue(gauge, value, minv,maxv) {
   if (value>maxv) {
    value = maxv;
   }
-  if ((minv != 0) && (maxv != 100)) {
+  if ((minv != 0) || (maxv != 100)) {
    value = (value-minv) * (100 /(maxv- minv));
   }
   if (value<0) {
