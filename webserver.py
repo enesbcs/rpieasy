@@ -914,6 +914,37 @@ def handle_pinout(self):
    stat=16
   gpios.HWPorts.gpumem = stat
 
+  si2carr = []
+  for i in range(0,21):
+   iarr = [-1,-1,-1]
+   try:
+    iarr[0] = int(arg("si2c"+str(i),responsearr))
+    iarr[1] = int(arg("si2c"+str(i)+"_sda",responsearr))
+    iarr[2] = int(arg("si2c"+str(i)+"_scl",responsearr))
+    if -1 not in iarr:
+     si2carr.append(iarr)
+   except Exception as e:
+    pass
+  if (len(si2carr)>0) or (len(gpios.HWPorts.i2cgpio)>0): #deal with soft i2c
+    pinold = []
+    pinused = []
+    for si in range(len(si2carr)):
+      for i in range(1,3):
+       pin = si2carr[si][i]
+       if pin not in pinused and pin != -1:
+        pinused.append(pin)
+    for si in range(len(gpios.HWPorts.i2cgpio)):
+      for i in range(1,3):
+       pin = gpios.HWPorts.i2cgpio[si][i]
+       if pin not in pinold:
+        pinold.append(pin)
+    for p in range(len(pinold)):
+     if pinold[p] not in pinused:
+      gpios.HWPorts.setpinspecial(pinold[p],0) #do not reserve pins that not used anymore
+    for p in range(len(pinused)):
+      gpios.HWPorts.setpinspecial(pinused[p],1) #set used pins as Special
+    gpios.HWPorts.i2cgpio = si2carr # save new i2cpins
+
   for p in range(len(Settings.Pinout)):
    pins = arg("pinstate"+str(p),responsearr)
    if pins and pins!="" and p!= "":
@@ -1058,7 +1089,17 @@ def handle_pinout(self):
   if gpios.HWPorts.is_internal_wifi_usable():
     addFormCheckBox("Internal WiFi","wifi",gpios.HWPorts.is_wifi_enabled())
   addFormNumericBox("GPU memory","gpumem", gpios.HWPorts.gpumem,gpios.HWPorts.gpumin,gpios.HWPorts.gpumax)
-  addUnit("MB")  
+  addUnit("MB")
+  addFormHeader("Software I2C")
+  addFormNumericBox("New soft-I2C","si2c0", None, 3,20)
+  addFormPinSelect("New SDA","si2c0_sda", None)
+  addFormPinSelect("New SCL","si2c0_scl", None)
+  if len(gpios.HWPorts.i2cgpio)>0:
+   for i in range(len(gpios.HWPorts.i2cgpio)):
+    b = gpios.HWPorts.i2cgpio[i][0]
+    addFormNumericBox("Soft-I2C"+str(b),"si2c"+str(b), b, 3,20)
+    addFormPinSelect("I2C"+str(b)+" SDA","si2c"+str(b)+"_sda", gpios.HWPorts.i2cgpio[i][1])
+    addFormPinSelect("I2C"+str(b)+" SCL","si2c"+str(b)+"_scl", gpios.HWPorts.i2cgpio[i][2])
   addFormSeparator(2)
   TXBuffer += "<tr><td colspan=2>"
   if OS.check_permission():
@@ -1690,7 +1731,6 @@ def handle_devices(self):
           Settings.Tasks[taskIndex].spidnum = int(arg("spidnum",responsearr))
          except:
           pass
-
 
         if Settings.Tasks[taskIndex].taskname=="":
          Settings.Tasks[taskIndex].enabled = False

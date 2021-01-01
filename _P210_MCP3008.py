@@ -15,7 +15,7 @@ import gpios
 
 class Plugin(plugin.PluginProto):
  PLUGIN_ID = 210
- PLUGIN_NAME = "Analog input - MCP3008"
+ PLUGIN_NAME = "Analog input - MCP3008/3208"
  PLUGIN_VALUENAME1 = "Analog"
 
  def __init__(self,taskindex): # general init
@@ -54,7 +54,12 @@ class Plugin(plugin.PluginProto):
      self.spidnum = 0
     self.ports = "SPI"+str(self.spi)+"/"+str(self.spidnum)+" CH"+str(self.taskdevicepluginconfig[2])
     try:
-      self.adc = ADC.request_adc_device(int(self.spi),int(self.spidnum))
+     if int(self.taskdevicepluginconfig[3]) == 0:
+      self.taskdevicepluginconfig[3] = 3008
+    except:
+      self.taskdevicepluginconfig[3] = 3008
+    try:
+      self.adc = ADC.request_adc_device(int(self.spi),int(self.spidnum),dtype=int(self.taskdevicepluginconfig[3]))
       self.initialized = self.adc.initialized
     except Exception as e:
       misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"ADC can not be initialized! "+str(e))
@@ -63,7 +68,9 @@ class Plugin(plugin.PluginProto):
      self.ports = ""
 
  def webform_load(self): # create html page for settings
-    ok = True
+    options = ["MCP3008","MCP3208"]
+    optionvalues = [3008,3208]
+    webserver.addFormSelector("ADC type","p210_type",len(options),options,optionvalues,None,int(self.taskdevicepluginconfig[3]))
     choice3 = self.taskdevicepluginconfig[2]
     options = []
     optionvalues = []
@@ -79,6 +86,14 @@ class Plugin(plugin.PluginProto):
    if par == "":
     par = 0
    self.taskdevicepluginconfig[2] = int(par)
+
+   par = webserver.arg("p210_type",params)
+   try:
+    self.taskdevicepluginconfig[3] = int(par)
+   except:
+    self.taskdevicepluginconfig[3] = 0
+   if self.taskdevicepluginconfig[3] == 0:
+    self.taskdevicepluginconfig[3] = 3008
 
    if (webserver.arg("p210_over",params)=="on"):
     self.timer1s = True

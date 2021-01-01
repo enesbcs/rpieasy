@@ -385,6 +385,7 @@ class hwports:
  CONFIG_GPUMEM="gpu_mem"
  COMMAND_DISABLE_BT="sudo systemctl disable hciuart"
  CONFIG_ENABLE_RTC="dtoverlay=i2c-rtc," # ds1307, pcf8523, ds3231
+ CONFIG_I2C_GPIO="dtoverlay=i2c-gpio"
 
  def __init__(self): # general init
   self.i2c_channels = [] # 0,1
@@ -445,6 +446,7 @@ class hwports:
   self.gpumem = self.gpumin
   for i in range(20):
    self.i2c_channels_init.append(None)
+  self.i2cgpio = []
 
  def __del__(self):
    try:
@@ -939,7 +941,7 @@ class hwports:
      if Settings.Pinout[b]["altfunc"] == 0 and Settings.Pinout[b]["canchange"]==1:
       self.setpinstate(b,state,True)
      break
-     
+
  def setpinactualstate(self,pinid,state):
     if Settings.Pinout[pinid]["actualstate"]==7:
      bcmpin = int(Settings.Pinout[pinid]["BCM"])
@@ -1019,9 +1021,19 @@ class hwports:
         if int(Settings.Pinout[b]["startupstate"])<7 and int(Settings.Pinout[b]["startupstate"])>=0:
          self.setpinstate(b,Settings.Pinout[b]["startupstate"],True)
 
+ def setpinspecial(self,bcmpin,state):
+   for b in range(len(Settings.Pinout)):
+    if str(Settings.Pinout[b]["BCM"])==str(bcmpin).strip():
+     if state==1:
+      Settings.Pinout[b]["startupstate"] = 9
+     else:
+      Settings.Pinout[b]["startupstate"] = -1
+     break
+
  def readconfig(self):
     self.i2c_channels = [] # 0,1
     self.spi_channels = [] # 0,1
+    self.i2cgpio = []
     self.spi_cs = [0,0]
     self.set_serial(1)
     self.i2s = 0
@@ -1133,6 +1145,25 @@ class hwports:
           self.setirgpio(pin,True,2)
         if pinfound==False:
          self.setirgpio(18,True,2)
+       elif line.lower().startswith(self.CONFIG_I2C_GPIO):
+        params = line.lower().split(",")
+        if len(params)>1:
+         iarr = [-1,-1,-1]
+         for i in range(1,len(params)):
+          try:
+           apar = params[i].lower().split("=")
+           if apar[0]=="bus":
+            iarr[0] = int(apar[1])
+           elif apar[0]=="i2c_gpio_sda":
+            iarr[1] = int(apar[1])
+            self.setpinspecial(iarr[1],1)
+           elif apar[0]=="i2c_gpio_scl":
+            iarr[2] = int(apar[1])
+            self.setpinspecial(iarr[2],1)
+          except:
+           pass
+         if -1 not in iarr:
+          self.i2cgpio.append(iarr)
        elif line.lower().startswith(self.CONFIG_GPIO):
         params = line.split("=")
         bcmpin = -1
@@ -1239,6 +1270,8 @@ class hwports:
         line = ""
        elif self.CONFIG_PWMIR in line.lower():
         line = ""
+       elif line.lower().startswith(self.CONFIG_I2C_GPIO):
+        line = ""
        elif line.lower().startswith(self.CONFIG_GPIO):
         line = ""
        elif line.lower().startswith(self.CONFIG_GPUMEM):
@@ -1285,6 +1318,11 @@ class hwports:
       f.write(self.CONFIG_ENABLE_AUDIO+"\n")
      else:
       f.write(self.CONFIG_DISABLE_AUDIO+"\n")
+     if len(self.i2cgpio)>0:
+      for i in range(len(self.i2cgpio)):
+       f.write(self.CONFIG_I2C_GPIO+",bus="+str(self.i2cgpio[i][0])+",i2c_gpio_sda="+str(self.i2cgpio[i][1])+",i2c_gpio_scl="+str(self.i2cgpio[i][2])+"\n")
+       self.setpinspecial(self.i2cgpio[i][1],1)
+       self.setpinspecial(self.i2cgpio[i][2],1)
      f.write(self.CONFIG_GPUMEM+"="+str(self.gpumem)+"\n")
      line = ""
      if sum(self.pwm)>0:
