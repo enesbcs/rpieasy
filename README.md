@@ -19,7 +19,7 @@ Main goal is to create a multisensor device, that can be install and setup quick
 
 Tested with Raspberry Pi Zero W/Raspbian Buster and PC/Ubuntu 20.04. (may work with other Debian/Ubuntu derivatives)
 For obvious reasons GPIO based devices needs GPIO support, mainly targeted for Raspberry Pi. 
-However experimental Orange Pi and USB FTDI GPIO support also added for testing purposes. Some basic devices (dummy, system informations...) and controllers will work on a normal PC.
+However experimental Orange Pi, USB FTDI and Rock Pi S GPIO support also added for testing purposes. Some basic devices (dummy, system informations...) and controllers will work on a normal PC.
 
 # Installation
 

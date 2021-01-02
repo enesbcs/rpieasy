@@ -305,7 +305,11 @@ class data_packet:
    tbuf.append(int(self.infopacket["port"]/256))
    for b in range(len(tbuf),80):
     tbuf.append(0)
-   self.buffer = bytes(tbuf)
+   try:
+    self.buffer = bytes(tbuf)
+   except:
+    print("Error in buffer: ",tbuf)
+    self.buffer = bytes()
   if ptype == 3:
    tbuf = [255,3]
    tbuf.append(int(self.sensorinfo["sunit"]))

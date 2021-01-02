@@ -9,7 +9,7 @@
 #
 # Loosely based on marvellous ESPEasy Plugin 036.
 #
-# Copyright (C) 2018-2019 by Alexander Nagy - https://bitekmindenhol.blog.hu/
+# Copyright (C) 2018-2021 by Alexander Nagy - https://bitekmindenhol.blog.hu/
 #
 # Made with the support of Budman1758
 #
@@ -17,6 +17,7 @@ import plugin
 import webserver
 import rpieGlobals
 import rpieTime
+import time
 import misc
 import gpios
 import commands
@@ -65,10 +66,26 @@ class Plugin(plugin.PluginProto):
   self.headline = 0
   self.lastwifistrength = -1
   self.writeinprogress = 0
+  self.initval = -1
+  self.btnval = -1
+  self.btntime = 0
+  self.displaystate = -1
 
  def plugin_init(self,enableplugin=None):
   plugin.PluginProto.plugin_init(self,enableplugin)
   if self.enabled:
+   if self.taskdevicepin[0]>=0:
+    try:
+     gpios.HWPorts.remove_event_detect(int(self.taskdevicepin[0]))
+    except:
+     pass
+    try:
+     self.btntime = 0
+     self.btnval = -1
+     self.initval = int(gpios.HWPorts.input(int(self.taskdevicepin[0])))
+     gpios.HWPorts.add_event_detect(int(self.taskdevicepin[0]),gpios.BOTH,self.p036_handler)
+    except:
+     pass
    try:
      i2cl = self.i2c
    except:
@@ -209,8 +226,9 @@ class Plugin(plugin.PluginProto):
       print(e)
      try:
       self.device.show()
+      self.displaystate = 1
      except:
-      pass
+      self.displaystate = 0
      if self.interval>2:
        nextr = self.interval-2
      else:
@@ -259,7 +277,7 @@ class Plugin(plugin.PluginProto):
     else:
      self.initialized = False
   else:
-   self.__del__()
+   self.plugin_exit()
 
  def webform_load(self): # create html page for settings
   choice1 = str(self.taskdevicepluginconfig[0]) # store display type
@@ -312,19 +330,22 @@ class Plugin(plugin.PluginProto):
   webserver.addFormSelector("Contrast","p036_contrast",len(optionvalues),options,optionvalues,None,choice7)
   webserver.addFormNumericBox("Try to display # characters per row","p036_charperl",self.taskdevicepluginconfig[7],1,32)
   webserver.addFormNote("Leave it '1' if you do not care")
+  webserver.addFormPinSelect("Display button", "p036_button", self.taskdevicepin[0])
   return True
 
- def __del__(self):
+ def plugin_exit(self):
   self.initialized = False
   try:
+   self.displaystate = 0
    if self.device is not None:
     self.device.clear()
     self.device.hide()
   except:
    pass
-
- def plugin_exit(self):
-  self.__del__()
+  try:
+   gpios.HWPorts.remove_event_detect(self.taskdevicepin[0])
+  except:
+   pass
 
  def webform_save(self,params): # process settings post reply
    par = webserver.arg("p036_type",params)
@@ -371,6 +392,11 @@ class Plugin(plugin.PluginProto):
    if par == "":
     par = 1
    self.taskdevicepluginconfig[7] = int(par)
+
+   par = webserver.arg("p036_button",params)
+   if par == "":
+    par = -1
+   self.taskdevicepin[0] = int(par)
 
    self.plugin_init()
    return True
@@ -561,6 +587,29 @@ class Plugin(plugin.PluginProto):
 #     print(self.textbuffer,self.actualpage,self.pages)
   return True
 
+ def p036_handler(self,channel=0):
+   if self.taskdevicepin[0]>=0:
+    try:
+     btnval = int(gpios.HWPorts.input(int(self.taskdevicepin[0])))
+     if btnval != self.btnval:
+      self.btnval = btnval
+      if btnval != self.initval: #btn pressed
+       self.btntime = time.time()
+      else: #returned to default state, measure time
+       presstime = (time.time()-self.btntime)
+       if presstime >= 1.5: #longpress
+        if self.displaystate==1:
+         self.displaystate = 0
+         self.device.hide()
+        else:
+         self.displaystate = 1
+         self.device.show()
+       else: #shortpress
+        self._lastdataservetime = rpieTime.millis()
+        self.plugin_read()
+    except:
+     pass
+
  def plugin_write(self,cmd):
   res = False
   cmdarr = cmd.split(",")
@@ -574,9 +623,11 @@ class Plugin(plugin.PluginProto):
     if self.device is not None:
      if cmd == "on":
       self.device.show()
+      self.displaystate = 1
       res = True
      elif cmd == "off":
       self.device.hide()
+      self.displaystate = 0
       res = True
      elif cmd == "low":
       self.device.contrast(self.P36_CONTRAST_LOW)
