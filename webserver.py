@@ -2759,8 +2759,7 @@ def handle_json(self):
  return TXBuffer
 
 @WebServer.route('/csv')
-def handle_json(self):
- import platform, sys
+def handle_csv(self):
  global TXBuffer, navMenuIndex
  self.set_mime("text/csv")
  TXBuffer=""

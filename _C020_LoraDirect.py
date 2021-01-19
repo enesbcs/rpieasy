@@ -8,8 +8,9 @@
 # between local nodes!
 #
 # Supported hardware is SX1278 through PyLora
+# + added support to SX1262 based on ehong-tl sx126x library
 #
-# Copyright (C) 2018-2019 by Alexander Nagy - https://bitekmindenhol.blog.hu/
+# Copyright (C) 2018-2021 by Alexander Nagy - https://bitekmindenhol.blog.hu/
 #
 import controller
 import misc
@@ -22,8 +23,15 @@ import Settings
 import gpios
 from datetime import datetime
 import lib.lib_p2pbuffer as p2pbuffer
-from SX127x.LoRa import *
-from SX127x.board_config import BOARD
+try:
+ from SX127x.LoRa import *
+ from SX127x.board_config import BOARD
+except:
+ pass
+try:
+ from lib.sx126x.sx1262 import SX1262
+except:
+ pass
 
 CAPABILITY_BYTE = (1+2) # send and receive
 REPORTINTERVAL = 1800#sec
@@ -42,38 +50,61 @@ class Controller(controller.ControllerProto):
   self.sysinfosent=0
   self.timer30s = True
   self.sf = 9
-  self.bw = BW.BW250
-  self.coding = CODING_RATE.CR4_5
   self.freq = 869.5
   self.sync = 0x12
   self.duty = 10
   self.defaultunit = 0
   self.enablesend = True
   self.noirq = False
+  try:
+   self.bw = BW.BW250
+   self.coding = CODING_RATE.CR4_5
+   self.rtype = 1276
+   self.spi = None
+   self.spidnum = None
+  except:
+   self.bw = 250
+   self.coding = 5
+   self.rtype = 1262
+   self.spi = 0
+   self.spidnum = 0
+  self.dio1 = -1
+  self.rst = -1
+  self.busy = -1
 
  def controller_init(self,enablecontroller=None):
   if enablecontroller != None:
    self.enabled = enablecontroller
   self.initialized = False
+  try:
+    if self.rtype:
+     pass
+  except:
+    self.rtype = 1276
   if self.enabled:
    if int(Settings.Settings["Unit"])>0:
     self.controllerport = Settings.Settings["Unit"]
    try:
-    BOARD.setup()
-    gpios.HWPorts.remove_event_detect(BOARD.DIO0)
-    gpios.HWPorts.remove_event_detect(BOARD.DIO1)
-    gpios.HWPorts.remove_event_detect(BOARD.DIO2)
-    gpios.HWPorts.remove_event_detect(BOARD.DIO3)
+    if self.rtype==1276:
+     BOARD.setup()
+     gpios.HWPorts.remove_event_detect(BOARD.DIO0)
+     gpios.HWPorts.remove_event_detect(BOARD.DIO1)
+     gpios.HWPorts.remove_event_detect(BOARD.DIO2)
+     gpios.HWPorts.remove_event_detect(BOARD.DIO3)
    except Exception as e:
     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"LORA Direct preinit msg: "+str(e))
    try:
-    self.lora = LoRaRcvCont(self.pkt_receiver)
+    if self.rtype==1276:
+     self.lora = LoRaRcvCont(self.pkt_receiver)
+    elif self.rtype==1262:
+     self.lora = LoRaRcvCont1262(self.spi,self.spidnum,self.dio1,self.rst,self.busy,self.pkt_receiver)
     self.connect()
     self.initialized = True
     misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"LORA Direct initialized")
    except Exception as e:
     self.initialized = False
     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"LORA Direct init error: "+str(e))
+    return False
   return True
 
  def connect(self):
@@ -81,19 +112,23 @@ class Controller(controller.ControllerProto):
   self.sysinfosent = 0
   try:
    if self.lora is not None:
-    self.lora.set_mode(MODE.STDBY)
-    self.lora.set_pa_config(pa_select=1, max_power=21, output_power=15)
-    self.lora.set_spreading_factor(self.sf)
-    self.lora.set_bw(self.bw)
-    self.lora.set_coding_rate(self.coding)
-    self.lora.set_rx_crc(True)
-    self.lora.set_freq(self.freq)
-    self.lora.set_sync_word(self.sync) # default setting of 0x12 and a LoRaWAN setting of 0x34
-    assert(self.lora.get_agc_auto_on() == 1)
+    if self.rtype==1276:
+     self.lora.set_mode(MODE.STDBY)
+     self.lora.set_pa_config(pa_select=1, max_power=21, output_power=15)
+     self.lora.set_spreading_factor(self.sf)
+     self.lora.set_bw(self.bw)
+     self.lora.set_coding_rate(self.coding)
+     self.lora.set_rx_crc(True)
+     self.lora.set_freq(self.freq)
+     self.lora.set_sync_word(self.sync) # default setting of 0x12 and a LoRaWAN setting of 0x34
+     assert(self.lora.get_agc_auto_on() == 1)
+    elif self.rtype==1262:
+     self.lora.begin(freq=self.freq, bw=self.bw, sf=self.sf, syncWord=self.sync,crcOn=True,blocking=False)
     self.lora.loraduty = self.duty
     self.lora.start()
     self.connected = True
   except Exception as e:
+    self.initialized = False
     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"LORA Direct connect error: "+str(e))
 
  def disconnect(self):
@@ -113,26 +148,61 @@ class Controller(controller.ControllerProto):
   webserver.addFormNote("IP and Port parameter is not used!")
   webserver.addFormNote("SX127x hardware supported by pyLoRa library")
   webserver.addHtml("<p>Example sender sketches could be find <a href='https://github.com/enesbcs/EasyLora'>here</a>.")
-#  if self.lora is not None:
-#    webserver.addFormNote("LoRa version: "+str(self.lora.get_version()))
   try:
    webserver.addTableSeparator("Hardware settings",2,3)
-   if BOARD.SPI_BUS==0:
-    webserver.addHtml("<tr><td>SPI0 selected<td><i>(MOSI=GPIO10, MISO=GPIO9, SCK=GPIO11, NSS=GPIO8)</i>")
-    spiok = False
-    if gpios.HWPorts.is_spi_usable(BOARD.SPI_BUS):
-     if gpios.HWPorts.is_spi_enabled(BOARD.SPI_BUS):
-      webserver.addHtml(" - <b>SPI0 enabled</b>")
-      spiok = True
-    if spiok==False:
-     webserver.addHtml("<tr><td><td>Enable SPI0 first at hardware <a href='pinout'>pinout page</a>!")
-   else:
-     webserver.addHtml("<tr><td><td>You have modified BOARD constants, so you are an expert!")
-   webserver.addHtml("<tr><td>DIO0 (IRQ)<td>GPIO"+str(BOARD.DIO0))
-   webserver.addHtml("<tr><td>DIO1<td>GPIO"+str(BOARD.DIO1))
-   webserver.addHtml("<tr><td>DIO2<td>GPIO"+str(BOARD.DIO2))
-   webserver.addHtml("<tr><td>DIO3<td>GPIO"+str(BOARD.DIO3))
-   webserver.addHtml("<tr><td>RST<td>GPIO"+str(BOARD.RST))
+   options = ["PyLora (SX127x)","Sx1262"]
+   optionvalues = [1276,1262]
+   webserver.addFormSelector("LoRa chip type","loratype",len(optionvalues),options,optionvalues,None,self.rtype)
+   if self.rtype==1276:
+    try:
+     if BOARD.SPI_BUS:
+      pass
+    except:
+     self.rtype = 1262
+   if self.rtype==1276:
+    if BOARD.SPI_BUS==0:
+     webserver.addHtml("<tr><td>SPI0 selected<td><i>(MOSI=GPIO10, MISO=GPIO9, SCK=GPIO11, NSS=GPIO8)</i>")
+     spiok = False
+     import gpios
+     if gpios.HWPorts.is_spi_usable(BOARD.SPI_BUS):
+      if gpios.HWPorts.is_spi_enabled(BOARD.SPI_BUS):
+       webserver.addHtml(" - <b>SPI0 enabled</b>")
+       spiok = True
+     if spiok==False:
+      webserver.addHtml("<tr><td><td>Enable SPI0 first at hardware <a href='pinout'>pinout page</a>!")
+    else:
+      webserver.addHtml("<tr><td><td>You have modified BOARD constants, so you are an expert!")
+    webserver.addHtml("<tr><td>DIO0 (IRQ)<td>GPIO"+str(BOARD.DIO0))
+    webserver.addHtml("<tr><td>DIO1<td>GPIO"+str(BOARD.DIO1))
+    webserver.addHtml("<tr><td>DIO2<td>GPIO"+str(BOARD.DIO2))
+    webserver.addHtml("<tr><td>DIO3<td>GPIO"+str(BOARD.DIO3))
+    webserver.addHtml("<tr><td>RST<td>GPIO"+str(BOARD.RST))
+   elif self.rtype==1262:
+          try:
+           import gpios
+           options1, options2 = gpios.HWPorts.getspilist()
+          except Exception as e:
+           options1 = []
+           options2 = []
+          webserver.addHtml("<tr><td>SPI line:<td>")
+          webserver.addSelector_Head("spi",False)
+          for d in range(len(options1)):
+           try:
+            webserver.addSelector_Item("SPI"+str(options1[d]),options1[d],(self.spi==options1[d]),False)
+           except:
+            pass
+          webserver.addSelector_Foot()
+          webserver.addHtml("<tr><td>SPI device num:<td>")
+          webserver.addSelector_Head("spidnum",False)
+          for d in range(len(options2)):
+           try:
+            webserver.addSelector_Item("CE"+str(options2[d]),options2[d],(self.spidnum==options2[d]),False)
+           except:
+            pass
+          webserver.addSelector_Foot()
+          webserver.addFormPinSelect("DIO1 pin","dio1",self.dio1)
+          webserver.addFormPinSelect("RESET pin","rst",self.rst)
+          webserver.addFormPinSelect("BUSY pin","busy",self.busy)
 
    webserver.addTableSeparator("LoRa settings",2,3)
    webserver.addFormFloatNumberBox("Frequency","freq",self.freq,433,928)
@@ -152,12 +222,18 @@ class Controller(controller.ControllerProto):
 
    webserver.addFormNumericBox("Spreading factor","spreading",self.sf,6,12)
    options = ["7.8","10.4","15.6","20.8","31.25","41.7","62.5","125","250","500"]
-   optionvalues = [BW.BW7_8, BW.BW10_4, BW.BW15_6, BW.BW20_8, BW.BW31_25, BW.BW41_7, BW.BW62_5, BW.BW125, BW.BW250, BW.BW500]
+   if self.rtype==1276:
+    optionvalues = [BW.BW7_8, BW.BW10_4, BW.BW15_6, BW.BW20_8, BW.BW31_25, BW.BW41_7, BW.BW62_5, BW.BW125, BW.BW250, BW.BW500]
+   else:
+    optionvalues = [7.8,10.4,15.6,20.8,31.25,41.7,62.5,125,250,500]
    webserver.addFormSelector("Bandwidth","bw",len(optionvalues),options,optionvalues,None,self.bw)
    webserver.addUnit("khz")
 
    options = ["CR4/5","CR4/6","CR4/7","CR4/8"]
-   optionvalues = [CODING_RATE.CR4_5,CODING_RATE.CR4_6,CODING_RATE.CR4_7,CODING_RATE.CR4_8]
+   if self.rtype==1276:
+    optionvalues = [CODING_RATE.CR4_5,CODING_RATE.CR4_6,CODING_RATE.CR4_7,CODING_RATE.CR4_8]
+   else:
+    optionvalues = [5,6,7,8]
    webserver.addFormSelector("Coding rate","coding",len(optionvalues),options,optionvalues,None,self.coding)
 
    webserver.addFormNumericBox("Sync Word","sync",self.sync,0,255)
@@ -173,15 +249,28 @@ class Controller(controller.ControllerProto):
 
  def webform_save(self,params):
   try:
+   self.rtype = int(webserver.arg("loratype",params))
+  except:
+   self.rtype = 1276
+  try:
    self.freq = float(webserver.arg("freq",params))
    self.duty = int(webserver.arg("duty",params))
    self.sf = int(webserver.arg("spreading",params))
+   self.bw = float(webserver.arg("bw",params))
    self.coding = int(webserver.arg("coding",params))
    self.sync = int(webserver.arg("sync",params))
    self.defaultunit = int(webserver.arg("defaultnode",params))
    self.enablesend = (webserver.arg("sender",params)=="on")
   except Exception as e:
    misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"LORA parameter save: "+str(e))
+  try:
+   self.spi = int(webserver.arg("spi",params))
+   self.spidnum = int(webserver.arg("spidnum",params))
+   self.dio1 = int(webserver.arg("dio1",params))
+   self.rst = int(webserver.arg("rst",params))
+   self.busy = int(webserver.arg("busy",params))
+  except:
+   pass
   return True
 
  def nodesort(self,item):
@@ -354,7 +443,7 @@ class Controller(controller.ControllerProto):
 
  def timer_thirty_second(self):
   try:
-   if self.enabled and (time.time()>self.sysinfosent+REPORTINTERVAL) and self.initialized:
+   if self.enabled and (time.time()>self.sysinfosent+REPORTINTERVAL) and self.initialized and self.connected:
     if self.sendsysinfo():
      self.sysinfosent = time.time()
   except Exception as e:
@@ -453,6 +542,59 @@ class LoRaRcvCont(LoRa):
        self.set_mode(MODE.TX)
 #       print("Sending ",payload) #DEBUG
        return True
+
+try:
+ class LoRaRcvCont1262(SX1262):
+    def __init__(self, spi_bus, spi_ce, irq, rst, gpio, receiverfunc=None):
+        super(LoRaRcvCont1262, self).__init__(spi_bus, spi_ce, irq, rst, gpio)
+        self.receiverfunc=receiverfunc
+        self.tx_active = False
+        self.tx_start  = 0
+        self.tx_end    = 0
+        self.nexttransmit = 0
+        self.loraduty  = 100
+
+    def get_freq(self):
+        return self.frequency
+
+    def callbackfunc(self,events):
+      if events & SX1262.RX_DONE:
+        self.tx_active = False
+        msg, err = self.recv()
+        error = SX1262.STATUS[err]
+        rssi = self.getRSSI()
+        if self.receiverfunc:
+          self.receiverfunc(msg,rssi)
+      if events & SX1262.TX_DONE:
+        self.tx_end = millis()
+        self.nexttransmit = ((self.tx_end-self.tx_start)*self.loraduty)+self.tx_end
+#        print("\nTxDone") # DEBUG
+        self.tx_active = False
+
+    def start(self):
+        self.tx_active = False
+        self.setBlockingCallback(False, self.callbackfunc)
+
+    def lorasend(self,payload):
+       if self.tx_active:
+        return False
+       self.tx_start = millis()
+       if self.tx_start<self.nexttransmit:
+        misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"Next possible transmit "+str(self.nexttransmit))
+        return False
+       self.tx_active = True
+       try:
+        self.tx_start = millis()
+        self.send(payload)
+       except:
+        self.tx_active = False
+        return False
+       print("Sending ",payload) #DEBUG
+       return True
+except:
+ class LoRaRcvCont1262():
+   def __init__():
+    pass
 
 # Helper functions
 

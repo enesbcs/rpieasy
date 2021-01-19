@@ -1,8 +1,9 @@
-# If you like this project, or you wants to support the development, you can do that by:
-- Buying a [coffee](https://ko-fi.com/I3I5UT4H)
-- Direct [PayPal donation](https://www.paypal.me/rpieasy)
-- Contributing to any of my [Wishlist items](https://www.wishlist.com/wishlists_/alexander-nagy/dwGnV/)
-- Adding Python code by [Pull Request](https://github.com/enesbcs/rpieasy/pulls)
+# To support the development you can:
+- Buy a [coffee](https://ko-fi.com/I3I5UT4H)
+- Donate by [PayPal](https://www.paypal.me/rpieasy)
+- Contribute to any of my [Wishlist items](https://www.wishlist.com/wishlists_/alexander-nagy/dwGnV/)
+- Be a patron at [Patreon](https://www.patreon.com/enesbcs)
+- Add Python code by [Pull Request](https://github.com/enesbcs/rpieasy/pulls)
 
 # RPIEasy
 
@@ -48,3 +49,6 @@ In case of questions or problems:
 - [Check the Wiki](https://github.com/enesbcs/rpieasy/wiki)
 - [Check the Forum](https://www.letscontrolit.com/forum/viewforum.php?f=24&sid=73480306697e27e1e89fe9e67c18c7d6)
 - [Make a new Issue](https://github.com/enesbcs/rpieasy/issues)
+
+# Special Thanks
+I would especially like to thank the two biggest supporter, happytm and budman1758 for their ideas and donations which made it possible to acquire a lot of IoT sensors/devices. :)
