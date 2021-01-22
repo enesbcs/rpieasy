@@ -22,7 +22,13 @@ def syncvalue(bcmpin,value):
   if (Settings.Tasks[x]) and type(Settings.Tasks[x]) is not bool: # device exists
    if (Settings.Tasks[x].enabled):
      if (Settings.Tasks[x].pluginid==29) and (Settings.Tasks[x].taskdevicepin[0]==bcmpin): # output on specific pin
-      Settings.Tasks[x].uservar[0] = value
+      try:
+       if Settings.Tasks[x].pininversed:
+        Settings.Tasks[x].uservar[0] = (1-value)
+       else:
+        Settings.Tasks[x].uservar[0] = value
+      except:
+       pass
       if Settings.Tasks[x].valuenames[0]!= "":
        commands.rulesProcessing(Settings.Tasks[x].taskname+"#"+Settings.Tasks[x].valuenames[0]+"="+str(value),rpieGlobals.RULE_USER)
       Settings.Tasks[x].plugin_senddata()

@@ -30,7 +30,7 @@ class Plugin(plugin.PluginProto):
   self.senddataoption = True
   self.recdataoption = True
   self.pullupoption = False
-  self.inverselogicoption = False
+  self.inverselogicoption = True
 
  def plugin_init(self,enableplugin=None):
   plugin.PluginProto.plugin_init(self,enableplugin)
@@ -59,6 +59,8 @@ class Plugin(plugin.PluginProto):
   if self.enabled:
    if self.taskdevicepin[0]>=0:
     v1 = gpios.HWPorts.input(self.taskdevicepin[0])
+    if self.pininversed:
+     v1 = (1 - v1)
     if self.taskdevicepluginconfig[0]==True:
        ot = False
        for p in range(len(Settings.Pinout)):
@@ -92,9 +94,17 @@ class Plugin(plugin.PluginProto):
  def set_value(self,valuenum,value,publish=True,suserssi=-1,susebattery=-1): # Also reacting and handling Taskvalueset
   if self.initialized:
    if self.taskdevicepin[0]>=0:
-    if 'on' in str(value).lower() or str(value)=="1":
-     val = 1
-    else:
+    try:
+     if 'on' in str(value).lower() or str(value)=="1":
+      val = 1
+      value = 1
+     else:
+      val = 0
+      value = 0
+     if self.pininversed:
+      val = (1 - val)
+      value = (1 - value)
+    except:
      val = 0
     try:
      gpios.HWPorts.output(self.taskdevicepin[0],val)     # try to set gpio according to requested status
