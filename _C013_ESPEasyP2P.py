@@ -47,7 +47,7 @@ class Controller(controller.ControllerProto):
   self.initialized = True
   return True
 
- def webform_load(self): 
+ def webform_load(self):
   webserver.addFormNote("Hint: only the Controller Port parameter used!")
   return True
 
@@ -76,7 +76,10 @@ class Controller(controller.ControllerProto):
     except socket.error:
         pass
     else:
-        dp.decode()
+        try:
+         dp.decode()
+        except Exception as e:
+         dp.pkgtype=0
         if dp.pkgtype==1:
          un = getunitordfromnum(dp.infopacket["unitno"]) # process incoming alive reports
          if un==-1:
@@ -85,6 +88,9 @@ class Controller(controller.ControllerProto):
           Settings.nodelist.sort(reverse=False,key=self.nodesort)
          else:
           Settings.nodelist[un]["age"] = 0
+          Settings.nodelist[un]["ip"] = dp.infopacket["ip"]
+          Settings.nodelist[un]["port"] = dp.infopacket["port"]
+          Settings.nodelist[un]["name"] = dp.infopacket["name"]
           if int(dp.infopacket["unitno"]) != int(Settings.Settings["Unit"]):
            misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"Unit alive: "+str(dp.infopacket["unitno"]))
         elif dp.pkgtype==3:                              # process incoming new devices
@@ -109,7 +115,7 @@ class Controller(controller.ControllerProto):
             except:
              m = False
             if m:
-             try: 
+             try:
               Settings.Tasks[rtaskindex] = m.Plugin(rtaskindex)
              except:
               Settings.Tasks.append(m.Plugin(rtaskindex))
@@ -217,7 +223,8 @@ class Controller(controller.ControllerProto):
    dp = data_packet()
    try:
     defdev = Settings.NetMan.getprimarydevice()
-   except:
+   except Exception as e:
+    misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"C013 sysinfo: "+str(e))
     defdev = -1
    if defdev != -1:
     dp.infopacket["mac"] = Settings.NetworkDevices[defdev].mac
@@ -226,14 +233,22 @@ class Controller(controller.ControllerProto):
     dp.infopacket["mac"] = "00:00:00:00:00:00"
     dp.infopacket["ip"] = ""
    if dp.infopacket["ip"] == "":
-    dp.infopacket["ip"] = str(OS.get_ip())
+    try:
+     dp.infopacket["ip"] = str(OS.get_ip())
+    except:
+     pass
+   if dp.infopacket["ip"] == "":
+     dp.infopacket["ip"] = "0.0.0.0"
    dp.infopacket["unitno"] = int(Settings.Settings["Unit"])
    dp.infopacket["build"] = int(rpieGlobals.BUILD)
    dp.infopacket["name"] = Settings.Settings["Name"]
    dp.infopacket["type"] = int(rpieGlobals.NODE_TYPE_ID_RPI_EASY_STD)
    dp.infopacket["port"] = int(Settings.WebUIPort)
-   dp.encode(1)
-   self.udpsender(255,dp.buffer,1)
+   try:
+    dp.encode(1)
+    self.udpsender(255,dp.buffer,1)
+   except Exception as e:
+    misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"C013 sysinfo: "+str(e))
    #clear old nodes
    for n in range(len(Settings.nodelist)):
     try:
@@ -276,12 +291,18 @@ class data_packet:
   if ptype == 1:
    tbuf = [255,1]
    ta = self.infopacket["mac"].split(":")
+   if len(ta)<6:
+    for i in range(0,6-len(ta)):
+     ta.insert(0,"0")
    for m in ta:
     try:
      tbuf.append(int(m,16))
     except:
      tbuf.append(0)
    ta = self.infopacket["ip"].split(".")
+   if len(ta)<4:
+    for i in range(0,4-len(ta)):
+     ta.insert(0,"0")
    for m in ta:
     try:
      tbuf.append(int(m))
@@ -364,6 +385,9 @@ class data_packet:
  def decode(self):
   tbuffer = list(self.buffer)
   self.pkgtype = 0
+  if len(tbuffer)<1:
+   self.clear()
+   return 0
   if tbuffer[0] == 255:
    if tbuffer[1] == 1: # sysinfo len=80
     self.pkgtype = 1
@@ -386,6 +410,9 @@ class data_packet:
      self.infopacket["port"] = pport
     except:
      pass
+    if self.infopacket['type'] not in [rpieGlobals.NODE_TYPE_ID_ESP_EASY_STD, rpieGlobals.NODE_TYPE_ID_RPI_EASY_STD, rpieGlobals.NODE_TYPE_ID_ESP_EASYM_STD, rpieGlobals.NODE_TYPE_ID_ESP_EASY32_STD, rpieGlobals.NODE_TYPE_ID_ARDUINO_EASY_STD, rpieGlobals.NODE_TYPE_ID_NANO_EASY_STD, rpieGlobals.NODE_TYPE_ID_ATMEGA_EASY_LORA]:
+     misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"P2P invalid type: "+str(self.infopacket['type']))
+     self.pkgtype = 0 #invalid type, invalid pkt
    elif tbuffer[1] == 3: #sensor info min len=137
     self.pkgtype = 3
     if len(self.buffer)>162:

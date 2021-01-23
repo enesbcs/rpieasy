@@ -132,6 +132,7 @@ class Plugin(plugin.PluginProto):
     sp = Settings.AdvSettings["startpage"]
    except:
     sp = "/"
+   spold = sp
    if (webserver.arg("p212_start",params)=="on"):
     try:
      if sp != "/dash":
@@ -144,7 +145,8 @@ class Plugin(plugin.PluginProto):
       Settings.AdvSettings["startpage"]  = "/"
     except:
      pass
-
+   if spold != Settings.AdvSettings["startpage"]:
+    Settings.saveadvsettings()
    if (webserver.arg("p212_head",params)=="on"):
     self.taskdevicepluginconfig[2] = True
    else:

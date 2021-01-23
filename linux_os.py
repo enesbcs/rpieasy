@@ -22,10 +22,12 @@ class autorun:
  DISABLE_HDMI="/usr/bin/tvservice -o&"
  ENABLE_RPIAUTOSTART="/usr/bin/screen -d -m "+ os.path.dirname(os.path.realpath(__file__))+"/"+runfilename
  ENABLE_RPIAUTOSTART2= os.path.dirname(os.path.realpath(__file__))+"/"+runfilename+"&"
+ SERVICE_FILE="/etc/systemd/system/rpieasy.service"
  RC_ENDMARKER="exit 0"
 
  def __init__(self): # general init
   self.rpiauto = False
+  self.rpiauto2 = False
   self.hdmienabled = True
 
  def readconfig(self):
@@ -39,6 +41,12 @@ class autorun:
         self.hdmienabled = False
        if self.ENABLE_RPIAUTOSTART in line or self.ENABLE_RPIAUTOSTART2 in line:
         self.rpiauto = True
+    except:
+     pass
+    self.rpiauto2 = False
+    try:
+     if self.checkservice():
+      self.rpiauto2 = True
     except:
      pass
 
@@ -86,6 +94,38 @@ class autorun:
        f.write(contents[c]+"\n")
     except:
      pass
+    if self.rpiauto==False and self.rpiauto2==True:
+      self.enableservice()
+    else:
+      self.disableservice()
+
+ def checkservice(self):
+     output = os.popen('sudo systemctl is-enabled rpieasy').read()
+     if "enabled" in output:
+      return True
+     else:
+      return False
+
+ def enableservice(self):
+     try:
+      if not os.path.exists(self.SERVICE_FILE):
+       with open(self.SERVICE_FILE,"w") as f:
+         f.write("[Unit]\nDescription=rpieasy\nAfter=network.target\n\n[Service]\n")
+         f.write("ExecStart="+os.path.dirname(os.path.realpath(__file__))+"/"+self.runfilename)
+         f.write("\nWorkingDirectory="+os.path.dirname(os.path.realpath(__file__)))
+         f.write("\nStandardOutput=inherit\nStandardError=inherit\nRestart=always\nUser=root\n\n[Install]\nWantedBy=multi-user.target\n")
+     except Exception as e:
+      print(e)
+     try:
+      output = os.popen('sudo systemctl enable rpieasy.service').read()
+     except Exception as e:
+      print(e)
+
+ def disableservice(self):
+     try:
+      output = os.popen('sudo systemctl disable rpieasy.service').read()
+     except:
+      pass
 
 thermalzone = -1
 

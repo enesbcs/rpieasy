@@ -690,6 +690,12 @@ def handle_hardware(self):
     ar.rpiauto=True
    else:
     ar.rpiauto=False
+   stat = arg("rpiauto2",responsearr)
+   if stat=="on":
+    ar.rpiauto2=True
+    ar.rpiauto=False #disable old method
+   else:
+    ar.rpiauto2=False
    stat = arg("hdmienabled",responsearr)
    if stat=="on":
     ar.hdmienabled=True
@@ -756,7 +762,8 @@ def handle_hardware(self):
    else:
     TXBuffer += "No device"
 
-   addFormCheckBox("RPIEasy autostart at boot","rpiauto",ar.rpiauto)
+   addFormCheckBox("RPIEasy autostart at boot with rc.local","rpiauto",ar.rpiauto)
+   addFormCheckBox("RPIEasy autostart at boot with systemctl","rpiauto2",ar.rpiauto2)
    if OS.checkRPI():
     addFormCheckBox("Enable HDMI at startup","hdmienabled",ar.hdmienabled)
    if OS.check_permission():
