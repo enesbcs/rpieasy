@@ -34,6 +34,20 @@ def syncvalue(bcmpin,value):
       Settings.Tasks[x].plugin_senddata()
       break
 
+def syncpwm(bcmpin,value):
+ for x in range(0,len(Settings.Tasks)):
+  if (Settings.Tasks[x]) and type(Settings.Tasks[x]) is not bool: # device exists
+   if (Settings.Tasks[x].enabled):
+     if (Settings.Tasks[x].pluginid==213) and (Settings.Tasks[x].taskdevicepin[0]==bcmpin): # pwm on specific pin
+      try:
+       Settings.Tasks[x].uservar[0] = value
+      except:
+       pass
+      if Settings.Tasks[x].valuenames[0]!= "":
+       commands.rulesProcessing(Settings.Tasks[x].taskname+"#"+Settings.Tasks[x].valuenames[0]+"="+str(value),rpieGlobals.RULE_USER)
+      Settings.Tasks[x].plugin_senddata()
+      break
+
 def timercb(stimerid,ioarray):
   if ioarray[0] > -1:
     misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"BCM"+str(ioarray[0])+": LongPulse ended")
@@ -127,6 +141,7 @@ def gpio_commands(cmd):
        i -= 1
       gpios.HWPorts.output_pwm(pin,prop,freq)
      gi = gpios.GPIO_refresh_status(pin,pstate=prop,pluginid=1,pmode="pwm",logtext=logline)
+     syncpwm(pin,prop)
     except Exception as e:
      misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"BCM"+str(pin)+" PWM "+str(e))
      suc = False

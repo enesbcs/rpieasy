@@ -14,6 +14,7 @@ import webserver
 import rpieGlobals
 import misc
 import os
+import commands
 import threading
 
 class Plugin(plugin.PluginProto):
@@ -43,6 +44,7 @@ class Plugin(plugin.PluginProto):
   webserver.addFormTextBox("Command 1","plugin_511_cmd1",str(self.taskdevicepluginconfig[1]),512)
   webserver.addFormNote("Specify OS commands that has to be executed at the speficied state (0/1)")
   webserver.addFormCheckBox("Use threading to run in background","plugin_511_th",self.taskdevicepluginconfig[2])
+  webserver.addFormCheckBox("Enable parsing command line before execute","plugin_511_parse",self.taskdevicepluginconfig[3])
   return True
 
  def webform_save(self,params):
@@ -53,6 +55,7 @@ class Plugin(plugin.PluginProto):
   if str(self.taskdevicepluginconfig[1])=="0":
    self.taskdevicepluginconfig[1]=""
   self.taskdevicepluginconfig[2] = (webserver.arg("plugin_511_th",params)=="on")
+  self.taskdevicepluginconfig[3] = (webserver.arg("plugin_511_parse",params)=="on")
   return True
 
  def runcmd(self,number): # run command stored at taskdevicepluginconfig[number]
@@ -65,7 +68,14 @@ class Plugin(plugin.PluginProto):
      val2=number
     if val2>=0 and val2<=1:
      if self.taskdevicepluginconfig[val2]!="" and str(self.taskdevicepluginconfig[val2])!="0":
-      output = os.popen(self.taskdevicepluginconfig[val2])
+      cmdline = self.taskdevicepluginconfig[val2]
+      if self.taskdevicepluginconfig[3]:
+       cl, st = commands.parseruleline(cmdline)
+       if st=="CMD":
+          cmdline = str(cl)
+       else:
+          cmdline = str(cmdline)
+      output = os.popen(cmdline)
       if self.taskdevicepluginconfig[2]:
        return True
       res = ""
