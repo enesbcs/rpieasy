@@ -137,8 +137,12 @@ class Controller(controller.ControllerProto):
 
         elif dp.pkgtype==0:
           misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"Command arrived from "+str(address))
-          cmdline = decodezerostr(dp.buffer)
-          commands.doExecuteCommand(cmdline,True)
+          try:
+           cmdline = decodezerostr(dp.buffer)
+          except:
+           cmdline = ""
+          if len(cmdline)>1:
+           commands.doExecuteCommand(cmdline,True)
     time.sleep(0.01) # sleep to avoid 100% cpu usage
 
  def udpsender(self,unitno,data,retrynum=1):
@@ -308,6 +312,8 @@ class data_packet:
      tbuf.append(int(m))
     except:
      tbuf.append(255)
+   if int(self.infopacket["unitno"])<0:
+    self.infopacket["unitno"] = 0
    tbuf.append(int(self.infopacket["unitno"]))
    tbuf.append(int(self.infopacket["build"]%256))
    tbuf.append(int(self.infopacket["build"]/256))
@@ -329,7 +335,6 @@ class data_packet:
    try:
     self.buffer = bytes(tbuf)
    except:
-    print("Error in buffer: ",tbuf)
     self.buffer = bytes()
   if ptype == 3:
    tbuf = [255,3]

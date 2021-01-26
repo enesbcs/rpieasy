@@ -163,10 +163,9 @@ def CPluginInit():
 
  print("Load controllers from file")
  Settings.loadcontrollers()
-
  for x in range(0,len(Settings.Tasks)):
-  if (Settings.Tasks[x]) and type(Settings.Tasks[x]) is not bool: # device exists
-   try:
+  try:
+   if (Settings.Tasks[x]) and type(Settings.Tasks[x]) is not bool: # device exists
     if (Settings.Tasks[x].enabled): # device enabled
      Settings.Tasks[x].plugin_init(None) # init plugin at startup
      for y in range(len(Settings.Tasks[x].senddataenabled)):
@@ -174,7 +173,7 @@ def CPluginInit():
         if (Settings.Controllers[y]):
          if (Settings.Controllers[y].enabled):
           Settings.Tasks[x].controllercb[y] = Settings.Controllers[y].senddata # assign controller callback to plugins that sends data
-   except Exception as e:
+  except Exception as e:
     Settings.Tasks[x].enabled = False
     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Task " +str(x+1)+ " disabled! "+str(e))
 
@@ -187,7 +186,6 @@ def CPluginInit():
     except Exception as e:
        Settings.Controllers[y].enabled = False
        misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Controller " +str(y+1)+ " disabled! "+str(e))
-
  return 0
 
 def NPluginInit():

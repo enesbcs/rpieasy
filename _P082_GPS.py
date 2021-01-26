@@ -30,14 +30,14 @@ class Plugin(plugin.PluginProto):
 
  GPSDAT = {
     'strType': None,
-    'fixTime': None,
+    'fixTime': "000000",
     'lat': None,
     'latDir': None,
     'lon': None,
     'lonDir': None,
     'fixQual': None,
-    'numSat': None,
-    'horDil': None,
+    'numSat': "0",
+    'horDil': "0",
     'alt': None,
     'altUnit': None,
     'galt': None,
@@ -58,10 +58,10 @@ class Plugin(plugin.PluginProto):
  }
  GPSDATE = {
     'strType': None,
-    'fixTime': None,
-    'day':None,
-    'mon':None,
-    'year':None,
+    'fixTime': "000000",
+    'day':"0",
+    'mon':"0",
+    'year':"0",
     'lzoneh':None,
     'lzonem':None
  }
@@ -87,9 +87,6 @@ class Plugin(plugin.PluginProto):
    self.devfound = False
 
  def plugin_exit(self):
-  self.__del__()
-
- def __del__(self):
    self.initialized = False
    self.validloc = -1
    try:
@@ -109,14 +106,14 @@ class Plugin(plugin.PluginProto):
 #  self.validloc = False
   self.initialized = False
   self.devfound = False
+#  try:
+#   self.bgproc.join()
+#   time.sleep(1)
+#   self.bgproc = None
+#  except:
+#   pass
   try:
-   self.bgproc.join()
-   time.sleep(1)
-   self.bgproc = None
-  except:
-   pass
-  try:
-   if str(self.taskdevicepluginconfig[0])!="0" and str(self.taskdevicepluginconfig[0]).strip()!="" and self.baud != 0:
+   if str(self.taskdevicepluginconfig[0])!="0" and str(self.taskdevicepluginconfig[0]).strip()!="" and self.baud != 0 and self.enabled:
 #    self.serdev = None
     if self.enabled:
      misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"Try to init serial "+str(self.taskdevicepluginconfig[0])+" speed "+str(self.baud))
@@ -135,7 +132,7 @@ class Plugin(plugin.PluginProto):
      except:
       pass
   except Exception as e:
-     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,str(e))
+     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"GPS init error "+str(e))
 
  def webform_load(self):
   choice1 = self.taskdevicepluginconfig[0]
@@ -153,13 +150,16 @@ class Plugin(plugin.PluginProto):
   time.sleep(2) #wait to get reply
   webserver.addHtml(str(self.validloc))
   if self.initialized and self.validloc!=0:
-   webserver.addHtml("<tr><td>Satellites in use:<td>")
-   webserver.addHtml(self.GPSDAT["numSat"])
-   webserver.addHtml("<tr><td>HDOP:<td>")
-   webserver.addHtml(self.GPSDAT["horDil"])
-   webserver.addHtml("<tr><td>UTC Time:<td>")
-   gpstime = self.GPSDAT["fixTime"][0:2]+":"+ self.GPSDAT["fixTime"][2:4]+":"+self.GPSDAT["fixTime"][4:6]
-   webserver.addHtml(self.GPSDATE["year"]+"-"+self.GPSDATE["mon"]+"-"+self.GPSDATE["day"]+" "+gpstime)
+   try:
+    webserver.addHtml("<tr><td>Satellites in use:<td>")
+    webserver.addHtml(self.GPSDAT["numSat"])
+    webserver.addHtml("<tr><td>HDOP:<td>")
+    webserver.addHtml(self.GPSDAT["horDil"])
+    webserver.addHtml("<tr><td>UTC Time:<td>")
+    gpstime = self.GPSDAT["fixTime"][0:2]+":"+ self.GPSDAT["fixTime"][2:4]+":"+self.GPSDAT["fixTime"][4:6]
+    webserver.addHtml(self.GPSDATE["year"]+"-"+self.GPSDATE["mon"]+"-"+self.GPSDATE["day"]+" "+gpstime)
+   except:
+    pass
   return True
 
  def webform_save(self,params):
@@ -170,7 +170,7 @@ class Plugin(plugin.PluginProto):
 
  def plugin_read(self):
   result = False
-  if self.initialized and self.readinprogress==0:
+  if self.initialized and self.readinprogress==0 and self.enabled:
    self.readinprogress = 1
    if self.validloc==1:
     self.set_value(1,self.lon,False)
@@ -232,9 +232,20 @@ class Plugin(plugin.PluginProto):
  #    if "*" not in gpsChars:
  #        return False
     gpsChars = str(gpsLine)
-    gpsStr, chkSum = gpsChars.split('*')
+    try:
+     if '*' in gpsChars:
+      gpsStr, chkSum = gpsChars.split('*')
+     elif '_' in gpsChars:
+      gpsStr, chkSum = gpsChars.split('_')
+     else:
+      chkSum = gpsChars[-2:]
+      gpsStr = gpsChars[:-2]
+    except:
+      chkSum = gpsChars[-2:]
+      gpsStr = gpsChars[:-2]
     gpsComponents = gpsStr.split(',')
     gpsStart = gpsComponents[0]
+#    print(gpsLine)#debug
     if ("GGA" in gpsStart):
 #        print("Valid GGA from GPS") # DEBUG
         if self.devfound==False:
@@ -259,15 +270,15 @@ class Plugin(plugin.PluginProto):
             except:
              self.validloc = 0
             if self.validloc==1: # refresh values
- #            print("GPS fix OK") # debug
+#             print("GPS fix OK") # debug
              lon = float(self.GPSDAT['lon'])
-             if str(self.GPSDAT['lonDir']) == 'W':
-              lon = lon * -1
              self.lon = dm_to_sd(str(lon))
+             if str(self.GPSDAT['lonDir']) == 'W':
+              self.lon = self.lon * -1
              lat = float(self.GPSDAT['lat'])
-             if self.GPSDAT['latDir'] == 'S':
-              lat = lat * -1
              self.lat = dm_to_sd(str(lat))
+             if self.GPSDAT['latDir'] == 'S':
+              self.lat = self.lat * -1
         if self.validloc != prevval: # status changed
              if self.validloc==1:
               commands.rulesProcessing("GPS#GotFix",rpieGlobals.RULE_SYSTEM)
@@ -276,6 +287,7 @@ class Plugin(plugin.PluginProto):
             #print(gpsChars)
             #print(json.dumps(self.GPSDAT, indent=2))
     elif ("ZDA" in gpsStart):
+#        print("ZDA")#debug
         chkVal = 0
         for ch in gpsStr[1:]: # Remove the $
             chkVal ^= ord(ch)
@@ -288,6 +300,7 @@ class Plugin(plugin.PluginProto):
             #print(gpsChars)
             #print(json.dumps(self.GPSDATE, indent=2))
     elif ("VTG" in gpsStart):
+#        print("VTG")#debug
         chkVal = 0
         for ch in gpsStr[1:]: # Remove the $
             chkVal ^= ord(ch)
@@ -309,5 +322,8 @@ def dm_to_sd(dm):
     # '12319.943281'
     if not dm or dm == '0':
         return 0
-    d, m = re.match(r'^(\d+)(\d\d\.\d+)$', dm).groups()
-    return float(d) + float(m) / 60
+    try:
+     d, m = re.match(r'^(\d+)(\d\d\.\d+)$', dm).groups()
+     return float(d) + float(m) / 60
+    except:
+     return 0
