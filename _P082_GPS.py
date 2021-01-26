@@ -38,7 +38,7 @@ class Plugin(plugin.PluginProto):
     'fixQual': None,
     'numSat': "0",
     'horDil': "0",
-    'alt': None,
+    'alt': "0",
     'altUnit': None,
     'galt': None,
     'galtUnit': None,
@@ -53,7 +53,7 @@ class Plugin(plugin.PluginProto):
     'magnetTrackRel': None,
     'speedKnot':None,
     'speedKnotUnit':None,
-    'speedKm':None,
+    'speedKm':"0.0",
     'speedKmUnit':None,
  }
  GPSDATE = {
@@ -173,10 +173,13 @@ class Plugin(plugin.PluginProto):
   if self.initialized and self.readinprogress==0 and self.enabled:
    self.readinprogress = 1
    if self.validloc==1:
-    self.set_value(1,self.lon,False)
-    self.set_value(2,self.lat,False)
-    self.set_value(3,self.GPSDAT['alt'],False)
-    self.set_value(4,self.GPSTRACK['speedKm'],False)
+    try:
+     self.set_value(1,self.lon,False)
+     self.set_value(2,self.lat,False)
+     self.set_value(3,self.GPSDAT['alt'],False)
+     self.set_value(4,self.GPSTRACK['speedKm'],False)
+    except:
+     pass
     self.plugin_senddata()
    self._lastdataservetime = rpieTime.millis()
    result = True
@@ -258,9 +261,9 @@ class Plugin(plugin.PluginProto):
             chkVal ^= ord(ch)
         if (chkVal == int(chkSum, 16)):
             for i, k in enumerate(
-                ['strType', 'fixTime', 
+                ['strType', 'fixTime',
                 'lat', 'latDir', 'lon', 'lonDir',
-                'fixQual', 'numSat', 'horDil', 
+                'fixQual', 'numSat', 'horDil',
                 'alt', 'altUnit', 'galt', 'galtUnit',
                 'DPGS_updt', 'DPGS_ID']):
                 self.GPSDAT[k] = gpsComponents[i]
