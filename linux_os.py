@@ -307,7 +307,8 @@ def getRPIVer():
      pass
     hwarr = { 
       "name": "Unknown model",
-      "pins": ""
+      "pins": "",
+      "ram":"0"
     }
     if len(detarr)>1:
      hwid = detarr[1].strip().lower()
@@ -433,7 +434,7 @@ def getRPIVer():
        "lan":"1",
        "bt":"1"
       }
-     elif (hwid == "b03111") or (hwid == "b03112"):
+     elif (hwid == "b03111") or (hwid == "b03112") or (hwid == "b03114"):
       hwarr = { 
        "name": "Pi 4 Model B",
        "ram": "2GB",
@@ -442,7 +443,7 @@ def getRPIVer():
        "lan":"1",
        "bt":"1"
       }
-     elif (hwid == "c03111") or (hwid == "c03112"):
+     elif (hwid == "c03111") or (hwid == "c03112") or (hwid == "c03114"):
       hwarr = { 
        "name": "Pi 4 Model B",
        "ram": "4GB",
