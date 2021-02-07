@@ -2921,6 +2921,13 @@ def handle_sysvars(self):
  for sv in commands.SysVars:
   TXBuffer += "<TR><TD>%" + sv + "%</TD><TD>"
   TXBuffer += str(commands.getglobalvar(sv)) + "</TD></TR>"
+ conversions = [ "%c_m2day%(%uptime%)", "%c_m2dh%(%uptime%)", "%c_m2dhm%(%uptime%)" ]
+ for sv in conversions:
+  try:
+   TXBuffer += "<TR><TD>" + sv + "</TD><TD>"
+   TXBuffer += str(commands.parseruleline(sv)[0]) + "</TD></TR>"
+  except:
+   pass
  TXBuffer += "</table></form>"
 
  sendHeadandTail("TmplStd",_TAIL);
