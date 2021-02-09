@@ -77,11 +77,11 @@ class Controller(controller.ControllerProto):
     url += mapRSSItoDomoticz(userssi)
     if int(usebattery) != -1 and int(usebattery) != 255: # battery input 0..100%, 255 means not supported
      url += "&battery="
-     url += str(usebattery)
+     url += str(int(usebattery))
     else:
      bval = misc.get_battery_value()
      url += "&battery="
-     url += str(bval)
+     url += str(int(bval))
     urlstr = self.controllerip+":"+self.controllerport+url+self.getaccountstr()
     misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,urlstr) # sendviahttp
     httpproc = Process(target=self.urlget, args=(urlstr,))  # use multiprocess to avoid blocking

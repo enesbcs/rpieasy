@@ -345,9 +345,9 @@ class Controller(controller.ControllerProto):
      usebattery = -1
     if int(idx) > 0:
      if usebattery != -1 and usebattery != 255:
-      bval = usebattery
+      bval = int(usebattery)
      else:
-      bval = misc.get_battery_value()
+      bval = int(misc.get_battery_value())
      msg = ""
      if (int(sensortype)==rpieGlobals.SENSOR_TYPE_SWITCH):
       try:
