@@ -88,7 +88,7 @@ modulelist = [
 {"name": "OLED",
  "apt": ["python3-pip", "libfreetype6-dev", "libjpeg-dev", "build-essential","python3-dev","libtiff5","libopenjp2-7","python3-setuptools"],
  "pip": ["luma.oled"],
- "testcmd": "from luma.core.render import canvas",
+ "testcmd": "import luma.oled.device",
  "installed":-1},
 {"name": "MCP",
  "apt": [],
@@ -267,6 +267,16 @@ modulelist = [
  "pip": ["pytz"],
  "testcmd": "from pytz import timezone",
  "installed":-1},
+{"name":"pypms",
+ "apt": ["python3-pip","python3-setuptools"],
+ "pip": ["pypms"],
+ "testcmd": "from pms.sensor import SensorReader",
+ "installed":-1},
+{"name": "LLCD",
+ "apt": ["python3-pip", "libfreetype6-dev", "libjpeg-dev", "build-essential","python3-dev","libtiff5","libopenjp2-7","python3-setuptools"],
+ "pip": ["luma.lcd"],
+ "testcmd": "import luma.lcd.device",
+ "installed":-1},
 
 ]
 
@@ -402,6 +412,9 @@ plugindependencies = [
  "supported_os_level": [3,9,10],
  "ext":256,
  "modules":["i2c"]},
+{"pluginid": "53", #PMS
+ "supported_os_level": [1,2,3,9,10],
+ "modules":["pyserial","pypms"]},
 {"pluginid": "57", # HT16K33 LED
  "supported_os_level": [3,9,10],
  "ext":256,
@@ -439,6 +452,9 @@ plugindependencies = [
 {"pluginid": "84", # VEML6070
  "supported_os_level": [3,9,10],
  "modules":["i2c"]},
+{"pluginid": "95", # SPI LCD
+ "supported_os_level": [3,9,10],
+ "modules":["spidev","LLCD"]},
 {"pluginid": "111", #RF433 receiver
  "supported_os_level": [10],
  "modules":["GPIO","wpi","rcswitch"]},
@@ -496,6 +512,10 @@ plugindependencies = [
 {"pluginid": "211", #RC522
  "supported_os_level": [10],
  "modules":["GPIO","spidev","mfrc522"]},
+{"pluginid": "213",
+ "supported_os_level": [3,9,10],
+ "ext":128,
+ "modules":["GPIO"]},
 {"pluginid": "501", # USB relay
  "modules":["hidapi"]},
 {"pluginid": "502", # pygame play wav/mp3

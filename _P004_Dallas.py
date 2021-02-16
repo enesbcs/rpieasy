@@ -65,6 +65,8 @@ class Plugin(plugin.PluginProto):
    self.readinprogress = 1
    try:
     succ, temp = self.read_temperature()
+    if temp > 2048:
+     temp = temp-4096
     if succ:
      self.set_value(1,temp,True)
     else:
