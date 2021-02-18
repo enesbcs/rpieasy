@@ -38,93 +38,97 @@ class Plugin(plugin.PluginProto):
   self.initialized = False
 
  def webform_load(self): # create html page for settings
-  webserver.addFormCheckBox("Use standard HTML head","p212_head",self.taskdevicepluginconfig[2])
   try:
-   sp = Settings.AdvSettings["startpage"]
-  except:
-   sp = "/"
-  webserver.addFormCheckBox("Set as startpage","p212_start",(sp=="/dash"))
-  webserver.addHtml("<tr><td>Columns:<td>")
-  webserver.addSelector_Head("p212_cols",False)
-  for o in range(7):
-   webserver.addSelector_Item(str(o),o,(str(o)==str(self.taskdevicepluginconfig[0])),False)
-  webserver.addSelector_Foot()
+   webserver.addFormCheckBox("Use standard HTML head","p212_head",self.taskdevicepluginconfig[2])
+   try:
+    sp = Settings.AdvSettings["startpage"]
+   except:
+    sp = "/"
+   webserver.addFormCheckBox("Set as startpage","p212_start",(sp=="/dash"))
+   webserver.addHtml("<tr><td>Columns:<td>")
+   webserver.addSelector_Head("p212_cols",False)
+   for o in range(7):
+    webserver.addSelector_Item(str(o),o,(str(o)==str(self.taskdevicepluginconfig[0])),False)
+   webserver.addSelector_Foot()
 
-  webserver.addHtml("<tr><td>Rows:<td>")
-  webserver.addSelector_Head("p212_rows",False)
-  for o in range(16):
-   webserver.addSelector_Item(str(o),o,(str(o)==str(self.taskdevicepluginconfig[1])),False)
-  webserver.addSelector_Foot()
+   webserver.addHtml("<tr><td>Rows:<td>")
+   webserver.addSelector_Head("p212_rows",False)
+   for o in range(16):
+    webserver.addSelector_Item(str(o),o,(str(o)==str(self.taskdevicepluginconfig[1])),False)
+   webserver.addSelector_Foot()
 
-  if int(self.taskdevicepluginconfig[0])>0 and int(self.taskdevicepluginconfig[1])>0:
-   if self.enabled:
-    webserver.addHtml("<tr><td>Dashboard address:</td><td><a href='dash'>/dash</a></td></tr>")
-   options1 = ["None","Text","Binary input","Switch output","Meter","Gauge","Slider output","Select output"]
-   optionvalues1 = [-1,0,1,2,3,4,5,6]
-   options2 = ["None"]
-   optionvalues2 = ["_"]
-   for t in range(0,len(Settings.Tasks)):
-     if (Settings.Tasks[t] and (type(Settings.Tasks[t]) is not bool)):
-      for v in range(0,Settings.Tasks[t].valuecount):
-       options2.append("T"+str(t+1)+"-"+str(v+1)+" / "+str(Settings.Tasks[t].taskname)+"-"+str(Settings.Tasks[t].valuenames[v]))
-       optionvalues2.append(str(t)+"_"+str(v))
+   if int(self.taskdevicepluginconfig[0])>0 and int(self.taskdevicepluginconfig[1])>0:
+    if self.enabled:
+     webserver.addHtml("<tr><td>Dashboard address:</td><td><a href='dash'>/dash</a></td></tr>")
+    options1 = ["None","Text","Binary input","Switch output","Meter","Gauge","Slider output","Select output"]
+    optionvalues1 = [-1,0,1,2,3,4,5,6]
+    options2 = ["None"]
+    optionvalues2 = ["_"]
+    for t in range(0,len(Settings.Tasks)):
+      if (Settings.Tasks[t] and (type(Settings.Tasks[t]) is not bool)):
+       for v in range(0,Settings.Tasks[t].valuecount):
+        options2.append("T"+str(t+1)+"-"+str(v+1)+" / "+str(Settings.Tasks[t].taskname)+"-"+str(Settings.Tasks[t].valuenames[v]))
+        optionvalues2.append(str(t)+"_"+str(v))
 
-   for r in range(int(self.taskdevicepluginconfig[1])):
-    for c in range(int(self.taskdevicepluginconfig[0])):
-     offs = (r * int(self.taskdevicepluginconfig[0])) + c
-     try:
-      adata = self.celldata[offs]
-     except:
-      adata = {}
-     dtype = -1
-     if "type" in adata:
-      dtype = int(adata["type"])
-     webserver.addHtml("<tr><td><b>Cell"+str(offs)+" (y"+str(r)+"x"+str(c)+")</b><td>")
-
-     dname = ""
-     if "name" in adata:
-      dname = str(adata["name"])
-     webserver.addFormTextBox("Name overwrite","p212_names_"+str(offs),dname,64)
-
-     webserver.addFormSelector("Type","p212_type_"+str(offs),len(options1),options1,optionvalues1,None,dtype)
-     webserver.addHtml("<tr><td>Data source:<td>")
-     ddata = "_"
-     if "data" in adata:
-      ddata = str(adata["data"])
-     webserver.addSelector_Head("p212_data_"+str(offs),False)
-     for o in range(len(options2)):
-      webserver.addSelector_Item(options2[o],optionvalues2[o],(str(optionvalues2[o])==str(ddata)),False)
-     webserver.addSelector_Foot()
-
-     if dtype in (0,4):
+    for r in range(int(self.taskdevicepluginconfig[1])):
+     for c in range(int(self.taskdevicepluginconfig[0])):
+      offs = (r * int(self.taskdevicepluginconfig[0])) + c
       try:
-       udata = str(adata["unit"])
+       adata = self.celldata[offs]
       except:
-       udata = ""
-      webserver.addFormTextBox("Unit","p212_unit_"+str(offs),udata,16)
-     if dtype in (3,4,5):
-      try:
-       umin = float(adata["min"])
-      except:
-       umin = 0
-      try:
-       umax = float(adata["max"])
-      except:
-       umax = 100
-      webserver.addFormFloatNumberBox("Min value","p212_min_"+str(offs),umin,-65535.0,65535.0)
-      webserver.addFormFloatNumberBox("Max value","p212_max_"+str(offs),umax,-65535.0,65535.0)
-     elif dtype == 6:
-      try:
-       uon = str(adata["optionnames"])
-      except:
-       uon = ""
-      try:
-       uopt = str(adata["options"])
-      except:
-       uopt = ""
-      webserver.addFormTextBox("Option name list","p212_optionnames_"+str(offs),uon,1024)
-      webserver.addFormTextBox("Option value list","p212_options_"+str(offs),uopt,1024)
-      webserver.addFormNote("Input comma separated values for selector boxes!")
+       adata = {}
+      dtype = -1
+      if "type" in adata:
+       dtype = int(adata["type"])
+      webserver.addHtml("<tr><td><b>Cell"+str(offs)+" (y"+str(r)+"x"+str(c)+")</b><td>")
+
+      dname = ""
+      if "name" in adata:
+       dname = str(adata["name"])
+      webserver.addFormTextBox("Name overwrite","p212_names_"+str(offs),dname,64)
+
+      webserver.addFormSelector("Type","p212_type_"+str(offs),len(options1),options1,optionvalues1,None,dtype)
+      webserver.addHtml("<tr><td>Data source:<td>")
+      ddata = "_"
+      if "data" in adata:
+       ddata = str(adata["data"])
+      webserver.addSelector_Head("p212_data_"+str(offs),False)
+      for o in range(len(options2)):
+       webserver.addSelector_Item(options2[o],optionvalues2[o],(str(optionvalues2[o])==str(ddata)),False)
+      webserver.addSelector_Foot()
+
+      if dtype in (0,4):
+       try:
+        udata = str(adata["unit"])
+       except:
+        udata = ""
+       webserver.addFormTextBox("Unit","p212_unit_"+str(offs),udata,16)
+      if dtype in (3,4,5):
+       try:
+        umin = float(adata["min"])
+       except:
+        umin = 0
+       try:
+        umax = float(adata["max"])
+       except:
+        umax = 100
+       webserver.addFormFloatNumberBox("Min value","p212_min_"+str(offs),umin,-65535.0,65535.0)
+       webserver.addFormFloatNumberBox("Max value","p212_max_"+str(offs),umax,-65535.0,65535.0)
+      elif dtype == 6:
+       try:
+        uon = str(adata["optionnames"])
+       except:
+        uon = ""
+       try:
+        uopt = str(adata["options"])
+       except:
+        uopt = ""
+       webserver.addFormTextBox("Option name list","p212_optionnames_"+str(offs),uon,1024)
+       webserver.addFormTextBox("Option value list","p212_options_"+str(offs),uopt,1024)
+       webserver.addFormNote("Input comma separated values for selector boxes!")
+  except Exception as e:
+   print(e)#debug
+   return False
   return True
 
  def webform_save(self,params): # process settings post reply
@@ -145,8 +149,11 @@ class Plugin(plugin.PluginProto):
       Settings.AdvSettings["startpage"]  = "/"
     except:
      pass
-   if spold != Settings.AdvSettings["startpage"]:
-    Settings.saveadvsettings()
+   try:
+    if spold != Settings.AdvSettings["startpage"]:
+     Settings.saveadvsettings()
+   except:
+    pass
    if (webserver.arg("p212_head",params)=="on"):
     self.taskdevicepluginconfig[2] = True
    else:
@@ -162,39 +169,40 @@ class Plugin(plugin.PluginProto):
     self.taskdevicepluginconfig[1] = int(par)
    except:
     self.taskdevicepluginconfig[1] = 1
-
-   for c in range(int(self.taskdevicepluginconfig[0])):
-    for r in range(int(self.taskdevicepluginconfig[1])):
-     offs = (r * int(self.taskdevicepluginconfig[0])) + c
-     mknew = True
-     try:
-      self.celldata[offs]["type"] = int(webserver.arg("p212_type_"+str(offs),params))
-      self.celldata[offs]["data"] = str(webserver.arg("p212_data_"+str(offs),params))
-      mknew = False
-     except:
-      pass
-     if mknew:
+   try:
+    for c in range(int(self.taskdevicepluginconfig[0])):
+     for r in range(int(self.taskdevicepluginconfig[1])):
+      offs = (r * int(self.taskdevicepluginconfig[0])) + c
+      mknew = True
       try:
-       adata = {"type":int(webserver.arg("p212_type_"+str(offs),params)), "data":str(webserver.arg("p212_data_"+str(offs),params))}
+       self.celldata[offs]["type"] = int(webserver.arg("p212_type_"+str(offs),params))
+       self.celldata[offs]["data"] = str(webserver.arg("p212_data_"+str(offs),params))
+       mknew = False
       except:
-       adata = {"type":-1, "data":"_"}
-      self.celldata.append(adata)
-     try:
-      self.celldata[offs]["unit"] = str(webserver.arg("p212_unit_"+str(offs),params))
-     except:
-      pass
-     try:
-      self.celldata[offs]["min"] = float(webserver.arg("p212_min_"+str(offs),params))
-      self.celldata[offs]["max"] = float(webserver.arg("p212_max_"+str(offs),params))
-     except:
-      pass
-     try:
-      self.celldata[offs]["optionnames"] = str(webserver.arg("p212_optionnames_"+str(offs),params))
-      self.celldata[offs]["options"] = str(webserver.arg("p212_options_"+str(offs),params))
-      self.celldata[offs]["name"] = str(webserver.arg("p212_names_"+str(offs),params))
-     except:
-      pass
-
+       pass
+      if mknew:
+       try:
+        adata = {"type":int(webserver.arg("p212_type_"+str(offs),params)), "data":str(webserver.arg("p212_data_"+str(offs),params))}
+       except:
+        adata = {"type":-1, "data":"_"}
+       self.celldata.append(adata)
+      try:
+       self.celldata[offs]["unit"] = str(webserver.arg("p212_unit_"+str(offs),params))
+      except:
+       pass
+      try:
+       self.celldata[offs]["min"] = float(webserver.arg("p212_min_"+str(offs),params))
+       self.celldata[offs]["max"] = float(webserver.arg("p212_max_"+str(offs),params))
+      except:
+       pass
+      try:
+       self.celldata[offs]["optionnames"] = str(webserver.arg("p212_optionnames_"+str(offs),params))
+       self.celldata[offs]["options"] = str(webserver.arg("p212_options_"+str(offs),params))
+       self.celldata[offs]["name"] = str(webserver.arg("p212_names_"+str(offs),params))
+      except:
+       pass
+   except:
+    pass
    return True
 
  def plugin_read(self): # deal with data processing at specified time interval

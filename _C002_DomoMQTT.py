@@ -55,20 +55,23 @@ class Controller(controller.ControllerProto):
    ls = self.useping
   except:
    self.useping = True
-  self.mqttclient = DMQTTClient()
-  self.mqttclient.subscribechannel = self.outchannel
-  self.mqttclient.controllercb = self.on_message
-  self.mqttclient.connectcb = self.on_connect
-  self.mqttclient.disconnectcb = self.on_disconnect
-  if self.controllerpassword=="*****":
-   self.controllerpassword=""
-  self.initialized = True
-  if self.enabled:
-   if self.isconnected()==False:
-    misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"MQTT: Try to connect")
-    self.connect()
-  else:
-   self.disconnect()
+  try:
+   self.mqttclient = DMQTTClient()
+   self.mqttclient.subscribechannel = self.outchannel
+   self.mqttclient.controllercb = self.on_message
+   self.mqttclient.connectcb = self.on_connect
+   self.mqttclient.disconnectcb = self.on_disconnect
+   if self.controllerpassword=="*****":
+    self.controllerpassword=""
+   self.initialized = True
+   if self.enabled:
+    if self.isconnected()==False:
+     misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"MQTT: Try to connect")
+     self.connect()
+   else:
+    self.disconnect()
+  except Exception as e:
+    misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"MQTT: "+str(e))
   return True
 
  def connect(self):
@@ -239,16 +242,22 @@ class Controller(controller.ControllerProto):
   else:
    self.useping = False
   if pchange and self.enabled:
-   self.disconnect()
-   time.sleep(0.1)
-   self.connect()
+   try:
+    self.disconnect()
+    time.sleep(0.1)
+    self.connect()
+   except:
+    pass
   return True
 
  def timer_thirty_second(self):
   if self.enabled:
    if self.isconnected()==False:
     misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"MQTT: Try to reconnect")
-    self.connect()
+    try:
+     self.connect()
+    except:
+     pass
   return self.timer30s
 
  def on_message(self, msg):
