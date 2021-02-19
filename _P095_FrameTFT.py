@@ -99,6 +99,8 @@ class Plugin(plugin.PluginProto):
   self.fgcolor = "white"
   self.tbgcolor = "black"
   self.tfgcolor = "white"
+  self.bgimgname = None
+  self.bgimg = None
 
  def plugin_init(self,enableplugin=None):
   plugin.PluginProto.plugin_init(self,enableplugin)
@@ -122,7 +124,6 @@ class Plugin(plugin.PluginProto):
      self.spi = 0
      self.spidnum = 0
    self.ports = "SPI"+str(self.spi)+"/"+str(self.spidnum)
-
    if self.spi>-1 and self.spidnum>-1:
     if self.interval>2:
       nextr = self.interval-2
@@ -294,6 +295,16 @@ class Plugin(plugin.PluginProto):
         sw = draw.textsize(tstr,self.hfont)[0]
      except:
       pass
+     self.bgimg = None
+     try:
+      if self.bgimgname is not None and self.bgimgname != "":
+        try:
+         img = Image.open(self.bgimgname,'r') # no path check!
+         self.bgimg = img.resize( (self.device.width,self.device.height), Image.LANCZOS)
+        except Exception as e:
+         misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Filename error: "+str(e))
+     except:
+      pass
      self.display_clear() #     self.device.clear()
      self.writeinprogress = 0
     else:
@@ -351,6 +362,14 @@ class Plugin(plugin.PluginProto):
   webserver.addFormNumericBox("Try to display # characters per row","p095_charperl",self.taskdevicepluginconfig[7],1,32)
   webserver.addFormNote("Leave it '1' if you do not care")
   webserver.addFormPinSelect("Display button", "p095_button", self.taskdevicepin[0])
+  webserver.addFormTextBox("Foreground color","p095_fgcol",self.tfgcolor,64)
+  webserver.addFormTextBox("Background color","p095_bgcol",self.tbgcolor,64)
+  webserver.addHtml("<p>Check <a href='https://i.stack.imgur.com/dKcr1.png'>PIL color name list</a> before filling out textboxes.")
+  try:
+   webserver.addFormTextBox("Background image pathname","p095_bgimgname",self.bgimgname,255)
+   webserver.addBrowseButton("Browse","p095_bgimgname",startdir=self.bgimgname)
+  except:
+   self.bgimgname = ""
   return True
 
  def plugin_exit(self):
@@ -427,12 +446,27 @@ class Plugin(plugin.PluginProto):
     par = -1
    self.taskdevicepin[3] = int(par)
 
+   par = webserver.arg("p095_fgcol",params)
+   if par == "":
+    par = "white"
+   self.fgcolor = str(par)
+   self.tfgcolor = str(par)
+
+   par = webserver.arg("p095_bgcol",params)
+   if par == "":
+    par = "black"
+   self.bgcolor = str(par)
+   self.tbgcolor = str(par)
+
+   par = webserver.arg("p095_bgimgname",params)
+   self.bgimgname = str(par)
+
    self.plugin_init()
    return True
 
  def showfirstpage(self):
   draw = ImageDraw.Draw(self.dispimage)
-  draw.rectangle(((0,self.conty1),(self.width-1,self.conty2)),fill=self.bgcolor)
+  self.clear_area((0,self.conty1),(self.width-1,self.conty2))  
   for l in range(int(self.taskdevicepluginconfig[4])):
    tpos = int((self.device.width-(draw.textsize(self.textbuffer[0][l],self.ufont)[0]))/2)-2
    if tpos<0:
@@ -446,7 +480,7 @@ class Plugin(plugin.PluginProto):
   ax = 0
   step=int(self.taskdevicepluginconfig[5])
   for offset in range(0,self.width,step):
-    draw.rectangle( ((0,self.conty1),(self.width-1,self.conty2)) ,fill=self.bgcolor)
+    self.clear_area((0,self.conty1),(self.width-1,self.conty2))
     for l in range(int(self.taskdevicepluginconfig[4])):
      tpos = int((self.device.width-(draw.textsize(self.textbuffer[0][l],self.ufont)[0]))/2)-2
      if tpos<0:
@@ -461,7 +495,7 @@ class Plugin(plugin.PluginProto):
     ax -= step
     if self.initialized==False:
      break
-  draw.rectangle( ((0,self.conty1),(self.width-1,self.conty2)) ,fill=self.bgcolor)
+  self.clear_area((0,self.conty1),(self.width-1,self.conty2))
   for l in range(int(self.taskdevicepluginconfig[4])): # last position
      tpos = int((self.device.width-(draw.textsize(self.textbuffer[1][l],self.ufont)[0]))/2)-2
      if tpos<0:
@@ -477,7 +511,7 @@ class Plugin(plugin.PluginProto):
   cy = 10
   if self.height!=64: # correct y coords
     cy = int(cy * (self.height/64))
-  draw.rectangle( ((0,0),(cx,cy)) ,fill=self.bgcolor)
+  self.clear_area((0,0),(cx,cy))
   draw.text( (0,0), datetime.now().strftime('%H:%M'), fill=self.fgcolor, font=self.hfont)
   self.device.display(self.dispimage)
 
@@ -508,7 +542,7 @@ class Plugin(plugin.PluginProto):
   if self.lastwifistrength != nbars_filled:
    self.lastwifistrength = nbars_filled
    draw = ImageDraw.Draw(self.dispimage)
-   draw.rectangle( ((x,y),(x+size_x,y+size_y)) ,fill=self.bgcolor)
+   self.clear_area((x,y),(x+size_x,y+size_y))
    if connected:
     for ibar in range(0,nbars):
      height = size_y * (ibar+1) / nbars
@@ -537,7 +571,7 @@ class Plugin(plugin.PluginProto):
   if self.width!=128: # correct x coords
     cx1 = int(cx1 * (self.width/128))
     cx2 = int(cx2 * (self.width/128))
-  draw.rectangle( ((cx1,self.conty2),(cx2,self.device.height)) ,fill=self.bgcolor)
+  self.clear_area((cx1,self.conty2),(cx2,self.device.height))
   draw.text( (tpos, self.conty2), ft, fill=self.fgcolor, font=self.hfont)
   self.device.display(self.dispimage)
 
@@ -565,7 +599,7 @@ class Plugin(plugin.PluginProto):
   if self.height!=64: # correct y coords
     cy = int(cy * (self.height/64))
 
-  draw.rectangle( ((cx1,0),(cx2,cy)) ,fill=self.bgcolor)
+  self.clear_area((cx1,0),(cx2,cy))
   tpos = int((self.device.width-(draw.textsize(tstr,self.hfont)[0]))/2)-2
   if tpos<0:
    tpos = 0
@@ -575,9 +609,25 @@ class Plugin(plugin.PluginProto):
   draw = ImageDraw.Draw(self.dispimage)
   draw.rectangle( ((0,0),(self.device.width-1,self.device.height-1)),fill=self.fgcolor)
   self.device.display(self.dispimage)
-  draw.rectangle( ((0,0),(self.device.width-1,self.device.height-1)),fill=self.bgcolor)
-  self.device.display(self.dispimage)
   self.device.clear()
+  if self.bgimg is not None:
+   self.dispimage.paste(self.bgimg,(0,0))
+  else:
+   draw.rectangle( ((0,0),(self.device.width-1,self.device.height-1)),fill=self.bgcolor)
+  self.device.display(self.dispimage)
+
+ def clear_area(self, startpos, endpos, fill=None):
+     if fill is None:
+      fill = self.bgcolor
+     if self.bgimg is None: #no background image, clear with single color
+      draw = ImageDraw.Draw(self.dispimage)
+      draw.rectangle( (startpos, endpos), fill=fill)
+     else:
+      try:
+       region = self.bgimg.crop((startpos[0],startpos[1],endpos[0]+1,endpos[1]))
+      except:
+       region = self.bgimg.crop((startpos[0],startpos[1],endpos[0],endpos[1]))
+      self.dispimage.paste(region,startpos)
 
  def plugin_read(self): # deal with data processing at specified time interval
   if self.initialized and self.enabled and self.device and self.writeinprogress==0:
@@ -667,7 +717,9 @@ class Plugin(plugin.PluginProto):
        fc = None
       if fc is not None:
        draw = ImageDraw.Draw(self.dispimage)
-       draw.text( (self.lastx,self.lasty), fc, fill=self.fgcolor, font=self.ufont)
+       sw = draw.textsize(fc,self.ufont)
+       self.clear_area( (self.lastx, self.lasty), (self.lastx+sw[0], self.lasty+sw[1]), fill=self.tbgcolor )
+       draw.text( (self.lastx,self.lasty), fc, fill=self.tfgcolor, font=self.ufont)
        self.device.display(self.dispimage)
       res = True
      elif cmd == "txtfull":
@@ -702,6 +754,8 @@ class Plugin(plugin.PluginProto):
        text = str(cmdarr[-1])
       if text != "":
        draw = ImageDraw.Draw(self.dispimage)
+       sw = draw.textsize(text,self.ufont)
+       self.clear_area( (x, y), (x+sw[0], y+sw[1]), fill=bcol )
        draw.text( (x,y), text, fill=icol, font=self.ufont)
        self.device.display(self.dispimage)
       res = True
@@ -727,8 +781,8 @@ class Plugin(plugin.PluginProto):
       except:
        bg = self.bgcolor
       if fc is not None:
-       self.tbgcolor = fc
-       self.tfgcolor = bg
+       self.tbgcolor = bg
+       self.tfgcolor = fc
       res = True
      elif cmd == "txs":
       try:
@@ -895,7 +949,7 @@ class Plugin(plugin.PluginProto):
        fname = str(cmdarr[4])
       except:
        fname = ""
-      print(x,y,fname)#debug
+#      print(x,y,fname)#debug
       if x is not None:
         try:
          img = Image.open(fname,'r') # no path check!
