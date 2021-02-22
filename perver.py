@@ -304,19 +304,22 @@ class PerverHandler:
 	# Parsing GET and COOKIES:
 	@asyncio.coroutine
 	def parse(self, path):
-	
 		# Preparing %key%=%value% regex:
-		get_word = '[^=;&?]'
-		pattern = '(%s+)=(%s+)' % (get_word, get_word)
+		try:
+		 get_word = '[^=;&?]'
+		 get_word2 = '[^;&?]'
+		 pattern = '(%s+)=(%s+)' % (get_word, get_word2)
 
-		# Unquoting map:
-		unq = lambda x: map(unquote, x)
+		 # Unquoting map:
+		 unq = lambda x: map(unquote, x)
 		
-		# Replacing retarded pluses to spaces in path:
-		path = path.replace('+', ' ')
+		 # Replacing retarded pluses to spaces in path:
+		 path = path.replace('+', ' ')
 		
-		# Working:
-		matched = [unq(x) for x in re.findall(pattern, path)]
+		 # Working:
+		 matched = [unq(x) for x in re.findall(pattern, path)]
+		except Exception as e:
+		 print(e)
 		return dict(matched)
 			
 	# Parsing POST multipart:
@@ -391,7 +394,7 @@ class PerverHandler:
 		
 			# Decoding header:
 			header_decoded = header_raw.decode(self.server.encoding)
-#			print(header_decoded)
+#			print(header_decoded)#debug
 			# Three basic values: request type, path and version:
 			pattern = r'^(GET|POST) ([A-Za-z0-9_+=.~?&*%/\-,]+) (HTTP/1.1|HTTP/1.0)' # watch for special characters?
 			unpacked = re.findall(pattern, header_decoded)
@@ -419,7 +422,6 @@ class PerverHandler:
 			client.version = version
 			client.type, client.path = type, unquote(path)
 			client.path_dir = '/'.join(unquote(path).split('/')[:-1])
-			
 			# Client header:
 			client.header_raw, client.content_raw = header_raw, content_raw
 			client.content_type = safe_dict(header, 'Content-Type', '')
@@ -427,7 +429,6 @@ class PerverHandler:
 			client.agent = safe_dict(header, 'User-Agent', 'Unknown')
 			client.mime = self.get_mime(client.path)
 			client.form_type = client.content_type.split(';')[0]
-			
 			# Server client values:
 			client.ip, client.port, client.time = self.ip, self.port, self.time
 			client.id = self.get_id(client)

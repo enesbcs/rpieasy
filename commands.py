@@ -3,7 +3,7 @@
 ############## Helper Library for RULES and COMMANDS ########################
 #############################################################################
 #
-# Copyright (C) 2018-2019 by Alexander Nagy - https://bitekmindenhol.blog.hu/
+# Copyright (C) 2018-2021 by Alexander Nagy - https://bitekmindenhol.blog.hu/
 #
 import misc
 import Settings
@@ -85,7 +85,7 @@ def doExecuteCommand(cmdline,Parse=True):
  cmdarr[0] = cmdarr[0].strip().lower()
  commandfound = False
  misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"CMD: "+cmdline.replace("==","="))
- 
+
  if cmdarr[0] == "delay":
   try:
    s = float(cmdarr[1])
@@ -213,7 +213,9 @@ def doExecuteCommand(cmdline,Parse=True):
   return commandfound
 
  elif cmdarr[0] == "event":
-  rulesProcessing(cmdarr[1],rpieGlobals.RULE_USER)
+  cmdargs = cmdline.replace(cmdarr[0],"",1)[1:]
+  cmdargs = cmdargs.replace(",","=",1).strip()
+  rulesProcessing(cmdargs,rpieGlobals.RULE_USER)
   commandfound = True
   return commandfound
 
