@@ -6,7 +6,7 @@
 # Copyright (C) 2018-2020 by Alexander Nagy - https://bitekmindenhol.blog.hu/
 #
 PROGNAME = "RPIEasy"
-BUILD   = 21050
+BUILD   = 21053
 PROGVER = str(BUILD)[:1]+"."+str(BUILD)[1:2]+"."+str(BUILD)[2:]
 
 gpMenu = []
@@ -106,5 +106,7 @@ SENSOR_TYPE_WIND                 = 21
 SENSOR_TYPE_TEXT                 = 101
 
 NODE_TYPE_ID = NODE_TYPE_ID_RPI_EASY_STD
+
+RULES_IF_MAX_NESTING_LEVEL = 30
 
 FILE_RULES        = "files/rules1.txt"

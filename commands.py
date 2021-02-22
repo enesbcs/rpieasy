@@ -1054,6 +1054,10 @@ def rulesProcessing(eventstr,efilter=-1): # fire events
  global GlobalRules
  rfound = -1
  retval = 0
+ condlevel = 0
+ ifbools = []
+ for i in range(rpieGlobals.RULES_IF_MAX_NESTING_LEVEL):
+  ifbools.append(True)
  misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"Event: "+eventstr)
  estr=eventstr.strip().lower()
  if len(GlobalRules)<1:             # if no rules found, exit
@@ -1120,22 +1124,33 @@ def rulesProcessing(eventstr,efilter=-1): # fire events
        except:
         return False
   if len(GlobalRules[rfound]["ecode"])>0:
-   ifbool = True
    for rl in range(len(GlobalRules[rfound]["ecode"])):
      retval, state = parseruleline(GlobalRules[rfound]["ecode"][rl],rfound) # analyze condition blocks
-     if state=="IFST":
-       ifbool = retval
-     elif state=="IFEL":
-       ifbool = not(ifbool)
-     elif state=="IFEN":
-       ifbool = True
-     elif ifbool:
-      if state=="INV":
-       misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Invalid command: "+retval)
-      elif state=="BREAK":
-       return True
-      else:
-       cret = doExecuteCommand(retval,False) # execute command
+     if state=="IFST": #ifstart
+       if condlevel<rpieGlobals.RULES_IF_MAX_NESTING_LEVEL:
+        condlevel += 1
+       ifbools[condlevel] = retval
+     elif state=="IFEL": #ifelse
+       ifbools[condlevel] = not(ifbools[condlevel])
+     elif state=="IFEN": #ifend
+       ifbools[condlevel] = True
+       if condlevel>0:
+        condlevel -= 1
+     else:
+      ifbool = True
+      for i in range(0,condlevel+1):
+       if ifbool==True:
+        if ifbools[i]==False:
+         ifbool = False
+         break
+      if ifbool:
+       if state=="INV":
+        misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Invalid command: "+retval)
+       elif state=="BREAK":
+        condlevel = 0
+        return True
+       else:
+        cret = doExecuteCommand(retval,False) # execute command
 
 def comparetime(tstr):
  result = True
