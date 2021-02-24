@@ -35,10 +35,15 @@ class Plugin(plugin.PluginProto):
   self.formulaoption = True
 
  def plugin_receivedata(self,data):
+  if data is None:
+   return False
   if (len(data)>0):
    for x in range(len(data)):
-    if data[x] != -9999:
-     self.set_value(x+1,data[x],False)
+    try:
+     if int(data[x]) != -9999:
+      self.set_value(x+1,data[x],False)
+    except:
+     pass
 #  print("Data received:",data)#debug
 
  def getvaluecount(self):

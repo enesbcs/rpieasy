@@ -290,3 +290,12 @@ def setvolume(volume): # volume in percentage
 def detectNM():
    nm = False
    return nm
+
+def checkRockPi():
+ return False
+
+def getRockPiVer():
+ return {"name":"","pins":"","ver":"0.0"}
+
+def isAlreadyRunning():
+ return 0

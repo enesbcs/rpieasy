@@ -47,13 +47,16 @@ class Controller(controller.ControllerProto):
   return True
 
  def senddata(self,idx,sensortype,value,userssi=-1,usebattery=-1,tasknum=-1,changedvalue=-1): # called by plugin
+  if tasknum is None:
+   return False
   if tasknum!=-1 and self.enabled:
    if tasknum<len(Settings.Tasks):
     if Settings.Tasks[tasknum] != False:
+     procarr = []
+     try:
       hn = str(urllib.parse.quote(str(Settings.Tasks[tasknum].gettaskname())))
       templatestra = self.templatestr.replace('%tskname%',hn)
       templatestra = templatestra.replace('%id%',str(tasknum+1))
-      procarr = []
       for u in range(Settings.Tasks[tasknum].valuecount):
        vn = str(Settings.Tasks[tasknum].valuenames[u]).strip()
        if vn!="":
@@ -67,7 +70,9 @@ class Controller(controller.ControllerProto):
         t.daemon = True
         procarr.append(t)
         t.start()
-      if len(procarr)>0:
+     except Exception as e:
+      misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,e)
+     if len(procarr)>0:
        for process in procarr:
         process.join()
 

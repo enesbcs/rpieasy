@@ -104,6 +104,8 @@ class Controller(controller.ControllerProto):
 
  def senddata(self,idx,sensortype,value,userssi=-1,usebattery=-1,tasknum=-1,changedvalue=-1):
   if self.enabled and BLYNK.blynkconnected:
+    if tasknum is None:
+     return False
     if tasknum!=-1:
      if changedvalue==-1:
       for u in range(Settings.Tasks[tasknum].valuecount):

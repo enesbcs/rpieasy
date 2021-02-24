@@ -416,6 +416,8 @@ class Controller(controller.ControllerProto):
 
  def senddata(self,idx,sensortype,value,userssi=-1,usebattery=-1,tasknum=-1,changedvalue=-1):
   if self.enabled:
+   if tasknum is None:
+    return False
    success = False
    if self.isconnected(False):
     if self.useJSON:

@@ -188,12 +188,12 @@ class PluginProto: # Skeleton for every plugin! Override necessary functions and
  def plugin_receivedata(self,data): # data arrived from controller
   result = False
   return result
-  
+
  def plugin_senddata(self,puserssi=-1,pusebattery=-1,pchangedvalue=-1):
   for x in range(rpieGlobals.CONTROLLER_MAX):
    if self.senddataenabled[x]:
     try:
-     if type(self.controllercb[x])==type(self.plugin_senddata):
+     if (len(self.controllercb)>x) and (type(self.controllercb[x])==type(self.plugin_senddata)):
       self.controllercb[x](self.controlleridx[x],self.vtype,self.uservar,userssi=puserssi,usebattery=pusebattery,tasknum=self.taskindex,changedvalue=pchangedvalue)
     except Exception as e:
 #      print(x,len(self.controllercb),self.controllercb,self.controlleridx)

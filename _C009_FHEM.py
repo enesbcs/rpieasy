@@ -52,6 +52,8 @@ class Controller(controller.ControllerProto):
   return self.ip
 
  def senddata(self,idx,sensortype,value,userssi=-1,usebattery=-1,tasknum=-1,changedvalue=-1):
+  if tasknum is None:
+   return False
   if self.enabled:
     if tasknum!=-1:
      jdata = {}

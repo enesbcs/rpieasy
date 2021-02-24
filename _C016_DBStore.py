@@ -140,7 +140,7 @@ class Controller(controller.ControllerProto):
   return True
 
  def senddata(self,idx,sensortype,value,userssi=-1,usebattery=-1,tasknum=-1,changedvalue=-1):
-  if self.enabled:
+  if self.enabled and tasknum is not None:
     sqlstr = "insert into easysensor (time,unit,nodename,taskname,sensortype"
     sqlstr2 = ") values ('"+ str(datetime.datetime.now()) +"',"+str(Settings.Settings["Unit"])+",'"+str(Settings.Settings["Name"])+"','"+str(Settings.Tasks[tasknum].gettaskname())+"',"+str(sensortype)
     vcount = 4

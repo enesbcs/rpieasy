@@ -881,7 +881,7 @@ def checkRockPI():
   return rpi
 
 def getRockPIVer():
-    hwarr = { 
+    hwarr = {
       "name": "Unknown model",
       "pins": "0",
       "ver" : "0.0"}
@@ -893,11 +893,11 @@ def getRockPIVer():
       hwarr["name"] = ta[0]
       hwarr["pins"] = ta[1]
       hwarr["ver"]  = ta[2]
-      return hwarr 
+      return hwarr
     except Exception as e:
      notrock = True
     try:
-     output = os.popen('mraa-gpio version') 
+     output = os.popen('mraa-gpio version')
      for line in output:
       if 'rock' in line.lower():
        tf = line.find(" on")
@@ -910,3 +910,11 @@ def getRockPIVer():
       hwarr["name"] = "Unknown Rockchip"
       hwarr["pins"] = "X"
     return hwarr
+
+def isAlreadyRunning():
+    output = os.popen('ps -aux | grep RPIEasy').read()
+    try:
+     occ = int(output.count("RPIEasy.py"))
+    except:
+     occ = 0
+    return occ

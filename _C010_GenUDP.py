@@ -62,6 +62,8 @@ class Controller(controller.ControllerProto):
     print(e)
 
  def senddata(self,idx,sensortype,value,userssi=-1,usebattery=-1,tasknum=-1,changedvalue=-1): # called by plugin
+  if tasknum is None:
+   return False
   if tasknum!=-1 and self.enabled:
    if tasknum<len(Settings.Tasks):
     if Settings.Tasks[tasknum] != False:

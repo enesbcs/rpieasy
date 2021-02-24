@@ -44,7 +44,7 @@ class Controller(controller.ControllerProto):
   return self.initialized
  
  def senddata(self,idx,sensortype,value,userssi=-1,usebattery=-1,tasknum=-1,changedvalue=-1):
-  if self.enabled and self.initialized:
+  if self.enabled and self.initialized and tasknum is not None:
     if tasknum!=-1:
      jdata = {}
      jdata['key'] = self.controllerpassword

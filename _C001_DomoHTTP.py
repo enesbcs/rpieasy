@@ -26,7 +26,7 @@ class Controller(controller.ControllerProto):
   self.usesAccount = True
   self.usesPassword = True
   self.authmode = 0
-  
+
  def webform_load(self):
   try:
    am = self.authmode
@@ -36,7 +36,7 @@ class Controller(controller.ControllerProto):
   optionvalues = [0,1,2]
   webserver.addFormSelector("Mode","c001_mode",len(optionvalues),options,optionvalues,None,int(am))
   return True
-  
+
  def webform_save(self,params):
   try:
    self.authmode = int(webserver.arg("c001_mode",params))

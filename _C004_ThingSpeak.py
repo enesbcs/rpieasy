@@ -45,8 +45,10 @@ class Controller(controller.ControllerProto):
   if self.controllerpassword!="" and self.controllerip!="" and self.controllerip!="0.0.0.0":
    self.initialized = True
   return self.initialized
- 
+
  def senddata(self,idx,sensortype,value,userssi=-1,usebattery=-1,tasknum=-1,changedvalue=-1):
+  if tasknum is None:
+   return False
   if self.enabled and self.initialized:
     if tasknum!=-1:
      if time.time()-self.lastsend<self.defaultdelay:

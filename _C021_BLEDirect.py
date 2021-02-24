@@ -299,6 +299,8 @@ class Controller(controller.ControllerProto):
  def senddata(self,idx,sensortype,value,userssi=-1,usebattery=-1,tasknum=-1,changedvalue=-1): # called by plugin
   if self.enabled and self.initialized:
 #   print(idx,value) # debug
+   if tasknum is None:
+    return False
    if int(idx)>0:
     if Settings.Tasks[tasknum].remotefeed==False or Settings.Tasks[tasknum].remotefeed==-1:  # do not republish received values
      dp2 = p2pbuffer.data_packet()
