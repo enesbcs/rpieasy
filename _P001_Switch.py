@@ -200,7 +200,12 @@ class Plugin(plugin.PluginProto):
  def pinstate_check(self,postcheck=False):
   if self.initialized and self.enabled:
    prevval = int(float(self.uservar[0]))
-   inval = gpios.HWPorts.input(int(self.taskdevicepin[0]))
+   try:
+    inval = gpios.HWPorts.input(int(self.taskdevicepin[0]))
+   except Exception as e:
+    self.enabled = False
+    misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Task now disabled, Pin"+ str(self.taskdevicepin[0])+" cannot be read!")
+    return False
    if self.pininversed:
     prevval=1-int(prevval)
    outval = prevval
