@@ -912,7 +912,7 @@ def getRockPIVer():
     return hwarr
 
 def isAlreadyRunning():
-    output = os.popen('ps -aux | grep RPIEasy').read()
+    output = os.popen('ps -aux | grep RPIEasy | grep python').read()
     try:
      occ = int(output.count("RPIEasy.py"))
     except:

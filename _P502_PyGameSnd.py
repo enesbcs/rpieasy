@@ -36,6 +36,7 @@ class Plugin(plugin.PluginProto):
   self.recdataoption = True
   self.timeroption = False
   self.playing = False
+  self.loopcount = -1
 
  def plugin_init(self,enableplugin=None):
   plugin.PluginProto.plugin_init(self,enableplugin)
@@ -56,6 +57,21 @@ class Plugin(plugin.PluginProto):
     webserver.addFormTextBox("Level "+str(c*10),"p502_lvl_"+str(c*10),str(self.taskdevicepluginconfig[c]),120)
     webserver.addBrowseButton("Browse","p502_lvl_"+str(c*10),startdir=str(self.taskdevicepluginconfig[c]))
    webserver.addFormNote("Specify file names with relative pathname for every level, that is needed!")
+   optionvalues = []
+   options = []
+   for i in range(-1,20):
+    optionvalues.append(i)
+    if i==-1:
+     options.append("Forever")
+    else:
+     options.append(str(i))
+   try:
+    loop = int(self.loopcount)
+   except:
+    self.loopcount = -1
+    loop = -1
+   webserver.addFormSelector("Loop count","p502_loop",len(optionvalues),options,optionvalues,None,loop)
+   webserver.addFormNote("Default is Forever in this mode sound will repeat until LEVEL 0 asked. As it is running in background there is no way you know if playing is ended actually if using specific loop count!")
   return True
 
  def webform_save(self,params):
@@ -69,6 +85,11 @@ class Plugin(plugin.PluginProto):
      self.taskdevicepluginconfig[c] = par
    except:
     pass
+  par = webserver.arg("p502_loop",params)
+  try:
+   self.loopcount = int(par)
+  except:
+   self.loopcount = -1
   return True
 
  def plugin_receivedata(self,data):       # Watching for incoming mqtt commands
@@ -83,7 +104,7 @@ class Plugin(plugin.PluginProto):
   if self.initialized:
    self.play(value)
   plugin.PluginProto.set_value(self,valuenum,value,publish,suserssi,susebattery)
- 
+
  def plugin_write(self,cmd):                                                # Handling commands
   res = False
   cmdarr = cmd.split(",")
@@ -138,8 +159,13 @@ class Plugin(plugin.PluginProto):
        self.playing=True
       except Exception as e:
        misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,str(e))
-      if self.playing: 
-       pygame.mixer.music.play(-1)
+      if self.playing:
+       try:
+        loop = int(self.loopcount)
+       except:
+        self.loopcount = -1
+        loop = -1
+       pygame.mixer.music.play(loop)
    return self.playing
 
  def stop(self,AddEvent=False):
