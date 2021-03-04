@@ -55,13 +55,19 @@ class timer:
 
  def __del__(self):
   if self.timer:
-   self.timer.cancel()
+   try:
+    self.timer.cancel()
+   except:
+    pass
 
  def start(self,timeout):
-#  print("Timer",self.timerid,"started with timeout:",timeout)
+  misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG, "Timer "+str(self.timerid)+" started with timeout: "+str(timeout))
   try:
    if self.timer is not None:
-    self.timer.cancel()
+    try:
+     self.timer.cancel()
+    except:
+     pass
     self.timer = None
    self.starttime = time.time()
    self.lefttime  = timeout
@@ -70,10 +76,10 @@ class timer:
    self.timer = Timer(float(timeout),self.stop)
    self.timer.start()
   except Exception as e:
-   print(e)
+   misc.addLog(rpieGlobals.LOG_LEVEL_ERROR, "Timer "+str(self.timerid)+" error: "+str(e))
 
  def stop(self,call=True):
-#  print("Timer",self.timerid,"stopped")
+  misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG, "Timer "+str(self.timerid)+" stopped")
   self.state = 0
   self.starttime = 0
   self.timeractive = False
@@ -89,37 +95,46 @@ class timer:
     else:
      self.callback(self.timerid) # call rules with timer id only
   except Exception as e:
-   print(e)
+   misc.addLog(rpieGlobals.LOG_LEVEL_ERROR, "Timer "+str(self.timerid)+" error: "+str(e))
 
  def pause(self):
   if self.state == 1:
    lefttime = time.time()-self.starttime
-#   print("Timer",self.timerid,"runnning paused at",lefttime)
+   misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG, "Timer "+str(self.timerid)+" running paused at "+str(lefttime))
    if lefttime<self.lefttime:
     self.lefttime = self.lefttime - lefttime
     self.state = 2
-    self.timer.cancel()
+    try:
+     self.timer.cancel()
+    except:
+     pass
 
  def resume(self):
   if self.state == 2:
-#   print("Timer",self.timerid,"runnning continues for",self.lefttime)
-   self.timer = Timer(self.lefttime,self.stop)
-   self.starttime = time.time()
-   self.state = 1
-   self.pausetime = 0
-   self.timer.start()
+   misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG, "Timer "+str(self.timerid)+" running continues for "+str(self.lefttime))
+   try:
+    self.timer = Timer(self.lefttime,self.stop)
+    self.starttime = time.time()
+    self.state = 1
+    self.pausetime = 0
+    self.timer.start()
+   except Exception as e:
+    misc.addLog(rpieGlobals.LOG_LEVEL_ERROR, "Timer "+str(self.timerid)+" error: "+str(e))
 
 def addsystemtimer(timeout,callbackfunc,retvaluearray):
  result = False
  for t in range(0,rpieGlobals.SYSTEM_TIMER_MAX):
   if SysTimers[t].timeractive==False:
-   SysTimers[t].addcallback(callbackfunc)
-   SysTimers[t].setretvalue(retvaluearray)
-   SysTimers[t].start(timeout)
-   result = True
-   break
+   try:
+    SysTimers[t].addcallback(callbackfunc)
+    SysTimers[t].setretvalue(retvaluearray)
+    SysTimers[t].start(timeout)
+    result = True
+    break
+   except:
+    pass
  if result==False:
-  misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"No more system timers for: "+str(retvaluearray))
+  misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"No more system timers for: "+str(retvaluearray))
  return result
 
 Timers = []

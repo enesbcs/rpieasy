@@ -1758,8 +1758,6 @@ def handle_devices(self):
 #          addFormNumericBox("Port", "TDP", Settings.Tasks[taskIndex].taskdeviceport)
 #        if (Settings.Tasks[taskIndex].pullupoption):
 #          addFormCheckBox("Internal PullUp", "TDPPU", Settings.Tasks[taskIndex].pullup)
-        if (Settings.Tasks[taskIndex].inverselogicoption):
-          addFormCheckBox("Inversed Logic", "TDPI", Settings.Tasks[taskIndex].pininversed)
         if (Settings.Tasks[taskIndex].dtype>=rpieGlobals.DEVICE_TYPE_SINGLE and Settings.Tasks[taskIndex].dtype<=rpieGlobals.DEVICE_TYPE_QUAD):
           addFormPinSelect("1st GPIO", "taskdevicepin1", Settings.Tasks[taskIndex].taskdevicepin[0])
         if (Settings.Tasks[taskIndex].dtype>=rpieGlobals.DEVICE_TYPE_DUAL and Settings.Tasks[taskIndex].dtype<=rpieGlobals.DEVICE_TYPE_QUAD):
@@ -1768,6 +1766,8 @@ def handle_devices(self):
           addFormPinSelect("3rd GPIO", "taskdevicepin3", Settings.Tasks[taskIndex].taskdevicepin[2])
         if (Settings.Tasks[taskIndex].dtype==rpieGlobals.DEVICE_TYPE_QUAD):
           addFormPinSelect("4th GPIO", "taskdevicepin4", Settings.Tasks[taskIndex].taskdevicepin[3])
+      if (Settings.Tasks[taskIndex].inverselogicoption):
+          addFormCheckBox("Inversed Logic", "TDPI", Settings.Tasks[taskIndex].pininversed)
       if (Settings.Tasks[taskIndex].dtype==rpieGlobals.DEVICE_TYPE_I2C):
           try:
            import gpios

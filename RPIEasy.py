@@ -460,7 +460,12 @@ def initprogram():
  if up == 0:
   misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Webserver can not be started, no available port found! "+str(errors))
  else:
-  misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"Webserver starting at port "+str(up))
+  try:
+   import os_os as OS
+   ipa = OS.get_ip()
+  except:
+   ipa = "localhost"
+  misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"Webserver starting at http://"+str(ipa)+":"+str(up))
   Settings.WebUIPort = up
   webserver.WebServer.start(ownaddr, up) # starts webserver GUI
 

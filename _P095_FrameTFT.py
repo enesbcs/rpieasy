@@ -297,7 +297,7 @@ class Plugin(plugin.PluginProto):
       pass
      self.bgimg = None
      try:
-      if self.bgimgname is not None and self.bgimgname != "":
+      if self.bgimgname is not None and self.bgimgname != "" and str(self.bgimgname) != "None":
         try:
          img = Image.open(self.bgimgname,'r') # no path check!
          self.bgimg = img.resize( (self.device.width,self.device.height), Image.LANCZOS)

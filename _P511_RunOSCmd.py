@@ -16,6 +16,7 @@ import misc
 import os
 import commands
 import threading
+import Settings
 
 class Plugin(plugin.PluginProto):
  PLUGIN_ID = 511
@@ -31,13 +32,22 @@ class Plugin(plugin.PluginProto):
   self.recdataoption = True
   self.pullupoption = False
   self.inverselogicoption = True
+  self.trigger = False
+  self.timer100ms = False
+  self.prevval = -1
 
  def plugin_init(self,enableplugin=None):
   plugin.PluginProto.plugin_init(self,enableplugin)
   self.decimals[0] = 0
+  self.trigger = False
+  self.timer100ms = False
+  self.prevval = -1
   if self.enabled:
    self.initialized = True
-   self.set_value(1,0,False) # init with 0 cmd!
+#   self.set_value(1,0,False) # init with 0 cmd!
+   if not(str(self.taskdevicepluginconfig[4]) in ["_","0",""]):
+    self.trigger = True
+    self.timer100ms = True
 
  def webform_load(self):
   webserver.addFormTextBox("Command 0","plugin_511_cmd0",str(self.taskdevicepluginconfig[0]),512)
@@ -45,6 +55,22 @@ class Plugin(plugin.PluginProto):
   webserver.addFormNote("Specify OS commands that has to be executed at the speficied state (0/1)")
   webserver.addFormCheckBox("Use threading to run in background","plugin_511_th",self.taskdevicepluginconfig[2])
   webserver.addFormCheckBox("Enable parsing command line before execute","plugin_511_parse",self.taskdevicepluginconfig[3])
+
+  options2 = ["None"]
+  optionvalues2 = ["_"]
+  for t in range(0,len(Settings.Tasks)):
+      if (Settings.Tasks[t] and (type(Settings.Tasks[t]) is not bool)) and (t != self.taskindex):
+       for v in range(0,Settings.Tasks[t].valuecount):
+        options2.append("T"+str(t+1)+"-"+str(v+1)+" / "+str(Settings.Tasks[t].taskname)+"-"+str(Settings.Tasks[t].valuenames[v]))
+        optionvalues2.append(str(t)+"_"+str(v))
+  webserver.addHtml("<tr><td>Trigger variable:<td>")
+  webserver.addSelector_Head("p511_trigger",False)
+  ddata = str(self.taskdevicepluginconfig[4])
+  for o in range(len(options2)):
+   webserver.addSelector_Item(options2[o],optionvalues2[o],(str(optionvalues2[o])==str(ddata)),False)
+  webserver.addSelector_Foot()
+  webserver.addFormNumericBox("Trigger Low value","p511_low",self.taskdevicepluginconfig[5],-65535,65535)
+  webserver.addFormNumericBox("Trigger High value","p511_high",self.taskdevicepluginconfig[6],-65535,65535)
   return True
 
  def webform_save(self,params):
@@ -56,6 +82,21 @@ class Plugin(plugin.PluginProto):
    self.taskdevicepluginconfig[1]=""
   self.taskdevicepluginconfig[2] = (webserver.arg("plugin_511_th",params)=="on")
   self.taskdevicepluginconfig[3] = (webserver.arg("plugin_511_parse",params)=="on")
+  self.taskdevicepluginconfig[4] = str(webserver.arg("p511_trigger",params))
+  try:
+   self.taskdevicepluginconfig[5] = int(webserver.arg("p511_low",params))
+  except:
+   self.taskdevicepluginconfig[5] = 0
+  try:
+   self.taskdevicepluginconfig[6] = int(webserver.arg("p511_high",params))
+  except:
+   self.taskdevicepluginconfig[6] = 1
+  if str(self.taskdevicepluginconfig[4]) in ["_","0",""]:
+    self.trigger = False
+    self.timer100ms = False
+  else:
+    self.trigger = True
+    self.timer100ms = True
   return True
 
  def runcmd(self,number): # run command stored at taskdevicepluginconfig[number]
@@ -81,6 +122,8 @@ class Plugin(plugin.PluginProto):
       res = ""
       for l in output:
        res += str(l)
+     else:
+      return None
   return res
 
  def set_value(self,valuenum,value,publish=True,suserssi=-1,susebattery=-1): # Also reacting and handling Taskvalueset
@@ -101,14 +144,15 @@ class Plugin(plugin.PluginProto):
     except Exception as e:
      misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,str(e))
      res = False
-  if res!=False:
+  if res is not None and res!=False:
     if self.taskdevicepluginconfig[2]:
      misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"OS command started at background")
     else:
      misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG_MORE,str(res))
      misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"OS command executed succesfully")
   else:
-    misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"OS command execution failed")
+    if res==False:
+     misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"OS command execution failed")
   plugin.PluginProto.set_value(self,valuenum,value,publish,suserssi,susebattery)
 
  def plugin_receivedata(self,data):                        # set value based on mqtt input
@@ -119,3 +163,21 @@ class Plugin(plugin.PluginProto):
     val = 0
    self.set_value(1,val,False)
 #  print("Data received:",data) # DEBUG
+
+ def timer_ten_per_second(self):
+   try:
+    if self.trigger:
+     tid = str(self.taskdevicepluginconfig[4])
+     ti = tid.split("_")
+     tasknum = int(ti[0])
+     valnum  = int(ti[1])
+     aval = int(Settings.Tasks[tasknum].uservar[valnum])
+     if aval != self.prevval:
+      if aval <= int(self.taskdevicepluginconfig[5]):
+       self.set_value(1,0,False)
+      elif aval >= int(self.taskdevicepluginconfig[6]):
+       self.set_value(1,1,False)
+      self.prevval = aval
+   except:
+    pass
+   return self.timer100ms
