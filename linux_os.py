@@ -192,7 +192,10 @@ def read_cpu_usage():
   except:
    cpu_a_cur = 0
    cpu_t_cur = 1
-  cpu_util = misc.str2num2(100*(cpu_a_cur-cpu_a_prev) / (cpu_t_cur-cpu_t_prev))
+  try:
+   cpu_util = misc.str2num2(100*(cpu_a_cur-cpu_a_prev) / (cpu_t_cur-cpu_t_prev))
+  except:
+   cpu_util = 0
   return cpu_util
 
 def get_memory():

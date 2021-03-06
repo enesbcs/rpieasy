@@ -80,14 +80,17 @@ class Plugin(plugin.PluginProto):
 
  def p026_get_value(self,ptype):
    value = 0
-   if ptype == 1:
-    value = rpieTime.getuptime(0)
-   elif ptype == 2:
-    value = OS.FreeMem()
-   elif ptype == 3:
-    value = OS.get_rssi()
-   elif ptype == 4:
-    value = OS.read_cpu_usage()
-   elif ptype == 5:
-    value = OS.read_cpu_temp()
+   try:
+    if ptype == 1:
+     value = rpieTime.getuptime(0)
+    elif ptype == 2:
+     value = OS.FreeMem()
+    elif ptype == 3:
+     value = OS.get_rssi()
+    elif ptype == 4:
+     value = OS.read_cpu_usage()
+    elif ptype == 5:
+     value = OS.read_cpu_temp()
+   except Exception as e:
+    misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"P026 "+str(e))
    return value

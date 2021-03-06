@@ -82,6 +82,7 @@ def doExecuteCommand(cmdline,Parse=True):
     c2 = retval.split(" ")
     cmdarr = retval[(fsp+1):].split(",")
     cmdarr = [c2[0]] + cmdarr
+ oldcmd = cmdarr[0]
  cmdarr[0] = cmdarr[0].strip().lower()
  commandfound = False
  misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"CMD: "+cmdline.replace("==","="))
@@ -213,7 +214,7 @@ def doExecuteCommand(cmdline,Parse=True):
   return commandfound
 
  elif cmdarr[0] == "event":
-  cmdargs = cmdline.replace(cmdarr[0],"",1)[1:]
+  cmdargs = cmdline.replace(oldcmd,"",1)[1:]
   cmdargs = cmdargs.replace(",","=",1).strip()
   rulesProcessing(cmdargs,rpieGlobals.RULE_USER)
   commandfound = True
@@ -997,7 +998,7 @@ def parseruleline(linestr,rulenum=-1):
        else:
          state = "INV"
     if tval!="None":
-     cline = cline.replace("["+m[r]+"]",tval)
+     cline = cline.replace("["+m[r]+"]",str(tval))
   else:
    print("Please avoid special characters in names! ",linestr)
  if ("%eventvalue%" in linestr) and (rulenum!=-1):

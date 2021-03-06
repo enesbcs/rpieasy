@@ -6,7 +6,7 @@
 # Copyright (C) 2018-2020 by Alexander Nagy - https://bitekmindenhol.blog.hu/
 #
 PROGNAME = "RPIEasy"
-BUILD   = 21063
+BUILD   = 21065
 PROGVER = str(BUILD)[:1]+"."+str(BUILD)[1:2]+"."+str(BUILD)[2:]
 
 gpMenu = []
@@ -49,7 +49,7 @@ CMD_REBOOT                       =  89
 CMD_WIFI_DISCONNECT              = 135
 
 DEVICES_MAX                      = 75
-TASKS_MAX                        = 64
+TASKS_MAX                        = 96
 
 CONTROLLER_MAX                   =  4
 NOTIFICATION_MAX                 =  4

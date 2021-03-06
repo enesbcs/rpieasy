@@ -204,7 +204,7 @@ class Plugin(plugin.PluginProto):
     pin = -1
     trpin = -1
    if pin>-1 and val in [0,1] and trpin >-1:
-    misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"PCFPIO"+str(pin)+" set to "+str(val))
+    misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"PCFGPIO"+str(pin)+" set to "+str(val))
     try:
      tmcp = lib_pcfrouter.request_pcf_device(int(pin))
      tmcp.writepin(trpin, val)

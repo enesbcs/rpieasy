@@ -162,3 +162,15 @@ def get_battery_value():
   elif bval>100:
    bval = 100
  return bval
+
+def get_taskname_taskids(taskname):
+  res = []
+  for i in range(len(Settings.Tasks)):
+   try:
+    if type(Settings.Tasks[i]) is not bool:
+     if Settings.Tasks[i].taskname.lower() == taskname:
+      if i not in res:
+       res.append(i)
+   except:
+    pass
+  return res

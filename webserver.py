@@ -1330,7 +1330,7 @@ def handle_devices(self):
    page = setpage
   else:
    page = int(rpieGlobals.TASKS_MAX / TASKS_PER_PAGE)
- 
+
  taskIndexNotSet = (taskIndex == 0) or (taskIndex == '')
  if taskIndex!="":
   taskIndex = int(taskIndex) - 1
@@ -1652,7 +1652,7 @@ def handle_devices(self):
         else:
          Settings.Tasks[taskIndex].plugin_init() # call plugin init / (arg("TDE",responsearr) == "on")
        except:
-        pass 
+        pass
 
       if edit != '' and not(taskIndexNotSet): # when form submitted
        if taskdevicenumber != 0: # save settings
@@ -1664,7 +1664,22 @@ def handle_devices(self):
          else:
           Settings.Tasks[taskIndex].interval = 0
        tasknamestr = str(arg("TDN",responsearr)).strip()
-       Settings.Tasks[taskIndex].taskname = tasknamestr.replace(" ","")
+       Settings.Tasks[taskIndex].taskname = tasknamestr.replace(" ","") #remove space from taskname
+
+       try:
+        import random
+        tname = Settings.Tasks[taskIndex].taskname
+        namecheck = True
+        while namecheck:
+         idvars = misc.get_taskname_taskids(tname)
+         if (len(idvars)==1 and (taskIndex not in idvars)) or (len(idvars)>1): #duplicated tasknames denied
+          tname = Settings.Tasks[taskIndex].taskname + str(int(random.random() * 100))
+         else:
+          namecheck = False
+        Settings.Tasks[taskIndex].taskname = tname
+       except Exception as e:
+        print(e)
+
        if tasknamestr:
         Settings.Tasks[taskIndex].taskdeviceport = arg("TDP",responsearr)
         maxcon = len(Settings.Controllers)
