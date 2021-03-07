@@ -596,20 +596,24 @@ def splitruletoevents(rulestr): # parse rule string into array of events
   cs = line.find(' //')
   if cs>-1:
    line = line[:cs]
+  cs = line.find('// ')
+  if cs>-1:
+   line = line[:cs]
   linelower = line.strip().lower()
-  if linelower.startswith("on ") and linelower.endswith(" do"):
-   rcount += 1
-   evfound = True
-   tstr = line.strip().split(" ")
-   ename = tstr[1]
-  elif evfound:
-   if linelower.startswith("endon"):
-    evfound = False
-    GlobalRules.append({"ename":ename,"ecat":decodeeventname(ename), "ecode":evarr,"lastcheck":0,"evalue":-1})
-    evarr = []
-    ename = ""
-   else:
-    evarr.append(line.strip())
+  if linelower != "":
+   if linelower.startswith("on ") and linelower.endswith(" do"):
+    rcount += 1
+    evfound = True
+    tstr = line.strip().split(" ")
+    ename = tstr[1]
+   elif evfound:
+    if linelower.startswith("endon"):
+     evfound = False
+     GlobalRules.append({"ename":ename,"ecat":decodeeventname(ename), "ecode":evarr,"lastcheck":0,"evalue":-1})
+     evarr = []
+     ename = ""
+    else:
+     evarr.append(line.strip())
 
 def getfirstequpos(cstr):
  res = -1
