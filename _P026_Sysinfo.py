@@ -96,7 +96,10 @@ class Plugin(plugin.PluginProto):
    self.readinprogress = 1
    try:
     for v in range(0,4):
-     vtype = int(self.taskdevicepluginconfig[v])
+     try:
+      vtype = int(self.taskdevicepluginconfig[v])
+     except:
+      vtype = 0
      if vtype != 0:
       self.set_value(v+1,self.p026_get_value(vtype),False)
     self.plugin_senddata()

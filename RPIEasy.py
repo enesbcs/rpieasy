@@ -26,15 +26,16 @@ except Exception as e:
 
 def signal_handler(signal, frame):
   global init_ok
-  init_ok = False
-  commands.doCleanup()
-  webserver.WebServer.stop()
-  try:
-   gpios.HWPorts.cleanup()
-  except:
-   pass
-  time.sleep(1)
-  print("\nProgram exiting gracefully")
+  if init_ok == True:
+   init_ok = False
+   commands.doCleanup()
+   webserver.WebServer.stop()
+   try:
+    gpios.HWPorts.cleanup()
+   except:
+    pass
+   time.sleep(1)
+   print("\nProgram exiting gracefully")
   sys.exit(0)
 
 timer100ms = 0
@@ -423,6 +424,7 @@ def initprogram():
   NPluginInit()
   RulesInit()
   signal.signal(signal.SIGINT, signal_handler) # avoid stoling by a plugin
+  signal.signal(signal.SIGTERM, signal_handler)
   timer100ms = millis()
   timer20ms  = timer100ms
   timer1s    = timer100ms

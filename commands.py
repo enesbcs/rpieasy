@@ -29,8 +29,11 @@ GlobalVars = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] #16 global var
 
 def doCleanup():
   rulesProcessing("System#Shutdown",rpieGlobals.RULE_SYSTEM)
-  if (len(Settings.Tasks)>1) or ( (len(Settings.Tasks)==1) and (Settings.Tasks[0] != False) ):
-   Settings.savetasks()
+  try:
+   if (len(Settings.Tasks)>1) or ( (len(Settings.Tasks)==1) and (Settings.Tasks[0] != False) ):
+    Settings.savetasks()
+  except Exception as e:
+    misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Shutdown error: "+str(e))
   procarr = []
   for x in range(0,len(Settings.Tasks)):
    if (Settings.Tasks[x]) and type(Settings.Tasks[x]) is not bool: # device exists
@@ -538,7 +541,7 @@ def doExecuteCommand(cmdline,Parse=True):
 
 def urlget(url):
   try:
-   urllib.request.urlopen(url,None,1)
+   urllib.request.urlopen(url,None,2)
   except Exception as e:
    misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,str(e))
 

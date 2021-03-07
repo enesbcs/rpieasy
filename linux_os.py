@@ -113,7 +113,7 @@ class autorun:
          f.write("[Unit]\nDescription=rpieasy\nAfter=network.target\n\n[Service]\n")
          f.write("ExecStart="+os.path.dirname(os.path.realpath(__file__))+"/"+self.runfilename)
          f.write("\nWorkingDirectory="+os.path.dirname(os.path.realpath(__file__)))
-         f.write("\nStandardOutput=inherit\nStandardError=inherit\nRestart=always\nUser=root\n\n[Install]\nWantedBy=multi-user.target\n")
+         f.write("\nStandardOutput=syslog\nStandardError=syslog\nSyslogIdentifier=rpieasy\nRestart=always\nUser=root\n\n[Install]\nWantedBy=multi-user.target\n")
      except Exception as e:
       print(e)
      try:

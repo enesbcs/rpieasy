@@ -155,6 +155,11 @@ class PluginProto: # Skeleton for every plugin! Override necessary functions and
   self._lastdataservetime = 0
   self.readinprogress = 0
   self.writecallback = None
+  try:
+   if len(self.formula)<4:
+    self.formula = ["","","",""]
+  except:
+   self.formula = ["","","",""]
   if self.enabled:
    if self.initialized == False:
     self.initialized = True
