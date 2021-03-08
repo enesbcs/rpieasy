@@ -100,7 +100,10 @@ class autorun:
       self.disableservice()
 
  def checkservice(self):
-     output = os.popen('sudo systemctl is-enabled rpieasy').read()
+     try:
+      output = os.popen('systemctl is-enabled rpieasy').read()
+     except:
+      output = ""
      if "enabled" in output:
       return True
      else:
@@ -117,13 +120,13 @@ class autorun:
      except Exception as e:
       print(e)
      try:
-      output = os.popen('sudo systemctl enable rpieasy.service').read()
+      output = os.popen(cmdline_rootcorrect('sudo systemctl enable rpieasy.service')).read()
      except Exception as e:
       print(e)
 
  def disableservice(self):
      try:
-      output = os.popen('sudo systemctl disable rpieasy.service').read()
+      output = os.popen(cmdline_rootcorrect('sudo systemctl disable rpieasy.service')).read()
      except:
       pass
 

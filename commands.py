@@ -208,11 +208,14 @@ def doExecuteCommand(cmdline,Parse=True):
    v = 1
   if s >0 and (s<len(rpieTime.Timers)):
    s = s-1 # array is 0 based, timers is 1 based
-   if v==0:
-    rpieTime.Timers[s].stop(False)
-   else:
-    rpieTime.Timers[s].addcallback(TimerCallback)
-    rpieTime.Timers[s].start(v)
+   try:
+    if v==0:
+     rpieTime.Timers[s].stop(False)
+    else:
+     rpieTime.Timers[s].addcallback(TimerCallback)
+     rpieTime.Timers[s].start(v)
+   except Exception as e:
+    misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Timer start: "+str(e))
   commandfound = True
   return commandfound
 
@@ -603,6 +606,11 @@ def splitruletoevents(rulestr): # parse rule string into array of events
   if cs>-1:
    line = line[:cs]
   linelower = line.strip().lower()
+  try:
+   if linelower[0:2]=="//":
+    linelower = ""
+  except:
+   pass
   if linelower != "":
    if linelower.startswith("on ") and linelower.endswith(" do"):
     rcount += 1
@@ -1160,7 +1168,10 @@ def rulesProcessing(eventstr,efilter=-1): # fire events
         condlevel = 0
         return True
        else:
-        cret = doExecuteCommand(retval,False) # execute command
+        try:
+         cret = doExecuteCommand(retval,False) # execute command
+        except:
+         return False
 
 def comparetime(tstr):
  result = True

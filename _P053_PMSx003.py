@@ -20,7 +20,7 @@ import lib.lib_pms as rpiPMS
 
 class Plugin(plugin.PluginProto):
  PLUGIN_ID = 53
- PLUGIN_NAME = "Dust - PMSx003 (TESTING)"
+ PLUGIN_NAME = "Dust - PMSx003/SDS01x/SPS30 (TESTING)"
  PLUGIN_VALUENAME1 = "Value1"
  PLUGIN_VALUENAME2 = "Value2"
  PLUGIN_VALUENAME3 = "Value3"
