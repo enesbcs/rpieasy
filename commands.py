@@ -1171,7 +1171,7 @@ def rulesProcessing(eventstr,efilter=-1): # fire events
         try:
          cret = doExecuteCommand(retval,False) # execute command
         except:
-         return False
+         pass
 
 def comparetime(tstr):
  result = True
