@@ -323,8 +323,10 @@ def dm_to_sd(dm):
     decimal (python float) format
     '''
     # '12319.943281'
+    dm = str(dm)
     if not dm or dm == '0':
         return 0
+    dm = "00000"+dm
     try:
      d, m = re.match(r'^(\d+)(\d\d\.\d+)$', dm).groups()
      return float(d) + float(m) / 60
