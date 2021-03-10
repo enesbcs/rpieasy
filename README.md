@@ -1,8 +1,7 @@
 # To support the development you can:
+- Be a patron at [Patreon](https://www.patreon.com/enesbcs)
 - Buy a [coffee](https://ko-fi.com/I3I5UT4H)
 - Donate by [PayPal](https://www.paypal.me/rpieasy)
-- Contribute to any of my [Wishlist items](https://www.wishlist.com/wishlists_/alexander-nagy/dwGnV/)
-- Be a patron at [Patreon](https://www.patreon.com/enesbcs)
 - Add Python code by [Pull Request](https://github.com/enesbcs/rpieasy/pulls)
 
 # RPIEasy
