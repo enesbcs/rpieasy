@@ -79,13 +79,13 @@ def handle_root(self):
  cmdline = arg("cmd",responsearr).strip()
  responsestr = ""
  if len(cmdline)>0:
-  responsestr = str(commands.doExecuteCommand(cmdline))  # response ExecuteCommand(VALUE_SOURCE_HTTP, webrequest.c_str());
+  responsestr = str(commands.doExecuteCommand(cmdline))
 
  try:
    startpage = Settings.AdvSettings["startpage"]
  except:
    startpage = "/"
- if len(startpage)>1:   
+ if len(startpage)>1:
    return self.redirect(startpage)
 
  sendHeadandTail("TmplStd",_HEAD)
@@ -475,8 +475,8 @@ def handle_config(self):
   if netmanager==False:
    addSubmitButton()
  TXBuffer += "</table></form>"
-  
- sendHeadandTail("TmplStd",_TAIL);
+
+ sendHeadandTail("TmplStd",_TAIL)
  return TXBuffer
 
 @WebServer.route('/controllers')
@@ -488,7 +488,7 @@ def handle_controllers(self):
   return self.redirect('/setup')
  if (not isLoggedIn(self.get,self.cookie)):
   return self.redirect('/login')
- sendHeadandTail("TmplStd",_HEAD); 
+ sendHeadandTail("TmplStd",_HEAD)
 
  if self.type == "GET":
   responsearr = self.get
@@ -642,7 +642,7 @@ def handle_controllers(self):
      addSubmitButton("Delete", "del")
     TXBuffer += "</table></form>"
 
- sendHeadandTail("TmplStd",_TAIL);
+ sendHeadandTail("TmplStd",_TAIL)
  return TXBuffer
 
 @WebServer.route('/hardware')
@@ -1139,7 +1139,7 @@ def handle_plugins(self):
   return self.redirect('/setup')
  if (not isLoggedIn(self.get,self.cookie)):
   return self.redirect('/login')
- sendHeadandTail("TmplStd",_HEAD); 
+ sendHeadandTail("TmplStd",_HEAD)
 
  try:
   if (plugindeps.modulelist):
@@ -1276,7 +1276,7 @@ def handle_plugins(self):
    TXBuffer += "</td></tr>"
 
  TXBuffer += "</table>"
- sendHeadandTail("TmplStd",_TAIL);
+ sendHeadandTail("TmplStd",_TAIL)
  return TXBuffer
 
 @WebServer.route('/devices')
@@ -1289,7 +1289,7 @@ def handle_devices(self):
   return self.redirect('/setup')
  if (not isLoggedIn(self.get,self.cookie)):
   return self.redirect('/login')
- sendHeadandTail("TmplStd",_HEAD); 
+ sendHeadandTail("TmplStd",_HEAD)
 
  if self.type == "GET":
   responsearr = self.get
@@ -1385,13 +1385,14 @@ def handle_devices(self):
 
  if taskIndexNotSet: # show all tasks as table
     if True:
-     TXBuffer += "<script> (function(){ var max_tasknumber = "+ str(rpieGlobals.TASKS_MAX) +"; var max_taskvalues = "+ str(rpieGlobals.VARS_PER_TASK) +"; var timeForNext = 2000; var c; var k; var err = ''; var i = setInterval(function(){ var url = '/json?view=sensorupdate';"
+     TXBuffer += "<script defer> (function(){ var max_tasknumber = "+ str(rpieGlobals.TASKS_MAX) +"; var max_taskvalues = "+ str(rpieGlobals.VARS_PER_TASK) +"; var timeForNext = 2000; var c; var k; var err = '';"
+     TXBuffer += " var j = setInterval(function(){if (document.getElementById('clock') !== null) { var d = new Date();var s = d.getSeconds(); var m = d.getMinutes(); var h = d.getHours(); document.getElementById('clock').innerHTML = ('0'+h).slice(-2) + ':' + ('0'+m).slice(-2) + ':' + ('0'+s).slice(-2) ;}},timeForNext);"
+     TXBuffer += " var i = setInterval(function(){ var url = '/json?view=sensorupdate';"
      TXBuffer += "	fetch(url).then( function(response) {  if (response.status !== 200) { console.log('Looks like there was a problem. Status Code: ' +  response.status); return; } response.json().then(function(data) {"
      TXBuffer += "	timeForNext = data.TTL; for (c = 0; c < max_tasknumber; c++) { for (k = 0; k < max_taskvalues; k++) { try {	valueEntry = data.Sensors[c].TaskValues[k].Value; }	catch(err) { valueEntry = err.name;	}"
-     TXBuffer += "	finally {if (valueEntry !== 'TypeError') {"
+     TXBuffer += "	finally {if ((valueEntry !== 'TypeError') && (document.getElementById('value_' + (data.Sensors[c].TaskNumber - 1) + '_' + (data.Sensors[c].TaskValues[k].ValueNumber -1)) !== null)) {"
      TXBuffer += "	document.getElementById('value_' + (data.Sensors[c].TaskNumber - 1) + '_' + (data.Sensors[c].TaskValues[k].ValueNumber -1)).innerHTML = data.Sensors[c].TaskValues[k].Value;"
      TXBuffer += "	document.getElementById('valuename_' + (data.Sensors[c].TaskNumber - 1) + '_' + (data.Sensors[c].TaskValues[k].ValueNumber -1) ).innerHTML = data.Sensors[c].TaskValues[k].Name + ':';"
-     TXBuffer += " if (document.getElementById('clock') !== null) { var d = new Date();var s = d.getSeconds(); var m = d.getMinutes(); var h = d.getHours(); document.getElementById('clock').innerHTML = ('0'+h).slice(-2) + ':' + ('0'+m).slice(-2) + ':' + ('0'+s).slice(-2) ;}"
      TXBuffer += "	}}}}});} ) .catch(function(err) {console.log(err.message); });}, timeForNext);})();"
      TXBuffer += "window.onblur = function() { window.blurred = true; }; window.onfocus = function() { window.blurred = false; }; </script>"
 
@@ -1449,9 +1450,6 @@ def handle_devices(self):
         TXBuffer += Settings.Tasks[x].gettaskname()
         TXBuffer += "<TD>"
 
-        #customConfig = False;
-        #customConfig = PluginCall(PLUGIN_WEBFORM_SHOW_CONFIG, &TempEvent,TXBuffer.buf);
-        #if not(customConfig):
         try:
           if (str(Settings.Tasks[x].ports) != "0" and str(Settings.Tasks[x].ports) != ""):
             TXBuffer += str(Settings.Tasks[x].ports)
@@ -1518,7 +1516,6 @@ def handle_devices(self):
          pass
         TXBuffer += "<TD>"
         customValues = False
-#        customValues = PluginCall(PLUGIN_WEBFORM_SHOW_VALUES, &TempEvent,TXBuffer.buf);
 
         if not(customValues):
           if (Settings.Tasks[x].vtype == rpieGlobals.SENSOR_TYPE_LONG):
@@ -1919,7 +1916,7 @@ def handle_notifications(self):
   return self.redirect('/setup')
  if (not isLoggedIn(self.get,self.cookie)):
   return self.redirect('/login')
- sendHeadandTail("TmplStd",_HEAD); 
+ sendHeadandTail("TmplStd",_HEAD)
 
  if self.type == "GET":
   responsearr = self.get
@@ -2045,7 +2042,7 @@ def handle_notifications(self):
      addSubmitButton("Test", "test")
     TXBuffer += "</table></form>"
 
- sendHeadandTail("TmplStd",_TAIL);
+ sendHeadandTail("TmplStd",_TAIL)
  return TXBuffer
 
 @WebServer.route('/log')
@@ -2057,7 +2054,7 @@ def handle_log(self):
   return self.redirect('/setup')
  if (not isLoggedIn(self.get,self.cookie)):
   return self.redirect('/login')
- sendHeadandTail("TmplStd",_HEAD); 
+ sendHeadandTail("TmplStd",_HEAD)
 
  TXBuffer += "<table class=\"normal\"><TR><TH id=\"headline\" align=\"left\">Log"
  addCopyButton("copyText", "", "Copy log to clipboard")
@@ -2074,7 +2071,7 @@ def handle_log(self):
  TXBuffer += "Autoscroll: <label class='container'>&nbsp;<input type='checkbox' id='autoscroll' name='autoscroll' checked onclick='checkit();'><span class='checkmark'></span></label>"
  TXBuffer += "<script defer>checkit();copyText_1.scrollTop = 99999;</script>"
 
- sendHeadandTail("TmplStd",_TAIL);
+ sendHeadandTail("TmplStd",_TAIL)
  return TXBuffer
 
 @WebServer.route('/tools')
@@ -2086,7 +2083,7 @@ def handle_tools(self):
   return self.redirect('/setup')
  if (not isLoggedIn(self.get,self.cookie)):
   return self.redirect('/login')
- sendHeadandTail("TmplStd",_HEAD); 
+ sendHeadandTail("TmplStd",_HEAD)
 
  try:
   if self.type == "GET":
@@ -2111,7 +2108,7 @@ def handle_tools(self):
 
  responsestr = ""
  if len(webrequest)>0:
-  responsestr = str(commands.doExecuteCommand(webrequest))  # response ExecuteCommand(VALUE_SOURCE_WEB_FRONTEND, webrequest.c_str());
+  responsestr = str(commands.doExecuteCommand(webrequest))
 
  if len(responsestr)>0:
   try:
@@ -2176,8 +2173,8 @@ def handle_tools(self):
  addWideButton("json", "Show JSON", "")
  TXBuffer += "<TD>"
  TXBuffer += "Open JSON output"
- 
- html_TR_TD_height(30);
+
+ html_TR_TD_height(30)
  addWideButton("sysvars", "System Variables", "")
  TXBuffer += "<TD>"
  TXBuffer += "Show all system variables"
@@ -2279,7 +2276,7 @@ def handle_i2cscanner(self):
  elif i2cdevs==0:
   TXBuffer += "<tr><td colspan=2>No device found on I2C bus</td></tr>"
  TXBuffer += "</table>"
- sendHeadandTail("TmplStd",_TAIL);
+ sendHeadandTail("TmplStd",_TAIL)
  return TXBuffer
 
 def getsortkey(item): # DEBUG
@@ -2328,7 +2325,7 @@ def handle_wifiscanner(self):
    TXBuffer += "<p>No Access Points found"
  else:
   TXBuffer += "<p>No usable wireless device found"
- sendHeadandTail("TmplStd",_TAIL);
+ sendHeadandTail("TmplStd",_TAIL)
  return TXBuffer
 
 @WebServer.route('/blescanner')
@@ -2390,7 +2387,7 @@ def handle_blescanner(self):
  else:
     TXBuffer += "BLE supporting library not found! Please install <a href='plugins?installmodule=bluepy'>bluepy</a>"
 
- sendHeadandTail("TmplStd",_TAIL);
+ sendHeadandTail("TmplStd",_TAIL)
  return TXBuffer
 
 @WebServer.route('/login')
@@ -2420,10 +2417,10 @@ def handle_login(self):
   TXBuffer += "<input class='wide' type='password' name='password' value='"
   TXBuffer += webrequest
   TXBuffer += "'><TR><TD><TD>"
-  addSubmitButton();
+  addSubmitButton()
   TXBuffer += "<TR><TD></TABLE></FORM>"
 
- sendHeadandTail("TmplStd",_TAIL);
+ sendHeadandTail("TmplStd",_TAIL)
  return TXBuffer
 
 @WebServer.route('/control')
@@ -2630,7 +2627,7 @@ def handle_advanced(self):
  addSubmitButton()
  TXBuffer += "<input type='hidden' name='edit' value='1'>"
  TXBuffer += "</table></form>"
- sendHeadandTail("TmplStd",_TAIL);
+ sendHeadandTail("TmplStd",_TAIL)
  return TXBuffer
 
 @WebServer.route('/setup')
@@ -2889,7 +2886,7 @@ def handle_rules(self):
   return self.redirect('/setup')
  if (not isLoggedIn(self.get,self.cookie)):
   return self.redirect('/login')
- sendHeadandTail("TmplStd",_HEAD); 
+ sendHeadandTail("TmplStd",_HEAD)
 
  if self.type == "GET":
   responsearr = self.get
@@ -2919,7 +2916,7 @@ def handle_rules(self):
  addSubmitButton()
  TXBuffer += "</table></form>"
 
- sendHeadandTail("TmplStd",_TAIL);
+ sendHeadandTail("TmplStd",_TAIL)
  return TXBuffer
 
 @WebServer.route('/sysvars')
@@ -2931,7 +2928,7 @@ def handle_sysvars(self):
   return self.redirect('/setup')
  if (not isLoggedIn(self.get,self.cookie)):
   return self.redirect('/login')
- sendHeadandTail("TmplStd",_HEAD); 
+ sendHeadandTail("TmplStd",_HEAD)
  TXBuffer += "<table class='normal'><TR><TH align='left'>System Variables<TH align='left'>Normal"
  for sv in commands.SysVars:
   TXBuffer += "<TR><TD>%" + sv + "%</TD><TD>"
@@ -2945,7 +2942,7 @@ def handle_sysvars(self):
    pass
  TXBuffer += "</table></form>"
 
- sendHeadandTail("TmplStd",_TAIL);
+ sendHeadandTail("TmplStd",_TAIL)
  return TXBuffer
 
 @WebServer.route('/sysinfo')
@@ -2958,7 +2955,7 @@ def handle_sysinfo(self):
   return self.redirect('/setup')
  if (not isLoggedIn(self.get,self.cookie)):
   return self.redirect('/login')
- sendHeadandTail("TmplStd",_HEAD); 
+ sendHeadandTail("TmplStd",_HEAD)
  TXBuffer += "<table class='normal'><TR><TH style='width:150px;' align='left'>System Info<TH align='left'>"
 
  TXBuffer += "<TR><TD>Unit:<TD>"
@@ -3074,11 +3071,11 @@ def handle_filelist(self):
 #  sfile="&sel="+sfile
 
  if retobj:
-  sendHeadandTail("TmplDsh",_HEAD); 
+  sendHeadandTail("TmplDsh",_HEAD)
   sfile="&o="+str(retobj)
   TXBuffer += "<script type='text/javascript'>function reportbackfilename(objname,fname){var retval = window.opener.document.getElementById(objname); retval.value = fname; window.close(); return fname;}</script>"
  else:
-  sendHeadandTail("TmplStd",_HEAD); 
+  sendHeadandTail("TmplStd",_HEAD)
   sfile=""
  current_dir = "files/"
 
@@ -3160,10 +3157,10 @@ def handle_filelist(self):
   TXBuffer += "window.close();"
   TXBuffer += '"'
   TXBuffer += "'>Close</a>"
-  sendHeadandTail("TmplDsh",_TAIL);
+  sendHeadandTail("TmplDsh",_TAIL)
  else:
   addButton("upload?path="+str(current_dir), "Upload")
-  sendHeadandTail("TmplStd",_TAIL); 
+  sendHeadandTail("TmplStd",_TAIL)
  return TXBuffer
 
 
@@ -3404,7 +3401,7 @@ def handle_custom(self):
    except Exception as e:
     print(e)
  else: # if template not found
-  sendHeadandTail("TmplDsh",_HEAD); 
+  sendHeadandTail("TmplDsh",_HEAD)
   TXBuffer += "<table class='normal'>"
   try:
    for sc in range(0,len(Settings.Tasks)):
@@ -3420,7 +3417,7 @@ def handle_custom(self):
   except Exception as e:
    print(e)
   TXBuffer += "</table><BR>"
-  sendHeadandTail("TmplDsh",_TAIL);
+  sendHeadandTail("TmplDsh",_TAIL)
  return TXBuffer
 
 # -----------------------------
@@ -3491,7 +3488,7 @@ def addSelector(fid, optionCount, options, indices, attr, selectedIndex, reloado
       TXBuffer += str(attr[x])
     TXBuffer += ">"
     TXBuffer += str(options[x])
-    TXBuffer += "</option>"  
+    TXBuffer += "</option>"
   TXBuffer += "</select>"
 
 def addSelector_Head(fid, reloadonchange):
@@ -3540,7 +3537,7 @@ def addButton(url, label):
  TXBuffer += url
  TXBuffer += "'>"
  TXBuffer += label
- TXBuffer += "</a>"  
+ TXBuffer += "</a>"
 
 def addWideButton(url, label, color):
  global TXBuffer
@@ -3597,7 +3594,7 @@ def addTableSeparator(label, colspan, h_size):
   TXBuffer += str(h_size)
   TXBuffer += '>'
   TXBuffer += str(label)
-  TXBuffer += "</H";
+  TXBuffer += "</H"
   TXBuffer += str(h_size)
   TXBuffer += "></TD></TR>"
 
@@ -3607,13 +3604,13 @@ def addFormHeader(header1, header2=""):
    TXBuffer += "<TR><TD colspan='2'><h2>"
    TXBuffer += str(header1)
    TXBuffer += "</h2>"
-  else:      
+  else:
    TXBuffer += "<TR><TH>"
    TXBuffer += str(header1)
    TXBuffer += "<TH>"
    TXBuffer += str(header2)
    TXBuffer += ""
-   
+
 def addFormSubHeader(header):
   global TXBuffer
   TXBuffer += "<TR><TD colspan='2'><h3>"
@@ -3685,7 +3682,7 @@ def addFormTextBox(label, fid, value, maxlength):
 
 def addFormPasswordBox(label, fid, password, maxlength):
   global TXBuffer
-  addRowLabel(label);
+  addRowLabel(label)
   TXBuffer += "<input class='wide' type='password' name='"
   TXBuffer += str(fid)
   TXBuffer += "' maxlength="
@@ -3775,7 +3772,7 @@ def addFormFloatNumberBox(label, fid, value, fmin, fmax):
   addFloatNumberBox(fid, value, fmin, fmax)
 
 def addFormNumericBox(label, fid, value, minv=INT_MIN, maxv=INT_MAX):
-  addRowLabel(label);
+  addRowLabel(label)
   addNumericBox(fid, value, minv, maxv)
 
 def addNetType(wless):
@@ -3932,11 +3929,9 @@ def getWebPageTemplateVar( varName ):
 def sendHeadandTail(tmplName, Tail = False):
   global TXBuffer
   pageTemplate = ""
-  #int indexStart, indexEnd;
-  #String varName;  //, varValue;
-  fileName = tmplName;
+  fileName = tmplName
   fileName += ".html"
-  
+
   if (os.path.isfile(fileName)):
    with open(fileName) as content_file:
     pageTemplate = content_file.read()
@@ -3955,7 +3950,7 @@ def sendHeadandTail(tmplName, Tail = False):
       if (indexEnd > 0):
         varName = pageTemplate[2:indexEnd]
         pageTemplate = pageTemplate[(indexEnd + 2):]
-        varName.lower();
+        varName.lower()
 
         if (varName == "content"): # is var == page content?
           break #;  // send first part of result only
@@ -3985,7 +3980,7 @@ def handle_update(self):
   return self.redirect('/setup')
  if (not isLoggedIn(self.get,self.cookie)):
   return self.redirect('/login')
- sendHeadandTail("TmplStd",_HEAD); 
+ sendHeadandTail("TmplStd",_HEAD)
 
  if Settings.UpdateString != "": # custom string provided
   if Settings.UpdateString[0] == "!": #update in progress

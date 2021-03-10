@@ -274,12 +274,10 @@ class Plugin(plugin.PluginProto):
              self.validloc = 0
             if self.validloc==1: # refresh values
 #             print("GPS fix OK") # debug
-             lon = float(self.GPSDAT['lon'])
-             self.lon = dm_to_sd(str(lon))
+             self.lon = dm_to_sd(self.GPSDAT['lon'])
              if str(self.GPSDAT['lonDir']) == 'W':
               self.lon = self.lon * -1
-             lat = float(self.GPSDAT['lat'])
-             self.lat = dm_to_sd(str(lat))
+             self.lat = dm_to_sd(self.GPSDAT['lat'])
              if self.GPSDAT['latDir'] == 'S':
               self.lat = self.lat * -1
         if self.validloc != prevval: # status changed
