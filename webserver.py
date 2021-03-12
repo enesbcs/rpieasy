@@ -2945,6 +2945,44 @@ def handle_sysvars(self):
  sendHeadandTail("TmplStd",_TAIL)
  return TXBuffer
 
+@WebServer.route('/timers')
+def handle_timers(self):
+ global TXBuffer, navMenuIndex
+ TXBuffer=""
+ navMenuIndex=7
+ if (rpieGlobals.wifiSetup):
+  return self.redirect('/setup')
+ if (not isLoggedIn(self.get,self.cookie)):
+  return self.redirect('/login')
+ sendHeadandTail("TmplStd",_HEAD)
+ TXBuffer += "<table class='normal'><TR><TH align='left'>Timer #<TH align='left'>State<TH align='left'>Looping/Loopcount/Maxloops<TH align='left'>Timeout<TH align='left'>Last start<TH align='left'>Last error"
+ try:
+  for t in range(len(rpieTime.Timers)):
+   TXBuffer += "<TR><TD>" + str(t+1) + "</TD><TD>"
+   if rpieTime.Timers[t].state==0:
+    TXBuffer += "off"
+   elif rpieTime.Timers[t].state==1:
+    TXBuffer += "running"
+   elif rpieTime.Timers[t].state==2:
+    TXBuffer += "paused"
+   TXBuffer += "<TD>"
+   if rpieTime.Timers[t].looping==False:
+    TXBuffer += "no"
+   else:
+    TXBuffer += "yes/"+str(rpieTime.Timers[t].loopcount)+"/"+str(rpieTime.Timers[t].maxloops)
+   TXBuffer += "<TD>"+str(rpieTime.Timers[t].timeout)
+   if rpieTime.Timers[t].laststart == 0:
+    TXBuffer += "<TD>never"
+   else:
+    TXBuffer += "<TD>"+ misc.formatnum((time.time() - rpieTime.Timers[t].laststart),2) +"s ago"
+   TXBuffer += "<TD>"+str(rpieTime.Timers[t].lasterr)
+ except Exception as e:
+  print(e)
+ TXBuffer += "</table></form>"
+
+ sendHeadandTail("TmplStd",_TAIL)
+ return TXBuffer
+
 @WebServer.route('/sysinfo')
 def handle_sysinfo(self):
  import platform, sys

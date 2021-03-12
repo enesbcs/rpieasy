@@ -45,6 +45,12 @@ class timer:
   self.timeractive = False
   self.callback = None
   self.retvalue = [-1,-1]
+  self.looping = False
+  self.loopcount = 0
+  self.maxloops = -1
+  self.timeout = 0
+  self.laststart = 0
+  self.lasterr = ""
 
  def addcallback(self,callback):
   self.retvalue = [-1,-1]
@@ -60,7 +66,7 @@ class timer:
    except:
     pass
 
- def start(self,timeout):
+ def start(self,timeout,usrcall=True,looping=False,maxloops=-1):
   misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG, "Timer "+str(self.timerid)+" started with timeout: "+str(timeout))
   try:
    if self.timer is not None:
@@ -73,10 +79,19 @@ class timer:
    self.lefttime  = timeout
    self.state = 1
    self.timeractive = True
+   self.looping = looping
+   if usrcall or self.timeout==0:
+    self.timeout = timeout
+    self.maxloops = maxloops
+    self.loopcount = 0
+   self.loopcount += 1
+   self.laststart = time.time()
    self.timer = Timer(float(timeout),self.stop)
    self.timer.start()
+   self.lasterr = ""
   except Exception as e:
    misc.addLog(rpieGlobals.LOG_LEVEL_ERROR, "Timer "+str(self.timerid)+" error: "+str(e))
+   self.lasterr = str(e)
 
  def stop(self,call=True):
   misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG, "Timer "+str(self.timerid)+" stopped")
@@ -96,6 +111,14 @@ class timer:
      self.callback(self.timerid) # call rules with timer id only
   except Exception as e:
    misc.addLog(rpieGlobals.LOG_LEVEL_ERROR, "Timer "+str(self.timerid)+" error: "+str(e))
+   self.lasterr = str(e)
+  if self.maxloops>-1:
+   if self.loopcount>=self.maxloops: #loop count reached
+    self.looping = False
+  if self.looping and call: #autorestart timer
+   self.start(self.timeout,False,True,self.maxloops)
+  else:
+   self.looping = False
 
  def pause(self):
   if self.state == 1:

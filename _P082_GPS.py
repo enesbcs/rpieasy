@@ -5,7 +5,8 @@
 #
 # Serial plugin based on PySerial
 #
-# Copyright (C) 2019 by Alexander Nagy - https://bitekmindenhol.blog.hu/
+# Copyright (C) 2021 by Alexander Nagy - https://bitekmindenhol.blog.hu/
+# Updated by bsimmo - https://github.com/bsimmo
 #
 import datetime
 import json
