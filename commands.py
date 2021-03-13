@@ -1143,13 +1143,17 @@ def rulesProcessing(eventstr,efilter=-1): # fire events
         return False
   if len(GlobalRules[rfound]["ecode"])>0:
    for rl in range(len(GlobalRules[rfound]["ecode"])):
+    try:
      retval, state = parseruleline(GlobalRules[rfound]["ecode"][rl],rfound) # analyze condition blocks
      if state=="IFST": #ifstart
        if condlevel<rpieGlobals.RULES_IF_MAX_NESTING_LEVEL:
         condlevel += 1
        ifbools[condlevel] = retval
      elif state=="IFEL": #ifelse
-       ifbools[condlevel] = not(ifbools[condlevel])
+       try:
+        ifbools[condlevel] = not(ifbools[condlevel])
+       except:
+        pass
      elif state=="IFEN": #ifend
        ifbools[condlevel] = True
        if condlevel>0:
@@ -1158,9 +1162,12 @@ def rulesProcessing(eventstr,efilter=-1): # fire events
       ifbool = True
       for i in range(0,condlevel+1):
        if ifbool==True:
-        if ifbools[i]==False:
-         ifbool = False
-         break
+        try:
+         if ifbools[i]==False: #if nested condition is false, subcondition also false
+          ifbool = False
+          break
+        except:
+         pass #in case of error we have no idea if it is true or false
       if ifbool:
        if state=="INV":
         misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Invalid command: "+retval)
@@ -1168,10 +1175,9 @@ def rulesProcessing(eventstr,efilter=-1): # fire events
         condlevel = 0
         return True
        else:
-        try:
-         cret = doExecuteCommand(retval,False) # execute command
-        except:
-         pass
+        cret = doExecuteCommand(retval,False) # execute command
+    except Exception as e:
+     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Parsed line: "+str(GlobalRules[rfound]["ecode"][rl])+" "+str(e))
 
 def comparetime(tstr):
  result = True
