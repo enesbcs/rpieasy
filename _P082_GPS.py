@@ -3,7 +3,7 @@
 ###################### Serial GPS plugin for RPIEasy ########################
 #############################################################################
 #
-# Serial plugin based on PySerial
+# Serial GPS plugin
 #
 # Copyright (C) 2021 by Alexander Nagy - https://bitekmindenhol.blog.hu/
 # Updated by bsimmo - https://github.com/bsimmo
@@ -13,9 +13,6 @@ import json
 import re
 import threading
 import time
-
-import serial
-
 import commands
 import lib.lib_serial as rpiSerial
 import misc
@@ -23,7 +20,6 @@ import plugin
 import rpieGlobals
 import rpieTime
 import webserver
-
 
 class Plugin(plugin.PluginProto):
     PLUGIN_ID = 82
@@ -85,7 +81,7 @@ class Plugin(plugin.PluginProto):
               'faa_mode' : None,
               'checksum' : None
               }
-   
+
 
     def __init__(self, taskindex):  # general init
         plugin.PluginProto.__init__(self, taskindex)
@@ -106,8 +102,8 @@ class Plugin(plugin.PluginProto):
         self.lat = 0
         self.lon = 0
         self.devfound = False
-        self.gnssdate
-        self.gnsstime
+        self.gnssdate = 0
+        self.gnsstime = 0
 
     def plugin_exit(self):
         misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG_DEV, "Exiting Plugin")
@@ -164,8 +160,10 @@ class Plugin(plugin.PluginProto):
     def webform_load(self):
         misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG_DEV, "Webform Loading")
         choice1 = self.taskdevicepluginconfig[0]
-        options = rpiSerial.serial_portlist()
-
+        try:
+         options = rpiSerial.serial_portlist()
+        except:
+         options = []
         if len(options) > 0:
             webserver.addHtml("<tr><td>Serial Device:<td>")
             webserver.addSelector_Head("p082_addr", False)
@@ -179,6 +177,7 @@ class Plugin(plugin.PluginProto):
             )
         else:
             webserver.addFormNote("No serial or USB ports found")
+        webserver.addFormCheckBox("Enable time decoding","p082_time",self.taskdevicepluginconfig[1])
 
         webserver.addHtml("<tr><td>Fix:<td>")
         time.sleep(2)  # wait to get reply
@@ -190,18 +189,32 @@ class Plugin(plugin.PluginProto):
                 webserver.addHtml(self.GPSDAT["numSat"])
                 webserver.addHtml("<tr><td>HDOP:<td>")
                 webserver.addHtml(self.GPSDAT["horDil"])
-                webserver.addHtml("<tr><td>UTC Time:<td>")
-                webserver.addHtml(f"{str(self.gnssdate)} {str(self.gnsstime)}")
             except:
                 misc.addLog(rpieGlobals.LOG_LEVEL_ERROR, f"webserver GNSS info failed, initialized {self.initialized}, validloc {self.validloc}")
                 pass
+            webserver.addHtml("<tr><td>UTC Time:<td>")
+            notime = True
+            try:
+                webserver.addHtml(f"{str(self.gnssdate)} {str(self.gnsstime)}")
+                notime = False
+            except:
+                pass
+            if notime: #fallback
+             try:
+              gpstime = self.GPSDAT["fixTime"][0:2]+":"+ self.GPSDAT["fixTime"][2:4]+":"+self.GPSDAT["fixTime"][4:6]
+              webserver.addHtml(self.GPSDATE["year"]+"-"+self.GPSDATE["mon"]+"-"+self.GPSDATE["day"]+" "+gpstime)
+             except:
+              pass
 
         return True
 
     def webform_save(self, params):
         par = webserver.arg("p082_addr", params)
         self.taskdevicepluginconfig[0] = str(par)
-
+        if (str(webserver.arg("p082_time",params))=="on"):
+         self.taskdevicepluginconfig[1] = 1
+        else:
+         self.taskdevicepluginconfig[1] = 0
         return True
 
     def plugin_read(self):
@@ -267,7 +280,11 @@ class Plugin(plugin.PluginProto):
                         if reading:
                             recdata = reading.decode("utf-8")
                             self.parseResponse(recdata)
-                            self.create_datetime()  # update time, this may be happening to often?
+                            try:
+                             if self.taskdevicepluginconfig[1]==1:
+                              self.create_datetime()  # this may be placed under parseResponse() proper when a proper package arrives
+                            except:
+                             pass
                         else:
                             misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG_DEV, "bgreceiver reading failed")
                             time.sleep(0.001)
@@ -297,7 +314,7 @@ class Plugin(plugin.PluginProto):
             gpsStr = gpsChars[:-2]
 
         gpsComponents = gpsStr.split(',')
-        gpsStart = gpsComponents[0]        
+        gpsStart = gpsComponents[0]
 
         if ("GGA" in gpsStart):
             misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG, "Valid GGA from GNSS/GPS")
@@ -329,11 +346,11 @@ class Plugin(plugin.PluginProto):
 
                 if self.validloc == 1:  # refresh values
                     misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG, "GPS fix OK")
-                    
+
                     self.lat = dm_to_sd(self.GPSDAT['lat'])
                     if self.GPSDAT['latDir'] == 'S':
                         self.lat = self.lat * -1
-                    
+
                     self.lon = dm_to_sd(self.GPSDAT['lon'])
                     if str(self.GPSDAT['lonDir']) == 'W':
                         self.lon = self.lon * -1
@@ -353,7 +370,7 @@ class Plugin(plugin.PluginProto):
 
         if ("RMC" in gpsStart):
             misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG, "Valid RMC from GNSS/GPS")
-            
+
             chkVal = 0
             for ch in gpsStr[1:]:  # Remove the $
                 chkVal ^= ord(ch)
@@ -367,7 +384,7 @@ class Plugin(plugin.PluginProto):
                 misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG_MORE, f"GNSSRMC = {json.dumps(self.GNSSRMC)}")
 
         if ("ZDA" in gpsStart):
-            misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG, "Valid ZDA from GNSS/GPS")            
+            misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG, "Valid ZDA from GNSS/GPS")
             chkVal = 0
             for ch in gpsStr[1:]:  # Remove the $
                 chkVal ^= ord(ch)
@@ -395,18 +412,21 @@ class Plugin(plugin.PluginProto):
                     self.GPSTRACK[k] = gpsComponents[i]
                 # print(gpsChars)
                 misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG_MORE, f"GPSTRACK = {json.dumps(self.GPSTRACK)}")
-    
+
     def create_datetime(self):
+        try:
             if self.GPSDATE["strType"] is not None:
-                
+
                 self.gnsstime = timestamp(self.GPSDAT["fixTime"])
                 #this next line untested
-                self.gnssdate = datestamp( f'{self.GPSDATE["day"]}{self.GPSDATE["mon"]} {self.GPSDATE["year"]}' )
+                self.gnssdate = datestamp( f'{self.GPSDATE["day"]}{self.GPSDATE["mon"]}{self.GPSDATE["year"]}' )
             else:
                 self.gnsstime = timestamp(self.GNSSRMC["fixTime"])
                 self.gnssdate = datestamp(self.GNSSRMC["fixDate"])
             misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG, f"Date = {self.gnssdate}, Time = {self.gnsstime}")
-    
+        except Exception as e:
+         self.taskdevicepluginconfig[1] = 0 # auto self-defense
+
 def timestamp(s):
     '''
     Converts a timestamp given in "hhmmss[.ss]" ASCII text format to a
@@ -428,7 +448,21 @@ def datestamp(s):
     Converts a datestamp given in "DDMMYY" ASCII text format to a
     datetime.datetime object
     '''
-    return datetime.datetime.strptime(s, '%d%m%y').date()
+    cok = False
+    try:
+     res = datetime.datetime.strptime(s, '%d%m%y').date()
+     cok = True
+    except:
+     pass
+    if cok==False: #fallback to DDMMYYYY
+     try:
+      res = datetime.datetime.strptime(s, '%d%m%Y').date()
+      cok = True
+     except:
+      pass
+    if cok==False: #return original as lastresort
+     res = s
+    return res
 
 def dm_to_sd(dm):
     '''

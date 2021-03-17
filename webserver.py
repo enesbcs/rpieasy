@@ -618,7 +618,7 @@ def handle_controllers(self):
               if (Settings.Controllers[controllerindex].enabled):
                Settings.Tasks[x].controllercb[controllerindex] = Settings.Controllers[controllerindex].senddata
        except:
-        pass 
+        pass
     if controllerindex != '':
      TXBuffer += "<input type='hidden' name='index' value='" + str(controllerindex+1) +"'>"
      if int(protocol)>0:
@@ -629,10 +629,10 @@ def handle_controllers(self):
        addFormTextBox("Controller User", "controlleruser", Settings.Controllers[controllerindex].controlleruser,96)
       if Settings.Controllers[controllerindex].usesPassword:
        addFormPasswordBox("Controller Password", "controllerpassword", Settings.Controllers[controllerindex].controllerpassword,96)
-#      try:
-      Settings.Controllers[controllerindex].webform_load()
-#      except:
-#       pass
+      try:
+       Settings.Controllers[controllerindex].webform_load()
+      except Exception as e:
+       misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Controller"+str(controllerindex)+ " "+str(e))
 
     addFormSeparator(2)
     TXBuffer += "<tr><td><td>"
@@ -763,7 +763,7 @@ def handle_hardware(self):
     TXBuffer += "No device"
 
    addFormCheckBox("RPIEasy autostart at boot with rc.local (recommended)","rpiauto",ar.rpiauto)
-   addFormCheckBox("RPIEasy autostart at boot with systemctl","rpiauto2",ar.rpiauto2)
+   addFormCheckBox("RPIEasy autostart at boot with systemctl (experimental, not recommended)","rpiauto2",ar.rpiauto2)
    if OS.checkRPI():
     addFormCheckBox("Enable HDMI at startup","hdmienabled",ar.hdmienabled)
    if OS.check_permission():
@@ -1821,7 +1821,7 @@ def handle_devices(self):
       try:
        Settings.Tasks[taskIndex].webform_load() # call plugin function to fill TXBuffer
       except Exception as e:
-       print(e)
+       misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Task"+str(taskIndex+1)+ " "+str(e))
 
       if (Settings.Tasks[taskIndex].senddataoption): # section: Data Acquisition
         addFormSubHeader("Data Acquisition")
@@ -2030,7 +2030,10 @@ def handle_notifications(self):
      TXBuffer += "<input type='hidden' name='index' value='" + str(nindex+1) +"'>"
      if int(protocol)>0:
       addFormCheckBox("Enabled", "nenabled", Settings.Notifiers[nindex].enabled)
-      Settings.Notifiers[nindex].webform_load()
+      try:
+       Settings.Notifiers[nindex].webform_load()
+      except Exception as e:
+       print(e)
       if (arg('test',responsearr) != ''):
        Settings.Notifiers[nindex].notify("Test message")
     addFormSeparator(2)

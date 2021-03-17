@@ -31,7 +31,9 @@ def doCleanup():
   rulesProcessing("System#Shutdown",rpieGlobals.RULE_SYSTEM)
   try:
    if (len(Settings.Tasks)>1) or ( (len(Settings.Tasks)==1) and (Settings.Tasks[0] != False) ):
-    Settings.savetasks()
+    ar = OS.autorun()
+    if ar.checkservice()==False: #do not save if using systemd service startup
+     Settings.savetasks()
   except Exception as e:
     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Shutdown error: "+str(e))
   procarr = []
