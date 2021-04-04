@@ -26,6 +26,7 @@ SysVars = ["systime","system_hm","lcltime","syshour","sysmin","syssec","sysday",
 "sysyear","sysyears","sysweekday","sysweekday_s","unixtime","uptime","rssi","ip","ip4","sysname","unit","ssid","mac","mac_int","build","sunrise","sunset","sun_altitude","sun_azimuth","sun_radiation","br","lf","tab",
 "v1","v2","v3","v4","v5","v6","v7","v8","v9","v10","v11","v12","v13","v14","v15","v16"]
 GlobalVars = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] #16 global var
+EventValues = []
 
 def doCleanup():
   rulesProcessing("System#Shutdown",rpieGlobals.RULE_SYSTEM)
@@ -221,10 +222,38 @@ def doExecuteCommand(cmdline,Parse=True):
   commandfound = True
   return commandfound
 
+ elif cmdarr[0] == "looptimerset":
+  if len(rpieTime.Timers)<1:
+   return False
+  try:
+   s = int(cmdarr[1])
+  except:
+   s = -1
+  try:
+   v = int(cmdarr[2])
+  except:
+   v = 1
+  try:
+   c = int(cmdarr[3])
+  except:
+   c = -1
+  if s >0 and (s<len(rpieTime.Timers)):
+   s = s-1 # array is 0 based, timers is 1 based
+   try:
+    if v==0:
+     rpieTime.Timers[s].stop(False)
+    else:
+     rpieTime.Timers[s].addcallback(TimerCallback)
+     rpieTime.Timers[s].start(v,looping=True,maxloops=c)
+   except Exception as e:
+    misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Timer start: "+str(e))
+  commandfound = True
+  return commandfound
+
  elif cmdarr[0] == "event":
   cmdargs = cmdline.replace(oldcmd,"",1)[1:]
-  cmdargs = cmdargs.replace(",","=",1).strip()
-  rulesProcessing(cmdargs,rpieGlobals.RULE_USER)
+  cmdargs = cmdargs.replace(",","=").strip()
+  rulesProcessing(cmdargs,rpieGlobals.RULE_CALLEVENT)
   commandfound = True
   return commandfound
 
@@ -987,7 +1016,7 @@ def parseconversions(cvalue):
  return retval
 
 def parseruleline(linestr,rulenum=-1):
- global GlobalRules
+ global GlobalRules, EventValues
  cline = linestr.strip()
  state = "CMD"
  if "[" in linestr:
@@ -1018,8 +1047,16 @@ def parseruleline(linestr,rulenum=-1):
      cline = cline.replace("["+m[r]+"]",str(tval))
   else:
    print("Please avoid special characters in names! ",linestr)
- if ("%eventvalue%" in linestr) and (rulenum!=-1):
-  cline = cline.replace("%eventvalue%",str(GlobalRules[rulenum]["evalue"]))
+ if ("%eventvalue" in linestr):
+  try:
+   cline = cline.replace("%eventvalue%",str(EventValues[0]))
+  except:
+   cline = cline.replace("%eventvalue%","-1")
+  for i in range(len(EventValues)):
+   try:
+    cline = cline.replace("%eventvalue"+str(i+1)+"%",str(EventValues[i]))
+   except:
+    pass
  if "%" in cline:
   m = re.findall(r"\%([A-Za-z0-9_#\+\-]+)\%", cline)
   if len(m)>0: # replace with values
@@ -1071,7 +1108,7 @@ def parseformula(line,value):
  return fv
 
 def rulesProcessing(eventstr,efilter=-1): # fire events
- global GlobalRules
+ global GlobalRules, EventValues
  rfound = -1
  retval = 0
  condlevel = 0
@@ -1082,6 +1119,25 @@ def rulesProcessing(eventstr,efilter=-1): # fire events
  estr=eventstr.strip().lower()
  if len(GlobalRules)<1:             # if no rules found, exit
   return False
+ if efilter==rpieGlobals.RULE_CALLEVENT:
+  try:
+   EventValues = eventstr.split("=")
+   estr = EventValues[0]
+   if len(EventValues)>1:
+    estr += "=" + EventValues[1]
+   del EventValues[0]
+  except Exception as e:
+   EventValues = []
+  efilter = rpieGlobals.RULE_USER
+ elif efilter == rpieGlobals.RULE_TIMER:
+  ta = eventstr.split("=")
+  try:
+   tn = int(ta[1])
+   EventValues = [0,0,0,0]
+   EventValues[0] = str(tn)
+   EventValues[1] = str(rpieTime.Timers[tn-1].loopcount)
+  except:
+   pass
  for r in range(len(GlobalRules)):
   if efilter!=-1:
    if GlobalRules[r]["ecat"]==efilter:  # check event based on filter
@@ -1115,7 +1171,7 @@ def rulesProcessing(eventstr,efilter=-1): # fire events
        break
  if rfound>-1: # if event found, analyze that
   fe1 = getfirstequpos(estr)
-  if (fe1>-1): # value found
+  if (fe1>-1) or "=" in GlobalRules[rfound]["ename"]: # value found
     if GlobalRules[rfound]["ecat"] == rpieGlobals.RULE_CLOCK: # check time strings equality
       pass
     elif GlobalRules[rfound]["ecat"] == rpieGlobals.RULE_TIMER: # check timer
@@ -1143,6 +1199,8 @@ def rulesProcessing(eventstr,efilter=-1): # fire events
          return False                # if False, than exit - it looks like a good idea, will see...
        except:
         return False
+      elif "=" in GlobalRules[rfound]["ename"]:
+       return False
   if len(GlobalRules[rfound]["ecode"])>0:
    for rl in range(len(GlobalRules[rfound]["ecode"])):
     try:

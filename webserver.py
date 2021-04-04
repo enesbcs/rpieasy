@@ -3085,7 +3085,15 @@ def handle_sysinfo(self):
    TXBuffer += "<TR><TD>Root access:<TD>"+rstr
  except:
   pass
- TXBuffer += "</table>"
+ try:
+  info = os.statvfs(os.path.realpath(__file__))
+ except:
+  info = None
+ if info is not None:
+  addTableSeparator("Storage", 2, 3)
+  TXBuffer += "<TR><TD>Free size:<TD>"+ str(int(info.f_frsize * info.f_bavail / 1024)) +" kB"
+  TXBuffer += "<TR><TD>Full size:<TD>"+ str(int(info.f_frsize * info.f_blocks / 1024)) +" kB"
+ TXBuffer += "<tr></tr></table>"
  sendHeadandTail("TmplStd",_TAIL)
  return TXBuffer
 
@@ -3237,7 +3245,7 @@ def handle_download(self):
    try:
     fname = OS.settingstozip()
    except Exception as e:
-    print(e)
+    misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG, "Download error: "+str(e))
    if fname!="":
     self.set_header("Content-Disposition", 'filename="data.zip"')
     return self.file(fname)

@@ -6,7 +6,7 @@
 # Copyright (C) 2018-2020 by Alexander Nagy - https://bitekmindenhol.blog.hu/
 #
 PROGNAME = "RPIEasy"
-BUILD   = 21076
+BUILD   = 21094
 PROGVER = str(BUILD)[:1]+"."+str(BUILD)[1:2]+"."+str(BUILD)[2:]
 
 gpMenu = []
@@ -74,6 +74,7 @@ RULE_USER     = 65530 # user defined event
 RULE_SYSTEM   = 65531 # System#Boot MQTT#Connected MQTT#Disconnected
 RULE_CLOCK    = 65532 # Clock#Time=
 RULE_TIMER    = 65533 # Rules#Timer=
+RULE_CALLEVENT = 65534
 
 DEVICE_TYPE_SINGLE               =   1  # connected through 1 datapin
 DEVICE_TYPE_DUAL                 =   2  # connected through 2 datapins
