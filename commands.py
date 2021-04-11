@@ -707,6 +707,19 @@ def gettaskvaluefromname(taskname): # taskname#valuename->value
    res=None
  return res
 
+def gettaskvaluesfromname(taskname): # taskname->value1,2,3,4
+ res = []
+ try:
+  for s in range(len(Settings.Tasks)):
+   if type(Settings.Tasks[s]) is not bool:
+    if Settings.Tasks[s].taskname.lower()==taskname:
+     for v in range(len(Settings.Tasks[s].valuenames)):
+       res.append(Settings.Tasks[s].uservar[v])
+     break
+ except:
+   res=[]
+ return res
+
 suntimesupported = -1
 
 def addtoTime(basetime, deltastr): # -1h +2h -10m +3m ...
@@ -1107,7 +1120,7 @@ def parseformula(line,value):
   fv = parsevalue(l2)
  return fv
 
-def rulesProcessing(eventstr,efilter=-1): # fire events
+def rulesProcessing(eventstr,efilter=-1,startn=0): # fire events
  global GlobalRules, EventValues
  rfound = -1
  retval = 0
@@ -1138,7 +1151,24 @@ def rulesProcessing(eventstr,efilter=-1): # fire events
    EventValues[1] = str(rpieTime.Timers[tn-1].loopcount)
   except:
    pass
- for r in range(len(GlobalRules)):
+ else: # hack taskvalues to eventvalues for lazy users
+  try:
+   tname = estr
+   if "=" in tname:
+    tarr = tname.split("=")
+    tname = tarr[0].strip()
+   if '#' in tname:
+    ev = gettaskvaluefromname(tname)
+    if ev is not None:
+     EventValues = [0,0,0,0]
+     EventValues[0] = str(ev)
+   else:
+    ev = gettaskvaluefromnames(tname)
+    if len(ev) < 1:
+     EventValues = ev
+  except:
+   pass
+ for r in range(startn,len(GlobalRules)):
   if efilter!=-1:
    if GlobalRules[r]["ecat"]==efilter:  # check event based on filter
      if efilter == rpieGlobals.RULE_TIMER:
@@ -1238,6 +1268,9 @@ def rulesProcessing(eventstr,efilter=-1): # fire events
         cret = doExecuteCommand(retval,False) # execute command
     except Exception as e:
      misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Parsed line: "+str(GlobalRules[rfound]["ecode"][rl])+" "+str(e))
+  if startn < len(GlobalRules)-1:
+   startn += 1
+   rulesProcessing(eventstr,efilter,startn) #recursive search for further events with the same name
 
 def comparetime(tstr):
  result = True
