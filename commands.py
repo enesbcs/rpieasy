@@ -960,7 +960,7 @@ def parsevalue(pvalue):
    try:
     if op:
      retval = eval(retval)  # evaluate expressions
-   except:
+   except Exception as e:
      retval = str(retval)
    return retval
 
@@ -1114,7 +1114,7 @@ def isformula(line):
   return False
 
 def parseformula(line,value):
- fv = False
+ fv = None
  if "%value%" in line.lower():
   l2 = line.replace("%value%",str(value))
   fv = parsevalue(l2)

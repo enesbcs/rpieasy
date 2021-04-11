@@ -112,7 +112,7 @@ class PluginProto: # Skeleton for every plugin! Override necessary functions and
     tval = False
     if len(self.formula[valuenum-1])>0 and commands.isformula(self.formula[valuenum-1]):
      tval = commands.parseformula(self.formula[valuenum-1],float(value))
-     if tval!=False:
+     if tval!=None:
       rval = tval
    if self.pininversed:          # only binary sensors supported for inversion!
     if type(rval) is str:
