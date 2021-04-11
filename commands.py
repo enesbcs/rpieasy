@@ -691,7 +691,7 @@ def gettaskvaluefromname(taskname): # taskname#valuename->value
  try:
   taskprop = taskname.split("#")
   taskprop[0] = taskprop[0].strip().lower()
-  taskprop[1] = taskprop[1].strip().lower() 
+  taskprop[1] = taskprop[1].strip().lower()
  except:
   res = None
   return res
@@ -1125,12 +1125,12 @@ def rulesProcessing(eventstr,efilter=-1,startn=0): # fire events
  rfound = -1
  retval = 0
  condlevel = 0
+ oldfilter = -1
  ifbools = []
  for i in range(rpieGlobals.RULES_IF_MAX_NESTING_LEVEL):
   ifbools.append(True)
- misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"Event: "+eventstr)
  estr=eventstr.strip().lower()
- if len(GlobalRules)<1:             # if no rules found, exit
+ if len(GlobalRules)<1 or (startn >= len(GlobalRules)):             # if no rules found, exit
   return False
  if efilter==rpieGlobals.RULE_CALLEVENT:
   try:
@@ -1141,6 +1141,7 @@ def rulesProcessing(eventstr,efilter=-1,startn=0): # fire events
    del EventValues[0]
   except Exception as e:
    EventValues = []
+  oldfilter = efilter
   efilter = rpieGlobals.RULE_USER
  elif efilter == rpieGlobals.RULE_TIMER:
   ta = eventstr.split("=")
@@ -1164,7 +1165,7 @@ def rulesProcessing(eventstr,efilter=-1,startn=0): # fire events
      EventValues[0] = str(ev)
    else:
     ev = gettaskvaluefromnames(tname)
-    if len(ev) < 1:
+    if len(ev) > 0:
      EventValues = ev
   except:
    pass
@@ -1200,6 +1201,7 @@ def rulesProcessing(eventstr,efilter=-1,startn=0): # fire events
        rfound = r
        break
  if rfound>-1: # if event found, analyze that
+  misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"Event: "+eventstr)
   fe1 = getfirstequpos(estr)
   if (fe1>-1) or "=" in GlobalRules[rfound]["ename"]: # value found
     if GlobalRules[rfound]["ecat"] == rpieGlobals.RULE_CLOCK: # check time strings equality
@@ -1268,8 +1270,10 @@ def rulesProcessing(eventstr,efilter=-1,startn=0): # fire events
         cret = doExecuteCommand(retval,False) # execute command
     except Exception as e:
      misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Parsed line: "+str(GlobalRules[rfound]["ecode"][rl])+" "+str(e))
-  if startn < len(GlobalRules)-1:
-   startn += 1
+  if rfound < len(GlobalRules)-1:
+   startn = rfound + 1
+   if oldfilter != -1:
+    efilter = oldfilter
    rulesProcessing(eventstr,efilter,startn) #recursive search for further events with the same name
 
 def comparetime(tstr):
