@@ -853,7 +853,7 @@ def getglobalvar(varname):
       abd_sr = sun.get_local_sunrise_time(datetime.now())
       if par!="":
        abd_sr = addtoTime(abd_sr,par)
-      res = abd_sr.strftime('%H:%M')
+      res = misc.timecorrect(abd_sr.strftime('%H:%M'))
      except Exception as e:
       res = "00:00"
      return res
@@ -869,7 +869,7 @@ def getglobalvar(varname):
       abd_ss = sun.get_local_sunset_time(datetime.now())
       if par!="":
        abd_ss = addtoTime(abd_ss,par)
-      res = abd_ss.strftime('%H:%M')
+      res = misc.timecorrect(abd_ss.strftime('%H:%M'))
      except Exception as e:
       res = "00:00"
      return res

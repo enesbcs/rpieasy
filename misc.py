@@ -174,3 +174,19 @@ def get_taskname_taskids(taskname):
    except:
     pass
   return res
+
+def timecorrect(timestr):
+    tstr = str(timestr)
+    try:
+     if ':' in tstr:
+      tarr = tstr.split(":")
+     elif '-' in tstr:
+      tarr = tstr.split("-")
+     elif '.' in tstr:
+      tarr = tstr.split(".")
+     elif '/' in tstr:
+      tarr = tstr.split("/")
+     tstr = '{:02}'.format(int(tarr[0]))  + ":{:02}".format(int(tarr[1]))
+    except Exception as e:
+     pass
+    return tstr
