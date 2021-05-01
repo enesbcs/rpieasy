@@ -3999,7 +3999,7 @@ def sendHeadandTail(tmplName, Tail = False):
       if (indexEnd > 0):
         varName = pageTemplate[2:indexEnd]
         pageTemplate = pageTemplate[(indexEnd + 2):]
-        varName.lower()
+        varName = varName.lower()
 
         if (varName == "content"): # is var == page content?
           break #;  // send first part of result only

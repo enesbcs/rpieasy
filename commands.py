@@ -1267,7 +1267,10 @@ def rulesProcessing(eventstr,efilter=-1,startn=0): # fire events
         condlevel = 0
         return True
        else:
-        cret = doExecuteCommand(retval,False) # execute command
+        try:
+         cret = doExecuteCommand(retval,False) # execute command
+        except:
+         pass
     except Exception as e:
      misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Parsed line: "+str(GlobalRules[rfound]["ecode"][rl])+" "+str(e))
   if rfound < len(GlobalRules)-1:

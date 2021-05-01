@@ -310,6 +310,7 @@ def runon2seconds():
    except:
     pass
  checkNetwork()
+ checkloopTimers()
  if len(procarr)>0:
   for process in procarr:
     process.join()

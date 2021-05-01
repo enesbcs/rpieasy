@@ -76,12 +76,12 @@ class timer:
      pass
     self.timer = None
    self.starttime = time.time()
-   self.lefttime  = timeout
+   self.lefttime  = float(timeout)
    self.state = 1
    self.timeractive = True
    self.looping = looping
    if usrcall or self.timeout==0:
-    self.timeout = timeout
+    self.timeout = float(timeout)
     self.maxloops = maxloops
     self.loopcount = 0
    self.loopcount += 1
@@ -143,6 +143,15 @@ class timer:
     self.timer.start()
    except Exception as e:
     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR, "Timer "+str(self.timerid)+" error: "+str(e))
+
+def checkloopTimers():
+ global Timers
+ for t in range(rpieGlobals.RULES_TIMER_MAX):
+  if Timers[t].state==0 and Timers[t].looping: #check inactive loop timers
+   if Timers[t].maxloops == -1 or (Timers[t].loopcount < Timers[t].maxloops): #if end is unexpected
+    if Timers[t].timeout>0:
+     if (time.time() - Timers[t].laststart)> (Timers[t].timeout+1):
+       Timers[t].start(Timers[t].timeout,False,True,Timers[t].maxloops) #restart
 
 def addsystemtimer(timeout,callbackfunc,retvaluearray):
  result = False
