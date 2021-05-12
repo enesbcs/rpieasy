@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #############################################################################
-################## Telegram notifier plugin for RPIEasy #####################
+################## MSTeams notifier plugin for RPIEasy ######################
 #############################################################################
 #
 # Copyright (C) 2021 by Alexander Nagy - https://bitekmindenhol.blog.hu/
