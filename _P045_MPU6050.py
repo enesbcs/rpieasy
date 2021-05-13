@@ -132,7 +132,7 @@ class Plugin(plugin.PluginProto):
   return True
 
  def webform_save(self,params): # process settings post reply
-   par = webserver.arg("p045_addr",params)
+   par = webserver.arg("p045_address",params)
    if par == "":
     par = 0x68
    self.taskdevicepluginconfig[0] = int(par)

@@ -1203,6 +1203,12 @@ def rulesProcessing(eventstr,efilter=-1,startn=0): # fire events
     if fe1 ==-1:
      fe1 = len(estr)
     if fe1<=len(GlobalRules[r]["ename"]):
+      try:
+         if fe1!=len(GlobalRules[r]["ename"]):
+          if GlobalRules[r]["ename"][fe1] not in [' ','#']:
+           continue
+      except:
+         pass
       if GlobalRules[r]["ename"][:fe1].lower()==estr[:fe1].lower():
        rfound = r
        break
