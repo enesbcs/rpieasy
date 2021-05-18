@@ -322,13 +322,17 @@ plugindependencies = [
 {"pluginid": "5", # DHT
  "supported_os_level": [3,9,10],
  "modules":["Adafruit_DHT"]},
-{"pluginid": "8", # Wiegand GPIO
- "supported_os_level": [10],
- "modules":["GPIO","wpi","wiegand_io2"]},
+{"pluginid": "6", # BMP180
+ "supported_os_level": [3,9,10],
+ "ext":256,
+ "modules":["i2c"]},
 {"pluginid": "7", # PCF8591
  "supported_os_level": [3,9,10],
  "ext":256,
  "modules":["i2c"]},
+{"pluginid": "8", # Wiegand GPIO
+ "supported_os_level": [10],
+ "modules":["GPIO","wpi","wiegand_io2"]},
 {"pluginid": "9", # MCP
  "supported_os_level": [10],
  "modules":["GPIO","i2c","MCP"]},
