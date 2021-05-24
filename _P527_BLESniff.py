@@ -355,7 +355,11 @@ class Plugin(plugin.PluginProto):
       cdata = struct.unpack_from('>H 6B h B B H B',buf)
      except:
       cdata = [0]
-     res = {"temp":cdata[7]/10.0,"hum":cdata[8],"batt":cdata[9]}
+     ttemp = int(cdata[7])/10.0
+     if ttemp > -20 and ttemp < 120:
+      res = {"temp": ttemp,"hum":cdata[8],"batt":cdata[9]}
+     else:
+      res = {}
   return res
 
  def dosync(self,addr,rssi,values):

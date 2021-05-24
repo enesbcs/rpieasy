@@ -25,7 +25,7 @@ class Plugin(plugin.PluginProto):
  def __init__(self,taskindex): # general init
   plugin.PluginProto.__init__(self,taskindex)
   self.dtype = rpieGlobals.DEVICE_TYPE_I2C
-  self.vtype = rpieGlobals.SENSOR_TYPE_TEMP_EMPTY_BARO
+  self.vtype = rpieGlobals.SENSOR_TYPE_TEMP_BARO
   self.readinprogress = 0
   self.valuecount = 2
   self.senddataoption = True
