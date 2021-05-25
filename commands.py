@@ -22,7 +22,7 @@ import urllib.request
 import threading
 
 GlobalRules = []
-SysVars = ["systime","system_hm","lcltime","syshour","sysmin","syssec","sysday","sysmonth",
+SysVars = ["systime","systm_hm","lcltime","syshour","sysmin","syssec","sysday","sysmonth",
 "sysyear","sysyears","sysweekday","sysweekday_s","unixtime","uptime","rssi","ip","ip4","sysname","unit","ssid","mac","mac_int","build","sunrise","sunset","sun_altitude","sun_azimuth","sun_radiation","br","lf","tab",
 "v1","v2","v3","v4","v5","v6","v7","v8","v9","v10","v11","v12","v13","v14","v15","v16"]
 GlobalVars = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] #16 global var

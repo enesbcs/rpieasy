@@ -244,6 +244,7 @@ class Bme280(object):
         t = self.calc_compensated_temperature(t_fine)
         p = self.calc_compensated_pressure(t_fine, pressure_raw)
         h = self.calc_compensated_humidity(t_fine, humidity_raw)
+        p = p / 100.0
         # chip returns to sleep after data readout automatically, mirror it
         self.mode = self.MODE_SLEEP
         self.readinprogress = 0
