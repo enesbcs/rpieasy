@@ -353,11 +353,14 @@ class Plugin(plugin.PluginProto):
     if buf[0]==0x1A and buf[1]==0x18: # ATC
      try:
       cdata = struct.unpack_from('>H 6B h B B H B',buf)
+      ttemp = int(cdata[7])/10.0
+      thum = cdata[8]
      except:
       cdata = [0]
-     ttemp = int(cdata[7])/10.0
-     if ttemp > -20 and ttemp < 120:
-      res = {"temp": ttemp,"hum":cdata[8],"batt":cdata[9]}
+      ttemp = 0
+      thum = 101
+     if len(cdata)>1 and (ttemp > -20 and ttemp < 120) and thum < 101: #basic validation
+      res = {"temp": ttemp,"hum": thum,"batt":cdata[9]}
      else:
       res = {}
   return res
