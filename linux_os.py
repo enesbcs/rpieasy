@@ -319,7 +319,7 @@ def getRPIVer():
     if len(detarr)>1:
      hwid = detarr[1].strip().lower()
      if hwid[:4] == "1000":
-      hwid = hwid[:-4]
+      hwid = hwid[-4:]
      if (hwid == "0002") or (hwid == "0003"):
       hwarr = { 
        "name": "Pi 1 Model B",
