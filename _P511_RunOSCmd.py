@@ -17,6 +17,7 @@ import os
 import commands
 import threading
 import Settings
+import urllib
 
 class Plugin(plugin.PluginProto):
  PLUGIN_ID = 511
@@ -50,8 +51,14 @@ class Plugin(plugin.PluginProto):
     self.timer100ms = True
 
  def webform_load(self):
-  webserver.addFormTextBox("Command 0","plugin_511_cmd0",str(self.taskdevicepluginconfig[0]),512)
-  webserver.addFormTextBox("Command 1","plugin_511_cmd1",str(self.taskdevicepluginconfig[1]),512)
+  cmd1 = str(self.taskdevicepluginconfig[0])
+  if '"' in cmd1 or "'" in cmd1:
+   cmd1 =   urllib.parse.quote(cmd1)
+  cmd2 = str(self.taskdevicepluginconfig[1])
+  if '"' in cmd2 or "'" in cmd2:
+   cmd2 =   urllib.parse.quote(cmd2)
+  webserver.addFormTextBox("Command 0","plugin_511_cmd0",cmd1,512)
+  webserver.addFormTextBox("Command 1","plugin_511_cmd1",cmd2,512)
   webserver.addFormNote("Specify OS commands that has to be executed at the speficied state (0/1)")
   webserver.addFormCheckBox("Use threading to run in background","plugin_511_th",self.taskdevicepluginconfig[2])
   webserver.addFormCheckBox("Enable parsing command line before execute","plugin_511_parse",self.taskdevicepluginconfig[3])
@@ -74,8 +81,8 @@ class Plugin(plugin.PluginProto):
   return True
 
  def webform_save(self,params):
-  self.taskdevicepluginconfig[0] = str(webserver.arg("plugin_511_cmd0",params)).strip()
-  self.taskdevicepluginconfig[1] = str(webserver.arg("plugin_511_cmd1",params)).strip()
+  self.taskdevicepluginconfig[0]  =   urllib.parse.unquote(str(webserver.arg("plugin_511_cmd0",params)).strip())
+  self.taskdevicepluginconfig[1]  =   urllib.parse.unquote(str(webserver.arg("plugin_511_cmd1",params)).strip())
   if str(self.taskdevicepluginconfig[0])=="0":
    self.taskdevicepluginconfig[0]=""
   if str(self.taskdevicepluginconfig[1])=="0":
@@ -116,6 +123,7 @@ class Plugin(plugin.PluginProto):
           cmdline = str(cl)
        else:
           cmdline = str(cmdline)
+#      print("XXX ",cmdline," XXX")#debug
       output = os.popen(cmdline)
       if self.taskdevicepluginconfig[2]:
        return True
