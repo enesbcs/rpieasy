@@ -162,7 +162,7 @@ class Plugin(plugin.PluginProto):
   if self.initialized and self.enabled:
    try:
     val = self.pcf.readpin(self.rpin)
-    if int(val) != int(float(self.uservar[0])):
+    if float(val) != float(self.uservar[0]):
      self.set_value(1,val,True)
      self._lastdataservetime = rpieTime.millis()
    except:
@@ -172,7 +172,7 @@ class Plugin(plugin.PluginProto):
  def timer_once_per_second(self):
   if self.initialized and self.enabled:
    if self.timer100ms==False:
-    self.ten_per_second()
+    self.timer_ten_per_second()
   return self.timer1s
 
  def plugin_read(self): # deal with data processing at specified time interval

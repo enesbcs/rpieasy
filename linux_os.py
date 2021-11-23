@@ -405,6 +405,14 @@ def getRPIVer():
        "wlan": "1",
        "bt":"1"
       }
+     elif (hwid == "902120"):
+      hwarr = { 
+       "name": "Pi Zero 2W",
+       "ram": "512MB",
+       "pins": "40",
+       "wlan": "1",
+       "bt":"1"
+      }
      elif (hwid == "a02082") or (hwid == "a22082") or (hwid == "a32082") or (hwid == "a52082") or (hwid == "a22083"):
       hwarr = { 
        "name": "Pi 3 Model B",

@@ -35,6 +35,9 @@ class Controller(controller.ControllerProto):
   self.controllerport = 65501
   self.timer30s = True
   self.bgproc = None
+  self.netmethod = 0
+  self.ownip = ""
+  self.ownmac = ""
 
  def controller_init(self,enablecontroller=None):
   if enablecontroller != None:
@@ -44,12 +47,40 @@ class Controller(controller.ControllerProto):
    self.bgproc.daemon = True
    self.bgproc.start()
 #   self.timer_thirty_second()
+  try:
+   nm = self.netmethod
+  except:
+   self.netmethod = 0
+   self.ownip = ""
   self.initialized = True
   return True
 
  def webform_load(self):
   webserver.addFormNote("Hint: only the Controller Port parameter used!")
+  options = ["Primary net","Secondary net","Manual"]
+  optionvalues = [0,1,2]
+  try:
+   netm = self.netmethod
+  except:
+   netm = 0
+  webserver.addFormSelector("IP address","c013_net",len(optionvalues),options,optionvalues,None,int(netm))
+  try:
+   oip = self.ownip
+  except:
+   oip = ""
+  if netm != 2:
+   oip = ""
+  elif oip == "":
+   oip = str(OS.get_ip())
+  webserver.addFormTextBox("Force own IP to broadcast","c013_ip",str(oip),16)
   return True
+
+ def webform_save(self,params):
+     self.netmethod = int(webserver.arg("c013_net",params))
+     if self.netmethod == 2:
+      self.ownip = str(webserver.arg("c013_ip",params))
+     else:
+      self.ownip = ""
 
  def nodesort(self,item):
   v = 0
@@ -227,17 +258,51 @@ class Controller(controller.ControllerProto):
   if self.enabled:
   #send alive signals
    dp = data_packet()
-   try:
-    defdev = Settings.NetMan.getprimarydevice()
-   except Exception as e:
-    misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"C013 sysinfo: "+str(e))
-    defdev = -1
-   if defdev != -1:
-    dp.infopacket["mac"] = Settings.NetworkDevices[defdev].mac
-    dp.infopacket["ip"] = Settings.NetworkDevices[defdev].ip
-   else:
-    dp.infopacket["mac"] = "00:00:00:00:00:00"
-    dp.infopacket["ip"] = ""
+   dp.infopacket["mac"] = "00:00:00:00:00:00"
+   dp.infopacket["ip"] = ""
+   if self.netmethod == 2:
+    try:
+     defdev = Settings.NetMan.getprimarydevice()
+    except Exception as e:
+     defdev = -1
+    if defdev != -1:
+     try:
+      dp.infopacket["mac"] = Settings.NetworkDevices[defdev].mac
+     except:
+      pass
+    else:
+     try:
+      defdev = Settings.NetMan.getsecondarydevice()
+     except Exception as e:
+      defdev = -1
+     if defdev != -1:
+      try:
+       dp.infopacket["mac"] = Settings.NetworkDevices[defdev].mac
+      except:
+       pass
+    dp.infopacket["ip"] = self.ownip
+   elif self.netmethod == 0:
+    try:
+     defdev = Settings.NetMan.getprimarydevice()
+    except Exception as e:
+     defdev = -1
+    if defdev != -1:
+     try:
+      dp.infopacket["mac"] = Settings.NetworkDevices[defdev].mac
+      dp.infopacket["ip"] = Settings.NetworkDevices[defdev].ip
+     except:
+      pass
+   elif self.netmethod == 1:
+    try:
+     defdev = Settings.NetMan.getsecondarydevice()
+    except Exception as e:
+     defdev = -1
+    if defdev != -1:
+     try:
+      dp.infopacket["mac"] = Settings.NetworkDevices[defdev].mac
+      dp.infopacket["ip"] = Settings.NetworkDevices[defdev].ip
+     except:
+      pass
    if dp.infopacket["ip"] == "":
     try:
      dp.infopacket["ip"] = str(OS.get_ip())

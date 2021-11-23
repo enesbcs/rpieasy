@@ -1029,7 +1029,7 @@ def parseconversions(cvalue):
  return retval
 
 def parseruleline(linestr,rulenum=-1):
- global GlobalRules, EventValues
+ global GlobalRules, EventValues, SysVars
  cline = linestr.strip()
  state = "CMD"
  if "[" in linestr:
@@ -1090,6 +1090,19 @@ def parseruleline(linestr,rulenum=-1):
     cline = cline.replace(">==",">=")
     cline = cline.replace("<==","<=")
    tline = cline
+   if (SysVars[0] in linestr) or (SysVars[1] in linestr): #convert time strings
+     m = re.findall(r"(?:[01]\d|2[0-3]):(?:[0-5]\d):(?:[0-5]\d)", cline)
+     for tm in m:
+      st = timeStringToSeconds(tm)
+      if st != None:
+       st = str(st)
+       cline = cline.replace(tm,st)
+     m = re.findall(r"(?:[01]\d|2[0-3]):(?:[0-5]\d)", cline)
+     for tm in m:
+      st = timeStringToSeconds(tm)
+      if st != None:
+       st = str(st)
+       cline = cline.replace(tm,st)
    state = "IFST"
    try:
     cline = eval(cline[3:])
@@ -1152,23 +1165,23 @@ def rulesProcessing(eventstr,efilter=-1,startn=0): # fire events
    EventValues[1] = str(rpieTime.Timers[tn-1].loopcount)
   except:
    pass
- else: # hack taskvalues to eventvalues for lazy users
-  try:
-   tname = estr
-   if "=" in tname:
-    tarr = tname.split("=")
-    tname = tarr[0].strip()
-   if '#' in tname:
-    ev = gettaskvaluefromname(tname)
-    if ev is not None:
-     EventValues = [0,0,0,0]
-     EventValues[0] = str(ev)
-   else:
-    ev = gettaskvaluefromnames(tname)
-    if len(ev) > 0:
-     EventValues = ev
-  except:
-   pass
+# else: # hack taskvalues to eventvalues for lazy users
+#  try:
+#   tname = estr
+#   if "=" in tname:
+#    tarr = tname.split("=")
+#    tname = tarr[0].strip()
+#   if '#' in tname:
+#    ev = gettaskvaluefromname(tname)
+#    if ev is not None:
+#     EventValues = [0,0,0,0]
+#     EventValues[0] = str(ev)
+#   else:
+#    ev = gettaskvaluefromnames(tname)
+#    if len(ev) > 0:
+#     EventValues = ev
+#  except:
+#   pass
  for r in range(startn,len(GlobalRules)):
   if efilter!=-1:
    if GlobalRules[r]["ecat"]==efilter:  # check event based on filter
@@ -1313,3 +1326,24 @@ def comparetime(tstr):
  except:
   result = False
  return result
+
+def timeStringToSeconds(tstr):
+    cc = tstr.count(':')
+    tv = None
+    if cc==1 or cc==2:
+     tv = 0
+     try:
+      tva = tstr.split(':')
+      h = int(tva[0])
+      m = int(tva[1])
+      if h>24 or h<0 or m<0 or m>59:
+       return None
+      tv = (h * 3600) + (m*60)
+      if cc==2:
+       s = int(tva[2])
+       if s <0 or s>59:
+        return None
+       tv += s
+     except:
+      tv = None
+    return tv
