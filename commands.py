@@ -1204,7 +1204,7 @@ def rulesProcessing(eventstr,efilter=-1,startn=0): # fire events
        if fe1<=len(GlobalRules[r]["ename"]):
         try:
          if fe1!=len(GlobalRules[r]["ename"]):
-          if GlobalRules[r]["ename"][fe1] not in [' ','#']:
+          if GlobalRules[r]["ename"][fe1] not in [' ','#','=','<','>']:
            continue
         except:
          pass
@@ -1218,7 +1218,7 @@ def rulesProcessing(eventstr,efilter=-1,startn=0): # fire events
     if fe1<=len(GlobalRules[r]["ename"]):
       try:
          if fe1!=len(GlobalRules[r]["ename"]):
-          if GlobalRules[r]["ename"][fe1] not in [' ','#']:
+          if GlobalRules[r]["ename"][fe1] not in [' ','#','=','<','>']:
            continue
       except:
          pass
@@ -1238,6 +1238,8 @@ def rulesProcessing(eventstr,efilter=-1,startn=0): # fire events
 #      print("ename ",GlobalRules[rfound]["ename"]) # debug
       if getfirstequpos(str(GlobalRules[rfound]["ename"]))>-1:
        invalue = removeequchars(estr[fe1:].replace("=","").strip())
+      else:
+       invalue = "1"
 #      print("i1 ",invalue)                     # debug
 #      print("estr ",estr,getfirstequpos(estr)) # debug
       if getfirstequpos(estr)>-1:
@@ -1246,6 +1248,8 @@ def rulesProcessing(eventstr,efilter=-1,startn=0): # fire events
        else:
         GlobalRules[rfound]["evalue"]=removeequchars(estr[fe1:].replace("=","").strip())
 #      print("i2 ",invalue)                     # debug
+      if efilter == rpieGlobals.RULE_SYSTEM: # hack for system events
+         invalue = "1"
       if invalue != "":
        GlobalRules[rfound]["evalue"]=invalue                 # %eventvalue%
        tes = str(invalue)+str(GlobalRules[rfound]["ename"][fe1:])
