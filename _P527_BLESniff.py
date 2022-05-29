@@ -351,16 +351,30 @@ class Plugin(plugin.PluginProto):
      res = {}
   else:
     if buf[0]==0x1A and buf[1]==0x18: # ATC
-     try:
-      cdata = struct.unpack_from('>H 6B h B B H B',buf)
-      ttemp = int(cdata[7])/10.0
-      thum = cdata[8]
-     except:
-      cdata = [0]
-      ttemp = 0
-      thum = 101
+     ttemp = 0
+     thum = 101
+     if len(buf)==15: #atc1441
+      try:
+       cdata = struct.unpack_from('>H 6B h B B H B',buf)
+       ttemp = int(cdata[7])/10.0
+       thum = cdata[8]
+       tbat = cdata[9]
+      except:
+       cdata = [0]
+       ttemp = 0
+       thum = 101
+     elif len(buf)==17: #custom pvvx
+      try:
+       cdata = struct.unpack_from('<H 6B h H H B B B',buf)
+       ttemp = float(misc.formatnum(float(cdata[7]) * 0.01,2))
+       thum = float(misc.formatnum(float(cdata[8]) * 0.01,2))
+       tbat = cdata[10]
+      except:
+       cdata = [0]
+       ttemp = 0
+       thum = 101
      if len(cdata)>1 and (ttemp > -20 and ttemp < 120) and thum < 101: #basic validation
-      res = {"temp": ttemp,"hum": thum,"batt":cdata[9]}
+      res = {"temp": ttemp,"hum": thum,"batt":tbat}
      else:
       res = {}
   return res

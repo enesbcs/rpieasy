@@ -520,6 +520,14 @@ plugindependencies = [
  "supported_os_level": [3,9,10],
  "ext":128,
  "modules":["GPIO"]},
+{"pluginid": "214", # UPS-Lite
+ "supported_os_level": [3,9,10],
+ "ext":256,
+ "modules":["i2c"]},
+{"pluginid": "215", # MCP342x
+ "supported_os_level": [3,9,10],
+ "ext":256,
+ "modules":["i2c"]},
 {"pluginid": "501", # USB relay
  "modules":["hidapi"]},
 {"pluginid": "502", # pygame play wav/mp3

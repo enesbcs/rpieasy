@@ -190,3 +190,13 @@ def timecorrect(timestr):
     except Exception as e:
      pass
     return tstr
+
+def getfirstfreetask():
+  ft = len(Settings.Tasks)
+  for i in range(len(Settings.Tasks)):
+   try:
+    if Settings.Tasks[i] == False:
+     return i
+   except:
+    pass
+  return ft

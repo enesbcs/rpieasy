@@ -38,6 +38,7 @@ class Controller(controller.ControllerProto):
   self.netmethod = 0
   self.ownip = ""
   self.ownmac = ""
+  self.dynamictasknum = False
 
  def controller_init(self,enablecontroller=None):
   if enablecontroller != None:
@@ -52,6 +53,16 @@ class Controller(controller.ControllerProto):
   except:
    self.netmethod = 0
    self.ownip = ""
+  try:
+   nm = self.dynamictasknum
+  except:
+   self.dynamictasknum = False
+  for t in range(len(Settings.Tasks)):
+      try:
+       if Settings.Tasks[tasknum].feedpublished:
+        Settings.Tasks[tasknum].feedpublished = False #make sure to republish if restarted
+      except:
+       pass
   self.initialized = True
   return True
 
@@ -73,6 +84,7 @@ class Controller(controller.ControllerProto):
   elif oip == "":
    oip = str(OS.get_ip())
   webserver.addFormTextBox("Force own IP to broadcast","c013_ip",str(oip),16)
+  webserver.addFormCheckBox("Enable dynamic task number allocation","c013_dyntask", self.dynamictasknum)
   return True
 
  def webform_save(self,params):
@@ -81,6 +93,7 @@ class Controller(controller.ControllerProto):
       self.ownip = str(webserver.arg("c013_ip",params))
      else:
       self.ownip = ""
+     self.dynamictasknum = (str(webserver.arg("c013_dyntask",params))=="on")
 
  def nodesort(self,item):
   v = 0
@@ -126,7 +139,7 @@ class Controller(controller.ControllerProto):
            misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"Unit alive: "+str(dp.infopacket["unitno"]))
         elif dp.pkgtype==3:                              # process incoming new devices
           if int(Settings.Settings["Unit"])==int(dp.sensorinfo["dunit"]): # process only if we are the destination
-           rtaskindex = int(dp.sensorinfo["dti"])
+           rtaskindex = self.gettasknum(int(dp.sensorinfo["dti"]), int(dp.sensorinfo["sunit"]), int(dp.sensorinfo["sti"]), True) # rtaskindex = int(dp.sensorinfo["dti"])
            if len(Settings.Tasks)<=rtaskindex or Settings.Tasks[rtaskindex]==False: # continue only if taskindex is empty
             misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"Sensorinfo arrived from unit "+str(dp.sensorinfo["sunit"]))
             devtype = 33
@@ -153,18 +166,25 @@ class Controller(controller.ControllerProto):
              Settings.Tasks[rtaskindex].plugin_init(False)
              Settings.Tasks[rtaskindex].remotefeed = True  # Mark that this task accepts incoming data updates!
              Settings.Tasks[rtaskindex].taskname = dp.sensorinfo["taskname"]
+             p2pid = [0,0,0]
+             p2pid[0] = int(dp.sensorinfo["sunit"])
+             p2pid[1] = int(dp.sensorinfo["sti"])
+             p2pid[2] = int(dp.sensorinfo["dti"])
+             Settings.Tasks[rtaskindex].controlleridx[self.getcontrollerindex()] = p2pid
+             Settings.Tasks[rtaskindex].ports = "P2P U"+str(p2pid[0])+"/T"+str(p2pid[1]+1)
              for v in range(4):
               dp.sensorinfo["valuenames"].append("")
              for v in range(Settings.Tasks[rtaskindex].valuecount):
                Settings.Tasks[rtaskindex].valuenames[v] = dp.sensorinfo["valuenames"][v]
         elif dp.pkgtype==5:                          # process incoming data
           if int(Settings.Settings["Unit"])==int(dp.sensordata["dunit"]): # process only if we are the destination
-           rtaskindex = int(dp.sensordata["dti"])
-           if len(Settings.Tasks)>rtaskindex and Settings.Tasks[rtaskindex] and Settings.Tasks[rtaskindex].remotefeed: # continue only if taskindex exists and accepts incoming datas
-            misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"Sensordata update arrived from unit "+str(dp.sensordata["sunit"]))
-            for v in range(Settings.Tasks[rtaskindex].valuecount):
-             Settings.Tasks[rtaskindex].set_value(v+1,dp.sensordata["values"][v],False)
-            Settings.Tasks[rtaskindex].plugin_senddata()
+           rtaskindex = self.gettasknum(int(dp.sensordata["dti"]), int(dp.sensordata["sunit"]), int(dp.sensordata["sti"])) # rtaskindex = int(dp.sensordata["dti"])
+           if rtaskindex != -1:
+            if len(Settings.Tasks)>rtaskindex and Settings.Tasks[rtaskindex] and Settings.Tasks[rtaskindex].remotefeed: # continue only if taskindex exists and accepts incoming datas
+             misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"Sensordata update arrived from unit "+str(dp.sensordata["sunit"]))
+             for v in range(Settings.Tasks[rtaskindex].valuecount):
+              Settings.Tasks[rtaskindex].set_value(v+1,dp.sensordata["values"][v],False)
+             Settings.Tasks[rtaskindex].plugin_senddata()
 
         elif dp.pkgtype==0:
           misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"Command arrived from "+str(address))
@@ -332,6 +352,43 @@ class Controller(controller.ControllerProto):
      pass
   return True
 
+ def gettasknum(self, desttask, sourceunit, sourcetask, reqnew=False):
+  if self.dynamictasknum == False:
+   return desttask
+  if reqnew:
+   if len(Settings.Tasks) < desttask:
+    tasknum = desttask
+   else:
+    try:
+     if Settings.Tasks[desttask] == False:
+       tasknum = desttask
+     else:
+       tasknum = misc.getfirstfreetask()
+    except:
+     tasknum = misc.getfirstfreetask()
+  else:
+   tasknum = -1
+  try:
+   if desttask < len(Settings.Tasks):
+    if Settings.Tasks[desttask] != False:
+     p2pid = Settings.Tasks[desttask].controlleridx[self.getcontrollerindex()]
+     if p2pid[0] == sourceunit and p2pid[1] == sourcetask:
+      tasknum = desttask
+      return tasknum
+  except:
+   pass
+  for t in range(len(Settings.Tasks)):
+     try:
+      if Settings.Tasks[t].remotefeed:
+        p2pid = Settings.Tasks[t].controlleridx[self.getcontrollerindex()]
+        if p2pid[0] == sourceunit and p2pid[1] == sourcetask:
+         tasknum = t
+         return tasknum
+     except:
+      pass
+  return tasknum
+
+
 class data_packet:
  buffer = bytearray(255)
  infopacket = {"mac":"","ip":"","unitno":-1,"build":0,"name":"","type":0,"port":80}
@@ -381,6 +438,8 @@ class data_packet:
      tbuf.append(255)
    if int(self.infopacket["unitno"])<0:
     self.infopacket["unitno"] = 0
+   if int(self.infopacket["unitno"])>255:
+    self.infopacket["unitno"] = 255
    tbuf.append(int(self.infopacket["unitno"]))
    tbuf.append(int(self.infopacket["build"]%256))
    tbuf.append(int(self.infopacket["build"]/256))
@@ -405,6 +464,14 @@ class data_packet:
     self.buffer = bytes()
   if ptype == 3:
    tbuf = [255,3]
+   if int(self.sensorinfo["sunit"])>255:
+    self.sensorinfo["sunit"] = 255
+   if int(self.sensorinfo["dunit"])>255:
+    self.sensorinfo["dunit"] = 255
+   if int(self.sensorinfo["sti"])>255:
+    self.sensorinfo["sti"] = 255
+   if int(self.sensorinfo["dti"])>255:
+    self.sensorinfo["dti"] = 255
    tbuf.append(int(self.sensorinfo["sunit"]))
    tbuf.append(int(self.sensorinfo["dunit"]))
    tbuf.append(int(self.sensorinfo["sti"]))
@@ -432,6 +499,14 @@ class data_packet:
    self.buffer = bytes(tbuf)
   if ptype == 5:
    tbuf = [255,5]
+   if int(self.sensordata["sunit"])>255:
+    self.sensordata["sunit"] = 255
+   if int(self.sensordata["dunit"])>255:
+    self.sensordata["dunit"] = 255
+   if int(self.sensordata["sti"])>255:
+    self.sensordata["sti"] = 255
+   if int(self.sensordata["dti"])>255:
+    self.sensordata["dti"] = 255
    tbuf.append(int(self.sensordata["sunit"]))
    tbuf.append(int(self.sensordata["dunit"]))
    tbuf.append(int(self.sensordata["sti"]))
