@@ -32,7 +32,7 @@ class Controller(controller.ControllerProto):
   controller.ControllerProto.__init__(self,controllerindex)
   self.usesID = False
   self.onmsgcallbacksupported = False # use direct set_value() instead of generic callback to make sure that values setted anyway
-  self.controllerport = 65501
+  self.controllerport = 8266
   self.timer30s = True
   self.bgproc = None
   self.netmethod = 0
