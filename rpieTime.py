@@ -32,6 +32,10 @@ def getuptime(form=0):
     upts = str(rs.days) + " days " + str(hours) + " hours " + str(minutes) + " minutes"
    elif form==2:
     upts = misc.formatnum( ((rs.days * 86400) + rs.seconds)/60, 4)
+   elif form==3:
+    hours, remainder = divmod(rs.seconds, 3600)
+    minutes, seconds = divmod(remainder, 60)
+    upts = str(rs.days) + "T" + '{:02}'.format(int(hours)) + ":" + '{:02}'.format(int(minutes)) + ":" + '{:02}'.format(int(seconds))
    return upts
 
 class timer:
