@@ -78,8 +78,10 @@ class Plugin(plugin.PluginProto):
 
  def webform_load(self): # create html page for settings
   choice1 = self.taskdevicepluginconfig[0]
-  options = ["0x40","0x41","0x44","0x45"]
-  optionvalues = [0x40,0x41,0x44,0x45]
+  optionvalues = [0x40,0x41,0x44,0x45,0x42,0x43,0x46,0x47,0x48,0x49,0x4A,0x4B,0x4C,0x4D,0x4E,0x4F]
+  options = []
+  for o in range(len(optionvalues)):
+   options.append( hex(optionvalues[o]) )
   webserver.addFormSelector("I2C address","plugin_027_addr",len(options),options,optionvalues,None,int(choice1))
   webserver.addFormNote("Enable <a href='pinout'>I2C bus</a> first, than <a href='i2cscanner'>search for the used address</a>!")
 

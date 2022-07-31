@@ -6,7 +6,7 @@
 # Copyright (C) 2018-2022 by Alexander Nagy - https://bitekmindenhol.blog.hu/
 #
 PROGNAME = "RPIEasy"
-BUILD   = 22168
+BUILD   = 22212
 PROGVER = str(BUILD)[:1]+"."+str(BUILD)[1:2]+"."+str(BUILD)[2:]
 
 gpMenu = []
@@ -60,10 +60,10 @@ PLUGIN_CONFIGFLOATVAR_MAX        =   4
 PLUGIN_CONFIGLONGVAR_MAX         =   4
 PLUGIN_EXTRACONFIGVAR_MAX        =  16
 CPLUGIN_MAX                      =  16
-NPLUGIN_MAX                      =   4
+NPLUGIN_MAX                      =   8
 UNIT_MAX                         =  254
-RULES_TIMER_MAX                  =  16
-SYSTEM_TIMER_MAX                 =  16
+RULES_TIMER_MAX                  =  32
+SYSTEM_TIMER_MAX                 =  32
 SYSTEM_CMD_TIMER_MAX             =   4
 RULES_MAX_SIZE                   = 81920
 RULES_MAX_NESTING_LEVEL          =   4

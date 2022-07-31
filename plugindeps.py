@@ -405,6 +405,9 @@ plugindependencies = [
 {"pluginid": "38", # Neopixel
  "supported_os_level": [10],
  "modules":["GPIO","ws2812"]},
+{"pluginid": "39", #Max thermo
+ "supported_os_level": [3,9,10],
+ "modules":["GPIO","spidev"]},
 {"pluginid": "45", # MPU6050
  "supported_os_level": [3,9,10],
  "ext":256,
