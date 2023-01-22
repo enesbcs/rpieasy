@@ -277,6 +277,11 @@ modulelist = [
  "pip": ["luma.lcd"],
  "testcmd": "import luma.lcd.device",
  "installed":-1},
+{"name":"bme680",
+ "apt": ["python3-pip","python3-setuptools"],
+ "pip": ["bme680"],
+ "testcmd": "from bme680 import BME680",
+ "installed":-1},
 
 ]
 
@@ -462,6 +467,10 @@ plugindependencies = [
 {"pluginid": "95", # SPI LCD
  "supported_os_level": [3,9,10],
  "modules":["spidev","LLCD"]},
+{"pluginid": "106", # BME680
+ "supported_os_level": [3,9,10],
+ "ext":256,
+ "modules":["i2c","bme680"]},
 {"pluginid": "111", #RF433 receiver
  "supported_os_level": [10],
  "modules":["GPIO","wpi","rcswitch"]},
