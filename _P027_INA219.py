@@ -37,6 +37,7 @@ class Plugin(plugin.PluginProto):
   self.lastread = 0
   self.ina = None
   self.decimals = [3,3,3,0]
+  self.shuntohms = 0.1
 
  def plugin_init(self,enableplugin=None):
   plugin.PluginProto.plugin_init(self,enableplugin)
@@ -60,16 +61,34 @@ class Plugin(plugin.PluginProto):
     self._lastdataservetime = rpieTime.millis()-(nextr*1000)
     self.lastread = 0
     try:
+     shunt = self.shuntohms
+    except:
      shunt = 0.1
+     self.shuntohms = shunt
+
+    try:
+     pgain = int(self.taskdevicepluginconfig[6])
+    except:
+     pgain = -1
+    try:
+     padc = int(self.taskdevicepluginconfig[7])
+    except:
+     padc = 3
+    try:
      amps = int(self.taskdevicepluginconfig[1])
      if amps<1:
       amps = None
+     else:
+      try:
+       amps = float(amps) / 1000
+      except:
+       amps = None
      vrange = int(self.taskdevicepluginconfig[2])
      if vrange not in [0,1]:
       vrange = 1
      if int(self.taskdevicepluginconfig[0])>0x39:
       self.ina = INA219(shunt,busnum=i2cl, address=int(self.taskdevicepluginconfig[0]), max_expected_amps=amps)
-      self.ina.configure(voltage_range=vrange)
+      self.ina.configure(voltage_range=vrange, gain=pgain, bus_adc=padc, shunt_adc=padc)
       self.initialized = True
     except Exception as e:
      misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"INA219 can not be initialized: "+str(e))
@@ -77,6 +96,11 @@ class Plugin(plugin.PluginProto):
      self.initialized = False
 
  def webform_load(self): # create html page for settings
+  try:
+     shunt = self.shuntohms
+  except:
+     shunt = 0.1
+     self.shuntohms = shunt
   choice1 = self.taskdevicepluginconfig[0]
   optionvalues = [0x40,0x41,0x44,0x45,0x42,0x43,0x46,0x47,0x48,0x49,0x4A,0x4B,0x4C,0x4D,0x4E,0x4F]
   options = []
@@ -97,6 +121,18 @@ class Plugin(plugin.PluginProto):
   webserver.addFormSelector("Max voltage","plugin_027_volt",len(options),options,optionvalues,None,int(choice3))
   webserver.addUnit("V")
 
+  webserver.addFormFloatNumberBox("Shunt resistor","plugin_027_shuntohm",self.shuntohms,0,30000000.0)
+  webserver.addUnit("Ohm")
+  if self.ina is not None:
+   choice7 = self.taskdevicepluginconfig[6]
+   options = ["AUTO","40mV","80mV","160mV","320mV"]
+   optionvalues = [ self.ina.GAIN_AUTO, self.ina.GAIN_1_40MV, self.ina.GAIN_2_80MV, self.ina.GAIN_4_160MV, self.ina.GAIN_8_320MV]
+   webserver.addFormSelector("Gain","plugin_027_gain",len(options),options,optionvalues,None,int(choice7))
+   choice8 = self.taskdevicepluginconfig[7]
+   options = ["9bit","10bit","11bit","12bit","2SAMP","4SAMP","8SAMP","16SAMP","32SAMP","64SAMP","128SAMP"]
+   optionvalues = [self.ina.ADC_9BIT,self.ina.ADC_10BIT,self.ina.ADC_11BIT,self.ina.ADC_12BIT,self.ina.ADC_2SAMP,self.ina.ADC_4SAMP,self.ina.ADC_8SAMP,self.ina.ADC_16SAMP,self.ina.ADC_32SAMP,self.ina.ADC_64SAMP,self.ina.ADC_128SAMP]
+   webserver.addFormSelector("ADC resolution","plugin_027_adc",len(options),options,optionvalues,None,int(choice8))
+
   choice4 = self.taskdevicepluginconfig[3]
   options = ["None","Voltage","Current","Power"]
   optionvalues = [0,1,2,3]
@@ -108,6 +144,25 @@ class Plugin(plugin.PluginProto):
   return True
 
  def webform_save(self,params): # process settings post reply
+  try:
+   shunt = float(webserver.arg("plugin_027_shuntohm",params))
+   if shunt <= 0:
+    shunt = 0.1
+  except:
+   shunt = 0.1
+  self.shuntohms = shunt
+
+  try:
+   par = int(webserver.arg("plugin_027_gain",params))
+   self.taskdevicepluginconfig[6] = par
+  except:
+   pass
+  try:
+   par = int(webserver.arg("plugin_027_adc",params))
+   self.taskdevicepluginconfig[7] = par
+  except:
+   pass
+
   par = webserver.arg("plugin_027_addr",params)
   if par == "":
     par = 0x40
