@@ -57,10 +57,10 @@ def hardwareInit():
  if rpieGlobals.osinuse=="linux":
   import linux_os as OS
   import linux_network as Network
-  if OS.isAlreadyRunning()>1:
-   time.sleep(1)
-   print("\nAn RPIEasy is already running! Close that first!")
-   sys.exit(0)
+#  if OS.isAlreadyRunning()>1:
+#   time.sleep(1)
+#   print("\nAn RPIEasy is already running! Close that first!")
+#   sys.exit(0)
   Settings.NetMan = Network.NetworkManager()
   if len(OS.getsounddevs())>0:
     Settings.SoundSystem["usable"]=True

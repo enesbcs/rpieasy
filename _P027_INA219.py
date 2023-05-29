@@ -121,7 +121,7 @@ class Plugin(plugin.PluginProto):
   webserver.addFormSelector("Max voltage","plugin_027_volt",len(options),options,optionvalues,None,int(choice3))
   webserver.addUnit("V")
 
-  webserver.addFormFloatNumberBox("Shunt resistor","plugin_027_shuntohm",self.shuntohms,0,30000000.0)
+  webserver.addFormTextBox("Shunt resistor","plugin_027_shuntohm",self.shuntohms,12)
   webserver.addUnit("Ohm")
   if self.ina is not None:
    choice7 = self.taskdevicepluginconfig[6]

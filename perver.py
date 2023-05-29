@@ -41,7 +41,7 @@ import re
 
 # Version control:
 __author__ = 'SweetPalma'
-__version__ = '0.25'
+__version__ = '0.30'
 
 
 # Custom internal exceptions:
@@ -61,8 +61,7 @@ class PerverHandler:
 		self.server = server
 	
 	# Handling requests:
-	@asyncio.coroutine
-	def handle_request(self, reader, writer):
+	async def handle_request(self, reader, writer):
 		
 		# Preparing basic values:
 		peername = writer.get_extra_info('peername')
@@ -93,7 +92,7 @@ class PerverHandler:
 				try:
 				
 					# Reading:
-					line = yield from reader.readline()
+					line = await reader.readline()
 					
 					# Setting request type and maximal request size at start:
 					if len(header) == 0:
@@ -122,7 +121,7 @@ class PerverHandler:
 			# Reading content:
 			content = b''
 			if 0 < length < request_max:
-				content = yield from reader.readexactly(length)
+				content = await reader.readexactly(length)
 				
 			# Close connection in case of big file:
 			elif length > request_max:
@@ -130,7 +129,7 @@ class PerverHandler:
 				raise killer('REQUEST IS TOO BIG')
 			
 			# Parsing data:
-			self.client = yield from self.build_client(header, content)
+			self.client = await self.build_client(header, content)
 			client = self.client
 			
 			# In case of disconnection:
@@ -148,22 +147,22 @@ class PerverHandler:
 			route_post = self.check_route(client.path, self.server.route_post)
 			route_get = self.check_route(client.path, self.server.route_get)
 			if client.type == 'POST' and route_post:
-				raise killer((yield from self.respond_script(*route_post)))
+				raise killer((await self.respond_script(*route_post)))
 			if client.type == 'GET' and route_get:
-				raise killer((yield from self.respond_script(*route_get)))
+				raise killer((await self.respond_script(*route_get)))
 				
 			# Checking static files:
 			for dir, real in self.server.route_static.items():
 				if client.path.startswith(dir):
 					filepath = client.path.replace(dir, real, 1)
-					raise killer((yield from self.respond_file(filepath[1:])))
+					raise killer((await self.respond_file(filepath[1:])))
 			
 			# Routing 404 error:
-			raise killer((yield from self.respond_error(404)))
+			raise killer((await self.respond_error(404)))
 			
 		# Timeout/Cancelled:
 		except concurrent.futures._base.CancelledError:
-			yield from self.respond_error(500)
+			await self.respond_error(500)
 			log.info(client_info + ' TIMED OUT')
 			
 		# Terminator:
@@ -171,12 +170,11 @@ class PerverHandler:
 			log.info(client_info + ' ' + exception.message)
 			
 	# Sending file:
-	@asyncio.coroutine
-	def respond_file(self, path):
+	async def respond_file(self, path):
 		try:
 			with open(path, "rb") as file:
 				size = os.path.getsize(path)
-				return (yield from self.respond(
+				return (await self.respond(
 					status = 200, 
 					content = file.read(), 
 					type = self.get_mime(path), 
@@ -184,11 +182,10 @@ class PerverHandler:
 				))
 		# No file found:
 		except IOError:
-			return (yield from self.respond_error(404))
+			return (await self.respond_error(404))
 				
 	# Sending error message:
-	@asyncio.coroutine
-	def respond_error(self, number, custom=None):
+	async def respond_error(self, number, custom=None):
 		error = {
 			400: 'Bad Request',
 			404: 'Not Found',
@@ -196,13 +193,12 @@ class PerverHandler:
 		}
 		error_text = number in error and error[number] or 'Unknown Error'
 		error_cont = str(number) + ' ' + error_text
-		return (yield from self.respond(number, error_cont))
+		return (await self.respond(number, error_cont))
 		
 	# Executing client script and sending it response:
-	@asyncio.coroutine
-	def respond_script(self, script, keys={}):
-		script_result = (yield from script(self.client, **keys)) or b''
-		return (yield from self.respond(
+	async def respond_script(self, script, keys={}):
+		script_result = (await script(self.client, **keys)) or b''
+		return (await self.respond(
 			status = self.client.status, 
 			content = script_result,
 			header = self.client.header, 
@@ -210,8 +206,7 @@ class PerverHandler:
 		))
 	
 	# Pure data response:
-	@asyncio.coroutine
-	def respond(self, status, content=b'', type='text/html', length=None, header={}):
+	async def respond(self, status, content=b'', type='text/html', length=None, header={}):
 		
 		# Forming header:
 		encoding = self.server.encoding
@@ -302,8 +297,7 @@ class PerverHandler:
 			return guess_type(path)[0] or 'application'
 	
 	# Parsing GET and COOKIES:
-	@asyncio.coroutine
-	def parse(self, path):
+	async def parse(self, path):
 		# Preparing %key%=%value% regex:
 		try:
 		 get_word = '[^=;&?]'
@@ -323,8 +317,7 @@ class PerverHandler:
 		return dict(matched)
 			
 	# Parsing POST multipart:
-	@asyncio.coroutine
-	def parse_post(self, content, types, boundary):
+	async def parse_post(self, content, types, boundary):
 	
 		# Establishing default encoding:
 		encoding = self.server.encoding
@@ -376,11 +369,10 @@ class PerverHandler:
 		else:
 			if isinstance(content, bytes):
 				content = content.decode(encoding)
-			return self.parse(content)
+			return await self.parse(content)
 		
 	# Parsing client data:
-	@asyncio.coroutine
-	def build_client(self, header_raw, content_raw=b''):
+	async def build_client(self, header_raw, content_raw=b''):
 	
 		# Safe dict values:
 		def safe_dict(dictionary, value, default):
@@ -441,9 +433,9 @@ class PerverHandler:
 				boundary = b''
 			
 			# POST/GET/COOKIES:
-			client.get =     yield from self.parse(GET)
-			client.post =    yield from self.parse_post(content_raw, client.form_type, boundary)
-			client.cookie =  yield from self.parse(safe_dict(header, 'Cookie', ''))
+			client.get =     await self.parse(GET)
+			client.post =    await self.parse_post(content_raw, client.form_type, boundary)
+			client.cookie =  await self.parse(safe_dict(header, 'Cookie', ''))
 			
 			# Client ID cookie, can be overrided later:
 			client.header['Set-Cookie'] = 'id=' + client.id
@@ -463,7 +455,7 @@ class PerverHandler:
 		# In case of fail:
 		except BaseException as exc:
 			log.warning('Error parsing user request.')
-			yield from self.respond_error(400) 
+			await self.respond_error(400) 
 			raise exc
 			
 # Script client:
@@ -596,8 +588,8 @@ class Perver:
 		""" Binds all GET requests from path to certain function. """
 		def decorator(func):
 			@wraps(func)
-			def wrapper(*args, **kwds):
-				return asyncio.coroutine(func)(*args, **kwds)
+			async def wrapper(*args, **kwds):
+				return func(*args, **kwds)
 			self.route_get[path] = wrapper
 			return wrapper
 		return decorator
@@ -608,8 +600,8 @@ class Perver:
 		""" Binds all POST requests from path to certain function.  """
 		def decorator(func):
 			@wraps(func)
-			def wrapper(*args, **kwds):
-				return asyncio.coroutine(func)(*args, **kwds)
+			async def wrapper(*args, **kwds):
+				return func(*args, **kwds)
 			self.route_post[path] = wrapper
 			return wrapper
 		return decorator
@@ -620,8 +612,8 @@ class Perver:
 		""" Binds all POST/GET requests from path to certain function. """
 		def decorator(func):
 			@wraps(func)
-			def wrapper(*args, **kwds):
-				return asyncio.coroutine(func)(*args, **kwds)
+			async def wrapper(*args, **kwds):
+				return func(*args, **kwds)
 			self.route_post[path] = wrapper
 			self.route_get[path] = wrapper
 			return wrapper
@@ -676,11 +668,10 @@ class Perver:
 		self._loop.stop()
 			
 	# HTTP request handler:
-	@asyncio.coroutine
-	def handler(self, reader, writer):
+	async def handler(self, reader, writer):
 		try:
 			handler = PerverHandler(self)
-			yield from asyncio.wait_for(
+			await asyncio.wait_for(
 				handler.handle_request(reader, writer), 
 				timeout=self.timeout
 			)
