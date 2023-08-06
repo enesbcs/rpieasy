@@ -7,6 +7,8 @@
 #
 import minimalmodbus # sudo pip3 install minimalmodbus
 import time
+import rpieGlobals
+import misc
 
 class PZEM():
 
@@ -41,7 +43,7 @@ class PZEM():
     self.dev = None
    self.busy = False
   except Exception as e:
-   print("PZEM Exception: ",str(e))
+   misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"PZEM exception: "+str(e))
    self.initialized = False
    self.dev = None
    self.busy = False
@@ -108,10 +110,12 @@ class PZEM():
   return res
 
  def resetenergy(self):
+  res = False
   try:
    self.dev._performCommand(66,'')
    res = True
-  except:
+  except Exception as e:
+   misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"PZEM016 reset error: "+str(e))
    res = False
   return res
 
@@ -159,7 +163,7 @@ class PZEM4():
      self.dev = None
    self.errorcount = 0
   except Exception as e:
-   print("PZEM Exception: ",str(e))
+   misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"PZEM exception: "+str(e))
    if testit:
     self.initialized = False
     self.dev = None
@@ -226,11 +230,12 @@ class PZEM4():
   return res
 
  def resetenergy(self):
+  res = False
   try:
    self.dev._performCommand(66,'')
    res = True
   except Exception as e:
-   print("PZEM004 reset error:",e)#debug
+   misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"PZEM004 reset error: "+str(e))
    res = False
   return res
 

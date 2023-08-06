@@ -66,7 +66,7 @@ class Plugin(plugin.PluginProto):
       self.preset = None
     self.ver = ""
     try:
-     self.pn = pn532.PN532_I2C(reset=self.preset,i2c_c=self.i2cl)
+     self.pn = pn532.PN532_I2C(reset=self.preset,i2c_c=self.i2c)
      ic,ver,rev,supp=self.pn.get_firmware_version() # get fw version
      self.ver = str(ver)+"."+str(rev)
      self.pn.SAM_configuration() # set mifare type

@@ -215,7 +215,10 @@ class Plugin(plugin.PluginProto):
       tpzem = uPZEM.request_pzem_device(self.taskdevicepluginconfig[0],ca)
       if tpzem:
        res = tpzem.resetenergy()
+       if res==False:
+        misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"PZEM reset command failed!")
       else:
+       misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"PZEM device not found!")
        res = False
   return res
 

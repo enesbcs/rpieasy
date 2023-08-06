@@ -60,18 +60,24 @@ def doCleanup():
    pass
   procarr = []
   for y in range(0,len(Settings.Controllers)):
-   if (Settings.Controllers[y]):
-    if (Settings.Controllers[y].enabled):
+   try:
+    if (Settings.Controllers[y]):
+     if (Settings.Controllers[y].enabled):
       t = threading.Thread(target=Settings.Controllers[y].controller_exit)
       t.daemon = True
       procarr.append(t)
       t.start()
+   except:
+    pass
   if int(Settings.NetMan.WifiDevNum)>=0 and int(Settings.NetMan.APMode>-1):
+   try:
     apdev = int(Settings.NetMan.WifiDevNum)
     Network.AP_stop(apdev) # try to stop AP mode if needed
+   except:
+    pass
   if len(procarr)>0:
    for process in procarr:
-     process.join()
+     process.join(2)
 
 def doExecuteCommand(cmdline,Parse=True):
  if Parse:
@@ -481,8 +487,17 @@ def doExecuteCommand(cmdline,Parse=True):
   Settings.NetMan.APMode = -1
   commandfound = True
   return commandfound
- elif cmdarr[0] == "wificonnect": # implement it
-  commandfound = False
+ elif cmdarr[0] == "wifireconnect":
+  commandfound = True
+  wifiname = Settings.NetMan.getfirstwirelessdev()
+  os.popen(OS.cmdline_rootcorrect("sudo ip link set "+wifiname+" down"))
+  time.sleep(1)
+  os.popen(OS.cmdline_rootcorrect("sudo ip link set "+wifiname+" mode default"))
+  os.popen(OS.cmdline_rootcorrect("sudo iwconfig "+wifiname+" power off"))
+  time.sleep(0.5)
+  os.popen(OS.cmdline_rootcorrect("sudo ip link set "+wifiname+" up"))
+  time.sleep(2)
+  res = os.popen(OS.cmdline_rootcorrect("sudo iwlist "+wifiname+" scan")).read()
   return commandfound
  elif cmdarr[0] == "wifimode":    # implement it
   commandfound = False

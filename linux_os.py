@@ -19,6 +19,7 @@ ASOUND_CONF = "/etc/asound.conf" #"/etc/asound.conf"
 class autorun:
  autorun_file_name = "/etc/rc.local"  # /etc/rc.local
  runfilename = "run.sh"
+ run2filename = "RPIEasy.py"
  DISABLE_HDMI="/usr/bin/tvservice -o&"
  ENABLE_RPIAUTOSTART="/usr/bin/screen -d -m "+ os.path.dirname(os.path.realpath(__file__))+"/"+runfilename
  ENABLE_RPIAUTOSTART2= os.path.dirname(os.path.realpath(__file__))+"/"+runfilename+"&"
@@ -114,9 +115,9 @@ class autorun:
       if not os.path.exists(self.SERVICE_FILE):
        with open(self.SERVICE_FILE,"w") as f:
          f.write("[Unit]\nDescription=rpieasy\nAfter=network.target\n\n[Service]\n")
-         f.write("ExecStart="+os.path.dirname(os.path.realpath(__file__))+"/"+self.runfilename)
+         f.write("ExecStart="+os.path.dirname(os.path.realpath(__file__))+"/"+self.run2filename)
          f.write("\nWorkingDirectory="+os.path.dirname(os.path.realpath(__file__)))
-         f.write("\nStandardOutput=syslog\nStandardError=syslog\nSyslogIdentifier=rpieasy\nRestart=always\nUser=root\n\n[Install]\nWantedBy=multi-user.target\n")
+         f.write("\nStandardOutput=syslog\nStandardError=syslog\nSyslogIdentifier=rpieasy\nRestart=always\nRestartSec=3\nUser=root\n\n[Install]\nWantedBy=multi-user.target\n")
      except Exception as e:
       print(e)
      try:
@@ -231,6 +232,15 @@ def get_ip(cardnum=0):
       ips = Settings.NetworkDevices[cardnum].ip
    if ips!="":
       return ips
+   try:
+      output = os.popen('ip -f inet -4 address show up | grep inet')
+      for line in output:
+       if '127.0.0' not in line:
+          ip = re.findall('(?<=inet\s)[0-9\.]+',line)
+          if ip:
+             return ip[0]
+   except:
+     pass
    f = os.popen('ifconfig')
    for iface in [' '.join(i) for i in iter(lambda: list(itertools.takewhile(lambda l: not l.isspace(),f)), [])]:
         if re.findall('^(eth|wlan|enp|ens|enx|wlp|wls|wlx)[0-9]',iface) and re.findall('RUNNING',iface):
