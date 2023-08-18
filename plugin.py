@@ -135,6 +135,16 @@ class PluginProto: # Skeleton for every plugin! Override necessary functions and
     commands.rulesProcessing(self.taskname+"#"+self.valuenames[valuenum-1]+"="+str(rval),rpieGlobals.RULE_USER)
    if self.senddataoption and publish:
     self.plugin_senddata(puserssi=suserssi,pusebattery=susebattery,pchangedvalue=valuenum)
+   if self.recdataoption and publish == False: # handle backreporting
+      for x in range(rpieGlobals.CONTROLLER_MAX):
+          if self.senddataenabled[x]:
+           try:
+             if (len(self.controllercb)>x) and (type(self.controllercb[x])==type(self.plugin_senddata)):
+               import Settings
+               if Settings.Controllers[x].backreport:
+                  self.controllercb[x](self.controlleridx[x],self.vtype,self.uservar,userssi=suserssi,usebattery=susebattery,tasknum=self.taskindex,changedvalue=valuenum)
+           except Exception as e:
+            print("Plugin SendData Backreport Exception: ",e,self.uservar)
    try:
     if self.writecallback is not None:
      self.writecallback(self.taskindex,valuenum)
@@ -199,7 +209,7 @@ class PluginProto: # Skeleton for every plugin! Override necessary functions and
    if self.senddataenabled[x]:
     try:
      if (len(self.controllercb)>x) and (type(self.controllercb[x])==type(self.plugin_senddata)):
-      self.controllercb[x](self.controlleridx[x],self.vtype,self.uservar,userssi=puserssi,usebattery=pusebattery,tasknum=self.taskindex,changedvalue=pchangedvalue)
+       self.controllercb[x](self.controlleridx[x],self.vtype,self.uservar,userssi=puserssi,usebattery=pusebattery,tasknum=self.taskindex,changedvalue=pchangedvalue)
     except Exception as e:
 #      print(x,len(self.controllercb),self.controllercb,self.controlleridx)
       print("Plugin SendData Exception: ",e,self.uservar)

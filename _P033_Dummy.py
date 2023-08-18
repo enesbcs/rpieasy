@@ -63,6 +63,8 @@ class Plugin(plugin.PluginProto):
   if self.taskdevicepluginconfig[0]>0:
     self.vtype = self.taskdevicepluginconfig[0]
     self.valuecount = self.getvaluecount()
+    if self.vtype in [rpieGlobals.SENSOR_TYPE_SWITCH,rpieGlobals.SENSOR_TYPE_DIMMER]:
+     self.decimals[0] = 0
     self.initialized = True
 
  def webform_load(self): # create html page for settings

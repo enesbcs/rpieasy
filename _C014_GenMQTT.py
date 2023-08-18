@@ -59,6 +59,8 @@ class Controller(controller.ControllerProto):
   self.lwtconnmsg = "Online"
   self.lwtdisconnmsg = "Offline"
   self.useJSON = False
+  self.backreport = True
+  self.globalretain = False
 
  def controller_init(self,enablecontroller=None):
   if enablecontroller != None:
@@ -96,6 +98,16 @@ class Controller(controller.ControllerProto):
     pass
   except:
    self.useJSON = False
+  try:
+   if self.backreport:
+    pass
+  except:
+   self.backreport = True
+  try:
+   if self.globalretain:
+    pass
+  except:
+   self.globalretain = False
   self.mqttclient = GMQTTClient()
   self.mqttclient.subscribechannel = self.outch
   self.mqttclient.controllercb = self.on_message
@@ -162,6 +174,7 @@ class Controller(controller.ControllerProto):
    except:
     self.keepalive = 60
    try:
+    self.mqttclient.will_set(self.lwt_t, payload=self.lwtdisconnmsg, qos=0, retain=True)
     self.mqttclient.connect(self.controllerip,int(self.controllerport),keepalive=self.keepalive) # connect_async() is faster but maybe not the best for user/pass method
     self.mqttclient.loop_start()
    except Exception as e:
@@ -256,6 +269,14 @@ class Controller(controller.ControllerProto):
    webserver.addFormCheckBox("Use JSON payload","c014_usejson",self.useJSON)
   except:
    self.useJSON = False
+  try:
+   webserver.addFormCheckBox("Echo back control device status (status after set)","c014_backreport",self.backreport)
+  except:
+   self.backreport = True
+  try:
+   webserver.addFormCheckBox("Retain every message","c014_retain",self.globalretain)
+  except:
+   self.globalretain = False
   return True
 
  def webform_save(self,params): # process settings post reply
@@ -308,6 +329,14 @@ class Controller(controller.ControllerProto):
    self.useJSON = True
   else:
    self.useJSON = False
+  if (webserver.arg("c014_backreport",params)=="on"):
+   self.backreport = True
+  else:
+   self.backreport = False
+  if (webserver.arg("c014_retain",params)=="on"):
+   self.globalretain = True
+  else:
+   self.globalretain = False
 
   if pchange and self.enabled:
    self.disconnect()
@@ -441,7 +470,7 @@ class Controller(controller.ControllerProto):
          gval = "0"
         mres = 1
         try:
-         (mres,mid) = self.mqttclient.publish(gtopic,gval)
+         (mres,mid) = self.mqttclient.publish(gtopic,gval,retain=self.globalretain)
 #         print(gtopic) # DEBUG
         except:
          mres = 1
@@ -494,7 +523,7 @@ class Controller(controller.ControllerProto):
           gval = gval[:-1]+"}"
        mres = 1
        try:
-         (mres,mid) = self.mqttclient.publish(gtopic,gval)
+         (mres,mid) = self.mqttclient.publish(gtopic,gval,retain=self.globalretain)
 #         print(gtopic,gval) # DEBUG
        except:
          mres = 1

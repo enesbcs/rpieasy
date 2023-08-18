@@ -112,11 +112,17 @@ class PZEM():
  def resetenergy(self):
   res = False
   try:
-   self.dev._performCommand(66,'')
+   self.dev._perform_command(66, b'')
    res = True
   except Exception as e:
-   misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"PZEM016 reset error: "+str(e))
    res = False
+  if res==False:
+   try:
+    self.dev._performCommand(66,'')
+    res = True
+   except Exception as e:
+    misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"PZEM016 reset error: "+str(e))
+    res = False
   return res
 
 class PZEM4():
@@ -232,11 +238,17 @@ class PZEM4():
  def resetenergy(self):
   res = False
   try:
-   self.dev._performCommand(66,'')
+   self.dev._perform_command(66, b'')
    res = True
   except Exception as e:
-   misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"PZEM004 reset error: "+str(e))
    res = False
+  if res==False:
+   try:
+    self.dev._performCommand(66,'')
+    res = True
+   except Exception as e:
+    misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"PZEM016 reset error: "+str(e))
+    res = False
   return res
 
 pzem_devices = []

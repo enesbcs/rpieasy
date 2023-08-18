@@ -26,6 +26,7 @@ class ControllerProto:
   self.usesPassword = False
   self.usesMQTT = False
   self.timer30s = False
+  self.backreport = False
 
  def getcontrollerid(self):
   return self.controllerid
@@ -41,6 +42,10 @@ class ControllerProto:
    self.enabled = enablecontroller
    self.connect()
   self.initialized = True
+  try:
+   brtest = self.backreport
+  except:
+   self.backreport = False
   return True
 
  def connect(self):
