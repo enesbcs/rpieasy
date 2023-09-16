@@ -1068,6 +1068,9 @@ def parseruleline(linestr,rulenum=-1):
        except Exception as e:
         sid = -1
        if sid>=0 and sid<16:
+        if taskprop[0] == "int":
+         tval = int(float(GlobalVars[sid]))
+        else:
          tval = GlobalVars[sid]
        else:
          state = "INV"
