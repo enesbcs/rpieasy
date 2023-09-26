@@ -20,6 +20,7 @@ import os_network as Network
 import socket
 import urllib.request
 import threading
+from math import *
 
 GlobalRules = []
 SysVars = ["systime","systm_hm","lcltime","syshour","sysmin","syssec","sysday","sysmonth",
@@ -974,7 +975,7 @@ def parsevalue(pvalue):
      break
    try:
     if op:
-     retval = eval(retval)  # evaluate expressions
+     retval = eval(retval,globals())  # evaluate expressions
    except Exception as e:
      retval = str(retval)
    return retval
@@ -1123,7 +1124,7 @@ def parseruleline(linestr,rulenum=-1):
        cline = cline.replace(tm,st)
    state = "IFST"
    try:
-    cline = eval(cline[3:])
+    cline = eval(cline[3:],globals())
    except:
     cline = False                 # error checking?
    misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"Parsed condition: "+str(tline)+" "+str(cline))
@@ -1274,7 +1275,7 @@ def rulesProcessing(eventstr,efilter=-1,startn=0): # fire events
        try:
         if "=" == getequchars(tes):
          tes = tes.replace("=","==") # prepare line for python interpreter
-        if eval(tes)==False:         # ask the python interpreter to eval conditions
+        if eval(tes,globals())==False:         # ask the python interpreter to eval conditions
          return False                # if False, than exit - it looks like a good idea, will see...
        except:
         return False

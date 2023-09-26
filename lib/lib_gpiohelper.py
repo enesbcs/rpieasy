@@ -99,18 +99,18 @@ def gpio_commands(cmd):
    logline = ""
    try:
     pin = int(cmdarr[1].strip())
-    prop = int(cmdarr[2].strip())
+    prop = int(float(cmdarr[2].strip()))
    except:
     pin = -1
     prop = -1
    fade = 0
    try:
-    fade = int(cmdarr[3].strip())
+    fade = int(float(cmdarr[3].strip()))
    except:
     fade = 0
    freq = 1000
    try:
-    freq = int(cmdarr[4].strip())
+    freq = int(float(cmdarr[4].strip()))
    except:
     freq = 1000
    if pin>-1 and prop>-1:
@@ -155,7 +155,7 @@ def gpio_commands(cmd):
    logline = ""
    try:
     pin = int(cmdarr[1].strip())
-    val = int(cmdarr[2].strip())
+    val = int(float(cmdarr[2].strip()))
    except:
     pin = -1
    dur = 100
@@ -188,12 +188,12 @@ def gpio_commands(cmd):
    logline = ""
    try:
     pin = int(cmdarr[1].strip())
-    val = int(cmdarr[2].strip())
+    val = int(float(cmdarr[2].strip()))
    except:
     pin = -1
    dur = 2
    try:
-    dur = float(cmdarr[3].strip())
+    dur = float(float(cmdarr[3].strip()))
    except:
     dur = 2
    if pin>-1 and val in [0,1]:
@@ -274,7 +274,7 @@ def gpio_commands(cmd):
    try:
     snr = int(cmdarr[1].strip())
     pin = int(cmdarr[2].strip())
-    pos = int(cmdarr[3].strip())
+    pos = int(float(cmdarr[3].strip()))
    except:
     snr = -1
     pin = -1
