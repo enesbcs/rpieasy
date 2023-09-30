@@ -3469,6 +3469,29 @@ def handle_custom(self):
   sendHeadandTail("TmplDsh",_TAIL)
  return TXBuffer
 
+@WebServer.route('/adconfig')
+def handle_adconfig(self):
+ global TXBuffer, navMenuIndex
+ TXBuffer=""
+ navMenuIndex=2
+ if (rpieGlobals.wifiSetup):
+  return self.redirect('/setup')
+ if (not isLoggedIn(self.get,self.cookie)):
+  return self.redirect('/login')
+ sendHeadandTail("TmplStd",_HEAD)
+
+ if self.type == "GET":
+  responsearr = self.get
+ else:
+  responsearr = self.post
+ try:
+  import lib.web_adconfig as ADConfig
+  ADConfig.handle_adconfig(responsearr)
+ except Exception as e:
+  print("Adconfig error",e)
+ sendHeadandTail("TmplStd",_TAIL)
+ return TXBuffer
+
 # -----------------------------
 
 def addHtmlError(error):
@@ -3485,7 +3508,7 @@ def addHtml(html):
 def addFormSelector(label, fid, optionCount, options, indices, attr, selectedIndex, reloadonchange = False):
   addRowLabel(label)
   addSelector(fid, optionCount, options, indices, attr, selectedIndex, reloadonchange)
-  
+
 def addFormPinSelect(label,fid,choice):
   addRowLabel(label)
   addPinSelect(False,fid,choice)
@@ -3565,7 +3588,7 @@ def addSelector_Item(option, sindex, selected, disabled, attr=""):
   TXBuffer += "</option>"
 
 def addSelector_Foot():
-  global TXBuffer    
+  global TXBuffer
   TXBuffer += "</select>"
 
 def addUnit(unit):
@@ -3579,7 +3602,7 @@ def addRowLabel(label):
   TXBuffer += "<TR><TD>"
   TXBuffer += str(label)
   TXBuffer += ":<TD>"
-  
+
 def addButton(url, label):
  global TXBuffer
  TXBuffer += "<a class='button link' href='"
@@ -3712,7 +3735,7 @@ def addNumericBox(fid, value, minv=INT_MIN, maxv=INT_MAX):
 def addFormNumericBox(label, fid, value, minv=INT_MIN, maxv=INT_MAX):
   addRowLabel(label)
   addNumericBox(fid, value, minv, maxv)
-  
+
 def addTextBox(fid, value, maxlength):
   global TXBuffer
   TXBuffer += "<input class='wide' type='text' name='"

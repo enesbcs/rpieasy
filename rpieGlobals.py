@@ -6,7 +6,7 @@
 # Copyright (C) 2018-2023 by Alexander Nagy - https://bitekmindenhol.blog.hu/
 #
 PROGNAME = "RPIEasy"
-BUILD   = 23269
+BUILD   = 23273
 PROGVER = str(BUILD)[:1]+"."+str(BUILD)[1:2]+"."+str(BUILD)[2:]
 
 gpMenu = []

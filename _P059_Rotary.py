@@ -31,7 +31,7 @@ class Plugin(plugin.PluginProto):
  def __init__(self,taskindex): # general init
   plugin.PluginProto.__init__(self,taskindex)
   self.dtype = rpieGlobals.DEVICE_TYPE_DUAL
-  self.vtype = rpieGlobals.SENSOR_TYPE_SWITCH
+  self.vtype = rpieGlobals.SENSOR_TYPE_DIMMER
   self.valuecount = 1
   self.senddataoption = True
   self.timeroption = False

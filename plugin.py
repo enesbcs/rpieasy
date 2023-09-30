@@ -80,7 +80,7 @@ class PluginProto: # Skeleton for every plugin! Override necessary functions and
 
  def getdevicename(self):
   return self.PLUGIN_NAME
-  
+
  def gettaskname(self):
   return self.taskname
 
