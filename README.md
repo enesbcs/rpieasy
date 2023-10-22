@@ -28,11 +28,14 @@ However experimental Orange Pi, USB FTDI and Rock Pi S GPIO support also added f
     sudo apt install python3-pip screen alsa-utils wireless-tools wpasupplicant zip unzip git
     git clone https://github.com/enesbcs/rpieasy.git
     cd rpieasy
-    sudo pip3 install jsonpickle
+    sudo pip3 install jsonpickle --break-system-packages
 
 In case of Debian Stretch or other linux that misses "ifconfig" command:
 
 `sudo apt install net-tools`
+
+In case you are using Debian 12, please remove 'EXTERNALLY-MANAGED' file from your system to be able to use pip3.
+https://www.jeffgeerling.com/blog/2023/how-solve-error-externally-managed-environment-when-installing-pip3
 
 Other dependencies can be reached and installed through the webGUI after starting with: (See Hardware page)
 
