@@ -496,6 +496,24 @@ def getRPIVer():
        "lan":"1",
        "bt":"1"
       }
+     elif (hwid in "c04170"):
+      hwarr = { 
+       "name": "Pi 5",
+       "ram": "4GB",
+       "pins": "40",
+       "wlan": "1",
+       "lan":"1",
+       "bt":"1"
+      }
+     elif (hwid in "d04170"):
+      hwarr = { 
+       "name": "Pi 5",
+       "ram": "8GB",
+       "pins": "40",
+       "wlan": "1",
+       "lan":"1",
+       "bt":"1"
+      }
     return hwarr
 
 def getsounddevs(playbackdevs = True):
