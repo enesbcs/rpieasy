@@ -460,7 +460,7 @@ def getRPIVer():
        "lan":"1",
        "bt":"1"
       }
-     elif (hwid == "b03111") or (hwid == "b03112") or (hwid == "b03114"):
+     elif (hwid in "b03111,b03112,b03114"):
       hwarr = { 
        "name": "Pi 4 Model B",
        "ram": "2GB",
@@ -469,7 +469,7 @@ def getRPIVer():
        "lan":"1",
        "bt":"1"
       }
-     elif (hwid == "c03111") or (hwid == "c03112") or (hwid == "c03114"):
+     elif (hwid in "c03111,c03112,c03114,c03115"):
       hwarr = { 
        "name": "Pi 4 Model B",
        "ram": "4GB",
@@ -487,9 +487,27 @@ def getRPIVer():
        "lan":"1",
        "bt":"1"
       }
-     elif (hwid == "d03114"):
+     elif (hwid in "d03114,d03115"):
       hwarr = { 
        "name": "Pi 4 Model B",
+       "ram": "8GB",
+       "pins": "40",
+       "wlan": "1",
+       "lan":"1",
+       "bt":"1"
+      }
+     elif (hwid in "c04170"):
+      hwarr = { 
+       "name": "Pi 5",
+       "ram": "4GB",
+       "pins": "40",
+       "wlan": "1",
+       "lan":"1",
+       "bt":"1"
+      }
+     elif (hwid in "d04170"):
+      hwarr = { 
+       "name": "Pi 5",
        "ram": "8GB",
        "pins": "40",
        "wlan": "1",
