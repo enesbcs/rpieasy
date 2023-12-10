@@ -300,6 +300,10 @@ controllerdependencies = [
 "modules":["bluepy","pybleno"]},
 {"controllerid":"22",      # ESPNow
 "modules":["pyserial"]},
+{"controllerid":"24",      # Autodiscovery MQTT
+"modules":["paho-mqtt"]},
+{"controllerid":"25",      # ThingsBoard MQTT
+"modules":["paho-mqtt"]},
 ]
 
 notifierdependencies = [
