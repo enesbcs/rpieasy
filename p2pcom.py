@@ -10,7 +10,7 @@ import signal
 import socket
 import struct
 
-controllerport = 65501
+controllerport = 8266
 nodelist = []
 listening = False
 
@@ -146,7 +146,7 @@ if __name__ == '__main__':
  if len(argv)<2:
    print("Simple ESPEasy P2P peers comm program")
    print("Command line parameters:")
-   print(" -L <portnum> <timeout_second>		: listen for P2P peers on network at specified UDP port (default is 65500)")
+   print(" -L <portnum> <timeout_second>		: listen for P2P peers on network at specified UDP port (default is 8266)")
    print(" -S <portnum> <nodenum> <command>		: Send command to selected <nodenum> through <portnum> UDP port")
    exit(0)
  else:

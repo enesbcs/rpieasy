@@ -506,6 +506,7 @@ def doExecuteCommand(cmdline,Parse=True):
  elif cmdarr[0] == "reboot":
   doCleanup()
   os.popen(OS.cmdline_rootcorrect("sudo reboot"))
+  os.popen(OS.cmdline_rootcorrect("sudo systemctl reboot")) #arch compatibility
 #  os.kill(os.getpid(), signal.SIGINT)
   commandfound = True
   return commandfound
@@ -525,6 +526,7 @@ def doExecuteCommand(cmdline,Parse=True):
  elif cmdarr[0] == "halt":
   doCleanup()
   os.popen(OS.cmdline_rootcorrect("sudo shutdown -h now"))
+  os.popen(OS.cmdline_rootcorrect("sudo systemctl poweroff")) #arch compatibility
 #  os.kill(os.getpid(), signal.SIGINT)
   commandfound = True
   return commandfound

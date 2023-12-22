@@ -646,6 +646,13 @@ def installdeps(modulename):
 def installdeps2(modulename):
  global modulelist
  Settings.UpdateString = "!Installing "+modulename+" dependencies"
+ pi5correction = False
+ try:
+   rpv = OS.getRPIVer()
+   if "Pi 5" in rpv["name"]:
+      pi5correction = True
+ except:
+  pass
  for i in range(len(modulelist)):
   if modulelist[i]["name"]==modulename and modulelist[i]["installed"]!=1:
    modulelist[i]["installed"] = -1
@@ -660,7 +667,7 @@ def installdeps2(modulename):
      if rpieGlobals.ossubtype in [1,3,9,10]:
       installprog = OS.cmdline_rootcorrect("sudo apt-get update && sudo apt-get install -y "+ installprog.strip())
      elif rpieGlobals.ossubtype==2:
-      installprog = OS.cmdline_rootcorrect("yes | sudo pacman -S "+ installprog.strip())
+      installprog = OS.cmdline_rootcorrect("echo -ne '\n' | sudo pacman -S "+ installprog.strip())
      elif rpieGlobals.osinuse=="windows":
       installprog = ""      
      ustr = "apt: "+installprog
@@ -675,6 +682,9 @@ def installdeps2(modulename):
     if modulelist[i]["pip"]:
      installprog = " "
      for j in range(len(modulelist[i]["pip"])):
+      if pi5correction:
+         if "RPi.GPIO" in modulelist[i]["pip"][j]:
+          modulelist[i]["pip"][j],replace("RPi.GPIO","rpi-lgpio") #RPI.GPIO is not yet supported on Pi5
       installprog += modulelist[i]["pip"][j] + " "
      if rpieGlobals.osinuse=="windows":
       import shutil
@@ -682,7 +692,7 @@ def installdeps2(modulename):
      else:
       installprog = "sudo -H pip3 install "+ installprog.strip()
       if OS.is_command_found("sudo")==False: # if sudo is installed use it because -H option is important
-       installprog = OS.cmdline_rootcorrect("sudo -H pip3 install "+ installprog.strip())
+       installprog = OS.cmdline_rootcorrect(installprog.strip())
      ustr = "pip3: "+installprog
      Settings.UpdateString = "!"+ustr
      misc.addLog(rpieGlobals.LOG_LEVEL_INFO,ustr)

@@ -78,6 +78,7 @@ class autorun:
       if self.hdmienabled == False and rpieGlobals.ossubtype==10:
        f.write(self.DISABLE_HDMI+"\n")
       f.write(self.RC_ENDMARKER+"\n")
+      output = os.popen(cmdline_rootcorrect("sudo chmod +x "+self.autorun_file_name)).read()
     except:
      pass
 
@@ -127,7 +128,11 @@ class autorun:
 
  def disableservice(self):
      try:
-      output = os.popen(cmdline_rootcorrect('sudo systemctl disable rpieasy.service')).read()
+      output = os.popen(cmdline_rootcorrect('sudo systemctl enable rc-local.service')).read() #enable rclocal
+     except:
+      pass
+     try:
+      output = os.popen(cmdline_rootcorrect('sudo systemctl disable rpieasy.service')).read() #disable own service
      except:
       pass
 
@@ -304,7 +309,7 @@ def checkRPI():
      with open('/proc/cpuinfo') as f:
       for line in f:
        line = line.strip()
-       if line.startswith('Hardware') and ( line.endswith('BCM2708') or line.endswith('BCM2709') or line.endswith('BCM2835') or line.endswith('BCM2711') or line.endswith('BCM2837') or line.endswith('BCM2836') ):
+       if line.startswith('Hardware') and ( line.endswith('BCM2708') or line.endswith('BCM2709') or line.endswith('BCM2835') or line.endswith('BCM2711') or line.endswith('BCM2837') or line.endswith('BCM2836') or line.endswith('BCM2712') ):
         return True
     except:
      pass
