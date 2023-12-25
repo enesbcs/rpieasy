@@ -650,7 +650,7 @@ def getgw(iface):
 def isdhclient():
  result = False
  try:
-  output = os.popen("ps -aux | grep dhclient")
+  output = os.popen("ps | grep dhclient")
   for line in output:
    l = line.split()
    if "bin/dhclient" in line:

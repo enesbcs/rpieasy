@@ -1,7 +1,7 @@
-#!/bin/bash
+#!/bin/sh
+echo "RPIEasy basic dependency solver script"
 _SYSTEM=""
-if [ "$EUID" -ne 0 ]
-then
+if [ "$(id -u)" -ne 0 ]; then
   echo "Please run with root or sudo!"
   exit
 fi
@@ -28,6 +28,9 @@ then
 elif [ ! -z `command -v pacman` ]
 then
    _SYSTEM="pacman"
+elif [ ! -z `command -v apk` ]
+then
+   _SYSTEM="apk"
 else
    echo "Not supported system!"
    exit
@@ -49,6 +52,22 @@ then
  then
    echo -ne '\n' | pacman -S net-tools
  fi
+fi
+if [ "$_SYSTEM" = "apk" ]
+then
+  sed -i '/community/s/^#//' /etc/apk/repositories
+  apk update
+  apk add --no-cache python3 screen alsa-utils zip unzip wireless-tools util-linux lm-sensors
+  apk add --no-cache py3-pip
+  apk add --no-cache wireless-tools
+  if [ -z `command -v ifconfig` ]
+  then
+   apk add --no-cache net-tools
+  fi
+  if [ -z `command -v pip3` ]
+  then
+   python3 -m ensurepip
+  fi
 fi
 PIP_CMD=""
 PIP_RESULT=""
@@ -72,7 +91,8 @@ then
  $PIP_CMD install jsonpickle
  PIP_RESULT=`$PIP_CMD show jsonpickle 2>&1`
 fi
-if [[ $PIP_RESULT = *"not found"* ]]; then
+case "$PIP_RESULT" in
+*"not found"*)
    echo "jsonpickle install failed, trying to force package installation"
    mkdir -p ~/.config/pip
    cat > ~/.config/pip/pip.conf << EOL
@@ -80,4 +100,4 @@ if [[ $PIP_RESULT = *"not found"* ]]; then
 break-system-packages = true
 EOL
    $PIP_CMD install jsonpickle
-fi
+esac

@@ -527,6 +527,7 @@ def doExecuteCommand(cmdline,Parse=True):
   doCleanup()
   os.popen(OS.cmdline_rootcorrect("sudo shutdown -h now"))
   os.popen(OS.cmdline_rootcorrect("sudo systemctl poweroff")) #arch compatibility
+  os.popen(OS.cmdline_rootcorrect("sudo poweroff")) #alpine compatibility
 #  os.kill(os.getpid(), signal.SIGINT)
   commandfound = True
   return commandfound

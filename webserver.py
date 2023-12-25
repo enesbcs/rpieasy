@@ -763,7 +763,7 @@ def handle_hardware(self):
     TXBuffer += "No device"
 
    addFormCheckBox("RPIEasy autostart at boot with rc.local (recommended)","rpiauto",ar.rpiauto)
-   addFormCheckBox("RPIEasy autostart at boot with systemctl (experimental, not recommended)","rpiauto2",ar.rpiauto2)
+   addFormCheckBox("RPIEasy autostart at boot with systemctl/openrc (experimental)","rpiauto2",ar.rpiauto2)
    if OS.checkRPI():
     addFormCheckBox("Enable HDMI at startup","hdmienabled",ar.hdmienabled)
    if OS.check_permission():

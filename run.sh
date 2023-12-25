@@ -1,9 +1,9 @@
-#!/bin/bash
+#!/bin/sh
 SCRIPT=$(readlink -f "$0")
 DIR=$(dirname "$SCRIPT")
 if [ -z "$DIR" ]
 then
-DIR=/home/pi/rpieasy
+DIR=/root/rpieasy
 fi
 cd $DIR
 while true; do

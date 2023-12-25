@@ -11,7 +11,7 @@ from datetime import datetime
 import Settings
 import socket
 
-supportedsys = ['Not supported', 'Linux-apt (partially supported)', 'Linux-pacman (experimental support)','OPI-Linux-armbian (experimental)','-Reserved','-Reserved','-Reserved','-Reserved','-Reserved','RockPI-Linux-apt (supported)','RPI-Linux-apt (supported)']
+supportedsys = ['Not supported', 'Linux-apt (partially supported)', 'Linux-pacman (experimental support)','OPI-Linux-armbian (experimental)','Linux-apk (experimental support)','-Reserved','-Reserved','-Reserved','-Reserved','RockPI-Linux-apt (supported)','RPI-Linux-apt (supported)']
 
 SystemLog = []
 ShadowLog = []
@@ -44,6 +44,8 @@ def getsupportlevel(of=0):
     lvl = 3
   elif (linux_os.is_command_found('pacman')):
    lvl = 2
+  elif (linux_os.is_command_found('apk')):
+   lvl = 4
  if of == 0:
   return supportedsys[lvl]
  else:
@@ -113,7 +115,7 @@ def SysLog(lvl,logstamp,line):
     udpsender(slip,lstr)
    else:
     print("Syslog IP is empty!")
- 
+
 def str2num(data):
  try:
   data + ''
@@ -126,7 +128,7 @@ def str2num2(data):
   return round(str2num(data),2)
  except:
   return data
-  
+
 def formatnum(num,decimal):
  res = ""
  try:

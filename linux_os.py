@@ -24,6 +24,7 @@ class autorun:
  ENABLE_RPIAUTOSTART="/usr/bin/screen -d -m "+ os.path.dirname(os.path.realpath(__file__))+"/"+runfilename
  ENABLE_RPIAUTOSTART2= os.path.dirname(os.path.realpath(__file__))+"/"+runfilename+"&"
  SERVICE_FILE="/etc/systemd/system/rpieasy.service"
+ SERVICE_FILE_RC="/etc/init.d/rpieasy"
  RC_ENDMARKER="exit 0"
 
  def __init__(self): # general init
@@ -102,6 +103,7 @@ class autorun:
       self.disableservice()
 
  def checkservice(self):
+    if is_command_found('systemctl'): #systemd
      try:
       output = os.popen('systemctl is-enabled rpieasy').read()
      except:
@@ -110,8 +112,20 @@ class autorun:
       return True
      else:
       return False
+    elif is_command_found('rc-update'): #openrc
+     try:
+      output = os.popen('rc-update show | grep rpieasy').read()
+     except:
+      output = ""
+     if "rpieasy" in output:
+      return True
+     else:
+      return False
+    else:
+     return False
 
  def enableservice(self):
+    if is_command_found('systemctl'): #systemd
      try:
       if not os.path.exists(self.SERVICE_FILE):
        with open(self.SERVICE_FILE,"w") as f:
@@ -125,8 +139,22 @@ class autorun:
       output = os.popen(cmdline_rootcorrect('sudo systemctl enable rpieasy.service')).read()
      except Exception as e:
       print(e)
+    elif is_command_found('rc-update'): #openrc
+     try:
+      if not os.path.exists(self.SERVICE_FILE_RC):
+       with open(self.SERVICE_FILE_RC,"w") as f:
+         f.write('#!/sbin/openrc-run\nname="rpieasy"\ncommand="'+os.path.dirname(os.path.realpath(__file__))+"/"+self.runfilename+'"')
+         f.write('\ncommand_background=true\npidfile="/run/$RC_SVCNAME.pid"\n\ndepend() {\n  need net\n}\n')
+       output = os.popen(cmdline_rootcorrect('sudo chmod a+x '+str(self.SERVICE_FILE_RC))).read()
+     except Exception as e:
+      print(e)
+     try:
+      output = os.popen(cmdline_rootcorrect('sudo rc-update add rpieasy default')).read()
+     except Exception as e:
+      print(e)
 
  def disableservice(self):
+    if is_command_found('systemctl'): #systemd
      try:
       output = os.popen(cmdline_rootcorrect('sudo systemctl enable rc-local.service')).read() #enable rclocal
      except:
@@ -135,6 +163,11 @@ class autorun:
       output = os.popen(cmdline_rootcorrect('sudo systemctl disable rpieasy.service')).read() #disable own service
      except:
       pass
+    elif is_command_found('rc-update'): #openrc
+     try:
+      output = os.popen(cmdline_rootcorrect('sudo rc-update del rpieasy default')).read()
+     except Exception as e:
+      print(e)
 
 thermalzone = -1
 
@@ -276,7 +309,7 @@ def check_permission():
       return False
   else:
       return True
-  
+
 def gethardware():
     vendor = os.popen('/bin/cat /sys/devices/virtual/dmi/id/board_vendor 2>/dev/null').read()
     name = os.popen('/bin/cat /sys/devices/virtual/dmi/id/board_name 2>/dev/null').read()
@@ -284,7 +317,7 @@ def gethardware():
     return rs.strip()
 
 def is_package_installed(pkgname):
-   if rpieGlobals.ossubtype in [1,3,10]:
+   if rpieGlobals.ossubtype in [1,3,9,10]:
     output = os.popen('dpkg -s {}'.format(pkgname) +' 2>/dev/null').read()
     match = re.search(r'Status: (\w+.)*', output)
     if match and 'installed' in match.group(0).lower():
@@ -292,6 +325,12 @@ def is_package_installed(pkgname):
     return False
    elif rpieGlobals.ossubtype==2:
     output = os.popen('pacman -Q {}'.format(pkgname) +' 2>/dev/null').read()
+    if pkgname in output:
+     return True
+    else:
+     return False
+   elif rpieGlobals.ossubtype==4:
+    output = os.popen('apk info | grep {}'.format(pkgname) +' 2>/dev/null').read()
     if pkgname in output:
      return True
     else:
@@ -588,7 +627,8 @@ def get_cpu():
        cspd["arch"] = spd[len(spd)-1].strip()
       if ("Model name" in line):
        spd = line.strip().split(":")
-       cspd["model"] = spd[len(spd)-1].strip()
+       if cspd["model"] == "Unknown":
+        cspd["model"] = spd[len(spd)-1].strip()
      return cspd
 
 def scan_dir(dir):
@@ -961,7 +1001,7 @@ def getRockPIVer():
     return hwarr
 
 def isAlreadyRunning():
-    output = os.popen('ps -aux | grep RPIEasy | grep python').read()
+    output = os.popen('ps | grep RPIEasy | grep python').read()
     try:
      occ = int(output.count("RPIEasy.py"))
     except:

@@ -326,7 +326,7 @@ plugindependencies = [
  "ext":128,
  "modules":["GPIO"]},
 {"pluginid": "4", #DS18b20
- "supported_os_level": [1,2,3,9,10],
+ "supported_os_level": [1,2,3,4,9,10],
  "modules":["linux-kernel"]},
 {"pluginid": "5", # DHT
  "supported_os_level": [3,9,10],
@@ -368,7 +368,7 @@ plugindependencies = [
  "ext":256,
  "modules":["i2c"]},
 {"pluginid": "16", #IR
- "supported_os_level": [1,2,9,10],
+ "supported_os_level": [1,2,4,9,10],
  "modules":["irkey"]},
 {"pluginid": "17", # PN532
  "supported_os_level": [10], #rpigpio
@@ -392,7 +392,7 @@ plugindependencies = [
  "supported_os_level": [10],
  "modules":["i2c","Adafruit_ADS1x15"]},
 {"pluginid": "26", #SysInfo
- "supported_os_level": [1,2,3,9,10]},
+ "supported_os_level": [1,2,3,4,9,10]},
 {"pluginid": "27", # INA219
  "supported_os_level": [10],
  "modules":["i2c","ina219"]},
@@ -405,7 +405,7 @@ plugindependencies = [
  "ext":128,
  "modules":["GPIO"]},
 {"pluginid": "35", #IRTrans
- "supported_os_level": [1,2,9,10],
+ "supported_os_level": [1,2,4,9,10],
  "modules":["irkey"]},
 {"pluginid": "36", # FramedOLED
  "supported_os_level": [3,9,10],
@@ -422,14 +422,14 @@ plugindependencies = [
  "ext":256,
  "modules":["i2c","mpu6050"]},
 {"pluginid": "49", #MH-Z19
- "supported_os_level": [1,2,3,9,10],
+ "supported_os_level": [1,2,3,4,9,10],
  "modules":["pyserial"]},
 {"pluginid": "51", # AM2320
  "supported_os_level": [3,9,10],
  "ext":256,
  "modules":["i2c"]},
 {"pluginid": "53", #PMS
- "supported_os_level": [1,2,3,9,10],
+ "supported_os_level": [1,2,3,4,9,10],
  "modules":["pyserial","pypms"]},
 {"pluginid": "57", # HT16K33 LED
  "supported_os_level": [3,9,10],
@@ -467,7 +467,7 @@ plugindependencies = [
  "supported_os_level": [10],
  "modules":["wpi","tm1637"]},
 {"pluginid": "82", #GPS
- "supported_os_level": [1,2,3,9,10],
+ "supported_os_level": [1,2,3,4,9,10],
  "modules":["pyserial"]},
 {"pluginid": "84", # VEML6070
  "supported_os_level": [3,9,10],
@@ -486,7 +486,7 @@ plugindependencies = [
  "supported_os_level": [10],
  "modules":["GPIO","wpi","rcswitch"]},
 {"pluginid": "126", #Ping
- "supported_os_level": [1,2,3,9,10],
+ "supported_os_level": [1,2,3,4,9,10],
  "modules":["ping"]},
 {"pluginid": "133", # VL53L0X
  "supported_os_level": [3,9,10],
@@ -500,7 +500,7 @@ plugindependencies = [
  "supported_os_level": [3,9,10],
  "modules":["GPIO"]},
 {"pluginid": "201", #Generic Serial
- "supported_os_level": [1,2,3,9,10],
+ "supported_os_level": [1,2,3,4,9,10],
  "modules":["pyserial"]},
 {"pluginid": "202", # MCP9808
  "supported_os_level": [3,9,10],
@@ -518,14 +518,14 @@ plugindependencies = [
  "supported_os_level": [10],
  "modules":["epd"]},
 {"pluginid": "206", #PZEM016
- "supported_os_level": [1,2,3,9,10],
+ "supported_os_level": [1,2,3,4,9,10],
  "modules":["pyserial","modbus"]},
 {"pluginid": "207", # MPU9250
  "supported_os_level": [3,9,10],
  "ext":256,
  "modules":["i2c","rtimu"]},
 {"pluginid": "208", #PFM
- "supported_os_level": [1,2,3,9,10],
+ "supported_os_level": [1,2,3,4,9,10],
  "modules":["pyserial","pfm","pil"]},
 {"pluginid": "209", # AMG
  "supported_os_level": [10],
@@ -549,24 +549,24 @@ plugindependencies = [
  "ext":256,
  "modules":["i2c"]},
 {"pluginid": "217", #HDHK
- "supported_os_level": [1,2,3,10],
+ "supported_os_level": [1,2,3,4,10],
  "modules":["pyserial","modbus"]},
 {"pluginid": "501", # USB relay
  "modules":["hidapi"]},
 {"pluginid": "502", # pygame play wav/mp3
- "supported_os_level": [1,2,3,9,10],
+ "supported_os_level": [1,2,3,4,9,10],
  "modules":["pygame"]},
 {"pluginid": "503", # pygame play wav/mp3
- "supported_os_level": [1,2,3,9,10],
+ "supported_os_level": [1,2,3,4,9,10],
  "modules":["pygame"]},
 {"pluginid": "505", # vlc radio play
- "supported_os_level": [1,2,3,9,10],
+ "supported_os_level": [1,2,3,4,9,10],
  "modules":["vlc"]},
 {"pluginid": "506", # pocketsphinx
- "supported_os_level": [1,2,3,9,10],
+ "supported_os_level": [1,2,3,4,9,10],
  "modules":["pocketsphinx"]},
 {"pluginid": "508", #Temper
- "supported_os_level": [1,2,3,9,10],
+ "supported_os_level": [1,2,3,4,9,10],
  "modules":["pyserial","linux-kernel"]},
 {"pluginid": "509", # EVDEV
  "modules":["linux-kernel"]},
@@ -577,7 +577,7 @@ plugindependencies = [
 {"pluginid": "513", # BLE LYWSD02
  "modules":["lywsd","pytz"]},
 {"pluginid": "514", # USB-Dallas
- "supported_os_level": [1,2,3,9,10],
+ "supported_os_level": [1,2,3,4,9,10],
  "modules":["pyserial","pydigitemp"]},
 {"pluginid": "515", # BLE MiFlora
  "modules":["bluepy"]},
@@ -588,24 +588,24 @@ plugindependencies = [
 {"pluginid": "518", # BLE CGG1
  "modules":["bluepy"]},
 {"pluginid": "519", #Volume
- "supported_os_level": [1,2,3,9,10],
+ "supported_os_level": [1,2,3,4,9,10],
  "modules":["linux-kernel"]},
 {"pluginid": "520", # BLE Scan
  "modules":["bluepy"]},
 {"pluginid": "521", # GoogleTTS
- "supported_os_level": [1,2,3,9,10],
+ "supported_os_level": [1,2,3,4,9,10],
  "modules":["gtts","pygame"]},
 {"pluginid": "522", # RTSP
- "supported_os_level": [1,2,3,9,10],
+ "supported_os_level": [1,2,3,4,9,10],
  "modules":["opencv","pil"]},
 {"pluginid": "523", # Jami Connector
- "supported_os_level": [1,2,3,9,10],
+ "supported_os_level": [1,2,3,4,9,10],
  "modules":["dbus"]},
 {"pluginid": "524", #Keypad
  "supported_os_level": [10],
  "modules":["GPIO"]},
 {"pluginid": "525", # snapc
- "supported_os_level": [1,2,3,9,10],
+ "supported_os_level": [1,2,3,4,9,10],
  "modules":["snapclient"]},
 {"pluginid": "527", # BLE Sniff
  "modules":["bluepy"]},
@@ -662,19 +662,32 @@ def installdeps2(modulename):
      for j in range(len(modulelist[i]["apt"])):
       if rpieGlobals.ossubtype==2: # arch exceptions
        if "python3-pip" in modulelist[i]["apt"][j]:
-        modulelist[i]["apt"][j].replace("python3-pip","python-pip")
+        modulelist[i]["apt"][j] = modulelist[i]["apt"][j].replace("python3-pip","python-pip")
+      elif rpieGlobals.ossubtype==4: # alpine exceptions
+       if "python3-pip" in modulelist[i]["apt"][j]:
+        modulelist[i]["apt"][j] = modulelist[i]["apt"][j].replace("python3-pip","py3-pip")
+       if "python3-setuptools" in modulelist[i]["apt"][j]:
+        modulelist[i]["apt"][j] = modulelist[i]["apt"][j].replace("python3-setuptools","py3-setuptools")
+       if "python3-opencv" in modulelist[i]["apt"][j]:
+        modulelist[i]["apt"][j] = modulelist[i]["apt"][j].replace("python3-opencv","py3-opencv")
+       if "vlc-bin" in modulelist[i]["apt"][j]:
+        modulelist[i]["apt"][j] = modulelist[i]["apt"][j].replace("vlc-bin","vlc")
+       if "build-essential" in modulelist[i]["apt"][j]:
+        modulelist[i]["apt"][j] = modulelist[i]["apt"][j].replace("build-essential","build-base")
       installprog += modulelist[i]["apt"][j] + " "
      if rpieGlobals.ossubtype in [1,3,9,10]:
       installprog = OS.cmdline_rootcorrect("sudo apt-get update && sudo apt-get install -y "+ installprog.strip())
      elif rpieGlobals.ossubtype==2:
       installprog = OS.cmdline_rootcorrect("echo -ne '\n' | sudo pacman -S "+ installprog.strip())
+     elif rpieGlobals.ossubtype==4:
+      installprog = OS.cmdline_rootcorrect("apk add "+ installprog.strip())
      elif rpieGlobals.osinuse=="windows":
-      installprog = ""      
+      installprog = ""
      ustr = "apt: "+installprog
      if installprog.strip() != "":
       Settings.UpdateString = "!"+ustr
       misc.addLog(rpieGlobals.LOG_LEVEL_INFO,ustr)
-      proc = subprocess.Popen(installprog, shell=True, stdin=None, stdout=open(os.devnull,"wb"), executable="/bin/bash")
+      proc = subprocess.Popen(installprog, shell=True, stdin=None, stdout=open(os.devnull,"wb"), executable="/bin/sh")
       proc.wait()
    except Exception as e:
      misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,str(e))
@@ -688,7 +701,7 @@ def installdeps2(modulename):
       installprog += modulelist[i]["pip"][j] + " "
      if rpieGlobals.osinuse=="windows":
       import shutil
-      installprog = '"'+shutil.which("python")+'"'+" -m pip install "+ installprog.strip()     
+      installprog = '"'+shutil.which("python")+'"'+" -m pip install "+ installprog.strip()
      else:
       installprog = "sudo -H pip3 install "+ installprog.strip()
       if OS.is_command_found("sudo")==False: # if sudo is installed use it because -H option is important
@@ -696,7 +709,7 @@ def installdeps2(modulename):
      ustr = "pip3: "+installprog
      Settings.UpdateString = "!"+ustr
      misc.addLog(rpieGlobals.LOG_LEVEL_INFO,ustr)
-     proc = subprocess.Popen(installprog, shell=True, stdin=None, stdout=open(os.devnull,"wb"), executable="/bin/bash")
+     proc = subprocess.Popen(installprog, shell=True, stdin=None, stdout=open(os.devnull,"wb"), executable="/bin/sh")
      proc.wait()
    except Exception as e:
      misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,str(e))
@@ -706,7 +719,7 @@ def installdeps2(modulename):
      ustr = "exec: "+installprog
      Settings.UpdateString = "!"+ustr
      misc.addLog(rpieGlobals.LOG_LEVEL_INFO,ustr)
-     proc = subprocess.Popen(installprog, shell=True, stdin=None, stdout=open(os.devnull,"wb"), executable="/bin/bash")
+     proc = subprocess.Popen(installprog, shell=True, stdin=None, stdout=open(os.devnull,"wb"), executable="/bin/sh")
      proc.wait()
    except Exception as e:
      if e!='installcmd':
