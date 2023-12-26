@@ -3220,11 +3220,49 @@ def handle_favicon(self):
 @WebServer.route('/default.css')
 def handle_css(self):
  return self.file('default.css')
- 
+
 @WebServer.route('/img/{imagename}')
 def handle_favicon(self,imagename):
  fname = "img/"+re.sub(r'[^a-zA-Z0-9. ]',r'',imagename)
  if os.path.isfile(fname):
+  return self.file(fname)
+ else:
+  return ""
+
+@WebServer.route('/config.dat')
+def handle_configdat(self):
+ if (rpieGlobals.wifiSetup):
+  return self.redirect('/setup')
+ if (not isLoggedIn(self.get,self.cookie)):
+  return self.redirect('/login')
+ if self.type == "GET":
+  responsearr = self.get
+ else:
+  responsearr = self.post
+ try:
+    fname = OS.settingstozip()
+ except Exception as e:
+    misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG, "Download error: "+str(e))
+ if fname!="":
+    self.set_header("Content-Disposition", 'filename="config.dat"')
+    return self.file(fname)
+ else:
+    return ""
+
+@WebServer.route('/rules1.txt')
+def handle_rules1(self):
+ if (rpieGlobals.wifiSetup):
+  return self.redirect('/setup')
+ if (not isLoggedIn(self.get,self.cookie)):
+  return self.redirect('/login')
+ if self.type == "GET":
+  responsearr = self.get
+ else:
+  responsearr = self.post
+ fname = "files/rules1.txt"
+ if os.path.isfile(fname):
+  fpath = fname.split("/")
+  self.set_header("Content-Disposition", 'filename="'+str(fpath[len(fpath)-1])+'"')
   return self.file(fname)
  else:
   return ""
