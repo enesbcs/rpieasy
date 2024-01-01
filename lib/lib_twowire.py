@@ -55,7 +55,7 @@ class TwoWire():
      del self.queue[0]
    if self.i2cr is not None:
     self.busy = True
-    self.iid  = str(int(time.time()))+str(oid)
+    self.iid  = int(str(int(time.time()))+str(oid))
     return self.iid
    else:
     self.connect()

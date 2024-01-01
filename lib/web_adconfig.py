@@ -13,17 +13,17 @@ def handle_adconfig(response):
      fconf  = Settings.Controllers[cid].adconffile
      goon = True
     except Exception as e:
-     print(e)
+     w.TXBuffer += str(e)
     if goon:
      t = mqttad.ADHelper(dtopic,sname,cid)
      if w.arg('del',response).strip() != "":
-        print("delete")#debug
+        #print("delete")#debug
         try:
          os.remove(fconf)
         except:
          pass
      if w.arg('Submit',response).strip() != "":
-        print("save")#debug
+        #print("save")#debug
         strs = []
         for c in range(r.TASKS_MAX*r.TASKS_MAX):
             if w.arg('dt_'+str(c)+'_0',response):
@@ -43,7 +43,7 @@ def handle_adconfig(response):
             else:
              break
         if len(strs)>0:
-             print("websave",strs)#debug
+             #print("websave",strs)#debug
              t.save_static_mstrs(fconf,strs)
      confs = t.get_MQTT_strs()
      confs = t.add_static_mstrs(fconf,confs)

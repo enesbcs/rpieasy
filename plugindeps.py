@@ -551,6 +551,10 @@ plugindependencies = [
 {"pluginid": "217", #HDHK
  "supported_os_level": [1,2,3,4,10],
  "modules":["pyserial","modbus"]},
+{"pluginid": "218", # Adafruit I2C rotary
+ "supported_os_level": [3,9,10],
+ "ext":256,
+ "modules":["i2c"]},
 {"pluginid": "501", # USB relay
  "modules":["hidapi"]},
 {"pluginid": "502", # pygame play wav/mp3

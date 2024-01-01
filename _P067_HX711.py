@@ -157,9 +157,13 @@ class Plugin(plugin.PluginProto):
          self._hx.set_gain(self.taskdevicepluginconfig[0])
          value = self._hx.get_weight_A(5)
          self.set_value(1,value,True)
+      else:
+         self.set_value(1,0,False)
       if int(self.taskdevicepluginconfig[2]) != 0: #B
          value = self._hx.get_weight_B(5)
          self.set_value(2,value,True) #always gain32
+      else:
+         self.set_value(2,0,False)
       self._hx.power_down()
       self.plugin_senddata()
    self._lastdataservetime = rpieTime.millis()

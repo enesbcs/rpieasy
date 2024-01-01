@@ -28,6 +28,8 @@ I2CDevices = [
   "addr": [0x29,0x39,0x49]},
  {"name": "UPS-Lite",
   "addr": [0x36]},
+ {"name": "Adafruit Rotary Encoder",
+  "addr": [0x36,0x37,0x38,0x39,0x3A,0x3B,0x3C,0x3D]},
  {"name": "VEML6070",
   "addr": [0x38,0x39]},
  {"name": "APDS-9960 IR/Color/Proximity Sensor",
