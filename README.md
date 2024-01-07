@@ -1,9 +1,6 @@
 [![Code size](https://img.shields.io/github/languages/code-size/enesbcs/rpieasy)]() [![Last commit](https://img.shields.io/github/last-commit/enesbcs/rpieasy)]()
 
 # To support the development you can:
-- Buy a [coffee](https://ko-fi.com/I3I5UT4H)
-- Donate by [PayPal](https://www.paypal.me/rpieasy)
-- Be a patron at [Patreon](https://www.patreon.com/enesbcs)
 - Add Python code by [Pull Request](https://github.com/enesbcs/rpieasy/pulls)
 
 # RPIEasy
