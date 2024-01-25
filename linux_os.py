@@ -345,7 +345,7 @@ def is_command_found(pkgname):
 
 def checkRPI():
     try:
-     with open('cpuinfo.txt') as f:
+     with open('/proc/cpuinfo') as f:
       for line in f:
        line = line.strip()
        if line.startswith('Hardware') and ( line.endswith('BCM2708') or line.endswith('BCM2709') or line.endswith('BCM2835') or line.endswith('BCM2711') or line.endswith('BCM2837') or line.endswith('BCM2836') or line.endswith('BCM2712') ):
