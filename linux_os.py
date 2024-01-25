@@ -345,10 +345,12 @@ def is_command_found(pkgname):
 
 def checkRPI():
     try:
-     with open('/proc/cpuinfo') as f:
+     with open('cpuinfo.txt') as f:
       for line in f:
        line = line.strip()
        if line.startswith('Hardware') and ( line.endswith('BCM2708') or line.endswith('BCM2709') or line.endswith('BCM2835') or line.endswith('BCM2711') or line.endswith('BCM2837') or line.endswith('BCM2836') or line.endswith('BCM2712') ):
+        return True
+       elif line.startswith('Model') and ("Raspberry" in line):
         return True
     except:
      pass
@@ -365,7 +367,7 @@ def getRPIVer():
         break
     except:
      pass
-    hwarr = { 
+    hwarr = {
       "name": "Unknown model",
       "pins": "",
       "ram":"0"

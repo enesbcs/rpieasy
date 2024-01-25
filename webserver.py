@@ -809,9 +809,10 @@ def handle_pinout(self):
 
  try:
   import gpios
+  portok = True
  except:
   print("Unable to load GPIO support")
-
+  portok = False
  if self.type == "GET":
   responsearr = self.get
  else:
@@ -820,11 +821,12 @@ def handle_pinout(self):
  submit = arg("Submit",responsearr)
  setbtn = arg("set",responsearr).strip()
 
- if ((rpieGlobals.ossubtype!=10) and (submit=="Submit") or (setbtn!='')):
+ if ((rpieGlobals.ossubtype not in [3,9,10]) and (submit=="Submit") or (setbtn!='')):
    try:
     gpios.HWPorts.webform_save(responsearr)
    except Exception as e:
     print(e)
+    portok = False
    submit=""
    setbtn=""
 
@@ -834,6 +836,7 @@ def handle_pinout(self):
    gpios.HWPorts.readconfig()
   except Exception as e:
    misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Config read error="+str(e))
+   portok = False
 
  if (submit=="Submit") or (setbtn!=''):
   try:
@@ -970,7 +973,7 @@ def handle_pinout(self):
   except Exception as e:
    misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,str(e))
 
- if ((rpieGlobals.ossubtype==10) and (len(Settings.Pinout)>1)): # RPI only
+ if ((rpieGlobals.ossubtype in [3,9,10]) and (len(Settings.Pinout)>1)): # RPI only
   TXBuffer += "<form name='frmselect' method='post'><table class='normal'>"
   TXBuffer += "<tr><th colspan=10>GPIO pinout</th></tr>"
   addHtml("<tr><th>Detected function</th><th>Requested function</th><th>Pin name</th><th>#</th><th>Value</th><th>Value</th><th>#</th><th>Pin name</th><th>Requested function</th><th>Detected function</th></tr>")
@@ -1122,9 +1125,26 @@ def handle_pinout(self):
  else:
   try:
    gpios.HWPorts.webform_load()
+   portok = True
   except Exception as e:
-   addHtml("<p>This hardware has unknown GPIO.")
+   addHtml("<p>This hardware has unknown GPIO.<p>")
    misc.addLog(rpieGlobals.LOG_LEVEL_ERROR, str(e))
+   portok = False
+ if portok==False:
+   output = os.popen('uname -a')
+   for line in output:
+            line = line.strip()
+            addHtml("<br>"+str(line))
+   if os.path.exists("/proc/cpuinfo"):
+    with open("/proc/cpuinfo") as f:
+        for line in f:
+            line = line.strip()
+            addHtml("<br>"+str(line))
+   if os.path.exists("/etc/armbian-release"):
+    with open("/etc/armbian-release") as f:
+        for line in f:
+            line = line.strip()
+            addHtml("<br>"+str(line))
 
  sendHeadandTail("TmplStd",_TAIL)
  return TXBuffer
