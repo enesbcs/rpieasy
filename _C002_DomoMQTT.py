@@ -56,7 +56,11 @@ class Controller(controller.ControllerProto):
   except:
    self.useping = True
   try:
-   self.mqttclient = DMQTTClient()
+   mqttcompatibility = mqtt.CallbackAPIVersion.VERSION1
+  except:
+   mqttcompatibility = None
+  try:
+   self.mqttclient = DMQTTClient(mqttcompatibility)
    self.mqttclient.subscribechannel = self.outchannel
    self.mqttclient.controllercb = self.on_message
    self.mqttclient.connectcb = self.on_connect

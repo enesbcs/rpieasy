@@ -58,8 +58,11 @@ class Controller(controller.ControllerProto):
   self.connectinprogress = 0
   self.inch = str(self.inchannel)
   self.outch = str(self.outchannel)
-
-  self.mqttclient = GMQTTClient()
+  try:
+   mqttcompatibility = mqtt.CallbackAPIVersion.VERSION1
+  except:
+   mqttcompatibility = None
+  self.mqttclient = GMQTTClient(mqttcompatibility)
   self.mqttclient.subscribechannel = self.outch
   self.mqttclient.controllercb = self.on_message
   self.mqttclient.connectcb = self.on_connect

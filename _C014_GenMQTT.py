@@ -108,7 +108,11 @@ class Controller(controller.ControllerProto):
     pass
   except:
    self.globalretain = False
-  self.mqttclient = GMQTTClient()
+  try:
+   mqttcompatibility = mqtt.CallbackAPIVersion.VERSION1
+  except:
+   mqttcompatibility = None
+  self.mqttclient = GMQTTClient(mqttcompatibility)
   self.mqttclient.subscribechannel = self.outch
   self.mqttclient.controllercb = self.on_message
   self.mqttclient.connectcb = self.on_connect
@@ -174,7 +178,7 @@ class Controller(controller.ControllerProto):
    except:
     self.keepalive = 60
    try:
-    self.mqttclient.will_set(self.lwt_t, self.lwtdisconnmsg, qos=0, retain=True)
+    self.mqttclient.will_set(self.lwt_t, payload=self.lwtdisconnmsg, qos=0, retain=True)
     self.mqttclient.connect(self.controllerip,int(self.controllerport),keepalive=self.keepalive) # connect_async() is faster but maybe not the best for user/pass method
     self.mqttclient.loop_start()
    except Exception as e:
@@ -184,7 +188,7 @@ class Controller(controller.ControllerProto):
 
  def disconnect(self):
    try:
-         (mres,mid) = self.mqttclient.publish(self.lwt_t,self.lwtdisconnmsg, qos=0, retain=True)
+         (mres,mid) = self.mqttclient.publish(self.lwt_t,self.lwtdisconnmsg)
    except Exception as e:
          print(e)
    try:
@@ -223,7 +227,7 @@ class Controller(controller.ControllerProto):
      commands.rulesProcessing("GenMQTT#Disconnected",rpieGlobals.RULE_SYSTEM)
     else:
      try:
-         (mres,mid) = self.mqttclient.publish(self.lwt_t,self.lwtconnmsg, qos=0, retain=True)
+         (mres,mid) = self.mqttclient.publish(self.lwt_t,self.lwtconnmsg)
      except:
          pass
      commands.rulesProcessing("GenMQTT#Connected",rpieGlobals.RULE_SYSTEM)

@@ -96,7 +96,11 @@ class Controller(controller.ControllerProto):
    self.lwt_t, state = commands.parseruleline(self.lwt_topic)
   except:
    self.lwt_topic = ""
-  self.mqttclient = GMQTTClient()
+  try:
+   mqttcompatibility = mqtt.CallbackAPIVersion.VERSION1
+  except:
+   mqttcompatibility = None
+  self.mqttclient = GMQTTClient(mqttcompatibility)
   self.mqttclient.subscribechannel = self.outch
   self.mqttclient.controllercb = self.on_message
   self.mqttclient.connectcb = self.on_connect
@@ -219,7 +223,8 @@ class Controller(controller.ControllerProto):
 
  def webform_load(self): # create html page for settings
   webserver.addFormTextBox("Discovery topic","dtopic",self.discoverytopic,255)
-  webserver.addHtml("</td></tr><tr><td></td><td><a href='/adconfig?cid="+ str(self.controllerindex) +"'>Open device configuration page</a></td></tr>")
+  if self.controllerindex >= 0:
+   webserver.addHtml("</td></tr><tr><td></td><td><a href='/adconfig?cid="+ str(self.controllerindex) +"'>Open device configuration page</a></td></tr>")
   webserver.addFormNumericBox("Keepalive time","keepalive",self.keepalive,2,600)
   webserver.addUnit("s")
   try:
