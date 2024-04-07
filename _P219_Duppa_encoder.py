@@ -1,20 +1,11 @@
 #!/usr/bin/env python3
 #############################################################################
-############## Adafruit I2C Rotary encoder plugin for RPIEasy ###############
+############### Duppa I2C Rotary encoder plugin for RPIEasy #################
 #############################################################################
 #
-# Adafruit I2C Stemma QT Rotary Encoder Breakout with NeoPixel - STEMMA QT / Qwiic
-# 
+# Duppa.net I2C Rotary Encoder Breakout
+#
 # Needs an I2C connection enabled and an INT GPIO connected to RPI
-#
-# Available commands (for onboard neopixel):
-#
-#  RotaryPixel,<taskname>,<red 0-255>,<green 0-255>,<blue 0-255>,<brightness 0-100>
-#
-#         *Brightness is optional
-#
-# Based on:
-#  https://github.com/adafruit/Adafruit_CircuitPython_seesaw
 #
 # Copyright (C) 2024 by Alexander Nagy - https://bitekmindenhol.blog.hu/
 #
@@ -26,16 +17,13 @@ import misc
 import time
 import gpios
 import Settings
-import lib.lib_twowire as rpiwire
-import lib.seesaw.lib_seesaw as seesaw
+import lib.lib_miniencrouter as miniencoder
 
 class Plugin(plugin.PluginProto):
- PLUGIN_ID = 218
- PLUGIN_NAME = "Input - Adafruit I2C Rotary Encoder"
+ PLUGIN_ID = 219
+ PLUGIN_NAME = "Input - Duppa I2C Rotary Encoder"
  PLUGIN_VALUENAME1 = "Counter"
  PLUGIN_VALUENAME2 = "Button"
- PIN_BUTTON = 24
- PIN_RGB = 6
 
  def __init__(self,taskindex): # general init
   plugin.PluginProto.__init__(self,taskindex)
@@ -49,8 +37,7 @@ class Plugin(plugin.PluginProto):
   self.inverselogicoption = False
   self.recdataoption = False
   self.timer100ms = False
-  self.sea = None
-  self.pixel = None
+  self.enc = None
   self.readinprogress = 0
   self.formulaoption = True
   self.initialized = False
@@ -63,12 +50,6 @@ class Plugin(plugin.PluginProto):
      gpios.HWPorts.remove_event_detect(self.taskdevicepin[0])
     except:
      pass
-   try:
-    if self.sea is not None:
-       self.sea.disable_encoder_interrupt()
-       self.sea.set_GPIO_interrupts((1<<self.PIN_BUTTON),False) #disable button interrupt
-   except:
-    pass
   return True
 
  def plugin_init(self,enableplugin=None):
@@ -82,7 +63,7 @@ class Plugin(plugin.PluginProto):
   if self.enabled:
    if int(self.taskdevicepin[0])>=0:
     try:
-     gpios.HWPorts.add_event_detect(self.taskdevicepin[0],gpios.BOTH,self.p218_handler)
+     gpios.HWPorts.add_event_detect(self.taskdevicepin[0],gpios.FALLING,self.p219_handler)
     except Exception as e:
      self.timer100ms = True
    try:
@@ -102,34 +83,13 @@ class Plugin(plugin.PluginProto):
       i2ca = 0
      if i2ca>0:
       try:
-       _i2bus   = rpiwire.request_i2c_device(int(i2cl),i2ca)
-       self.sea = seesaw.Seesaw(_i2bus)
+       self.enc = miniencoder.request_menc_device(int(i2cl),i2ca)
       except Exception as e:
        misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Rotary I2C device requesting failed: "+str(e))
        self.initialized = False
-       self.sea = None
+       self.enc = None
      else:
-       self.sea = None
-     if self.sea is not None:
-       try:
-        if self.sea.encbase and self.sea.intbase: #enable encoder interrupt
-           self.sea.enable_encoder_interrupt()
-           self.initialized = True
-           misc.addLog(rpieGlobals.LOG_LEVEL_INFO,"Adafruit I2C rotary initialized")
-        if self.sea.gpiobase:
-           self.sea.pin_mode(self.PIN_BUTTON, self.sea.INPUT_PULLUP) #set rotary button as pullup
-           if self.sea.intbase:
-              self.sea.set_GPIO_interrupts((1<<self.PIN_BUTTON),True) #enable button interrupt
-        if self.sea.neopixbase:
-          try:
-           self.pixel = seesaw.Neopixel(self.sea,self.PIN_RGB,1) #init onboard Neopixel
-          except:
-           self.pixel = None
-        else:
-           self.pixel = None
-       except Exception as e:
-         misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Adafruit I2C rotary init error "+str(e))
-         self.initialized = False
+       self.enc = None
 
    try:
     if float(self.uservar[0])<int(self.taskdevicepluginconfig[2]): # minvalue check
@@ -138,41 +98,62 @@ class Plugin(plugin.PluginProto):
      self.set_value(1,self.taskdevicepluginconfig[3],False)
    except:
      self.set_value(1,self.taskdevicepluginconfig[2],False)
-   if self.enabled and self.sea is not None and self.sea.encbase:
-           cpos = int( float(self.uservar[0]) / int(self.taskdevicepluginconfig[1]))
-           self.sea.set_encoder_position(cpos) #sync stored init position
+   if self.enabled and self.enc is not None:
+         try:
+           self.enc.lock = True
+           self.enc.writeMax(int(float(self.taskdevicepluginconfig[3])))
+           self.enc.writeMin(int(float(self.taskdevicepluginconfig[2])))
+           self.enc.writeStep(int(float(self.taskdevicepluginconfig[1])))
+           self.enc.writeCounter(int( float(self.uservar[0]) )) #sync stored init position
+           self.enc.lock = False
+           self.enc.onButtonPush = self.btn_handler
+           self.enc.onButtonRelease = self.btn_handler
+           self.enc.onChange = self.plugin_read
+           self.enc.autoconfigInterrupt()
+           self.initialized = True
+           print("init done")
+         except Exception as e:
+           self.enc.lock = False
+           print(e)
 
  def webform_load(self): # create html page for settings
   webserver.addFormPinSelect("Rotary interrupt pin","taskdevicepin0",self.taskdevicepin[0])
   webserver.addFormNote("Add one RPI INPUT pin to handle input changes immediately")
   choice1 = self.taskdevicepluginconfig[0]
-  options = ["0x36","0x37","0x38","0x39","0x3A","0x3B","0x3C","0x3D"]
-  optionvalues = [0x36,0x37,0x38,0x39,0x3A,0x3B,0x3C,0x3D]
-  webserver.addFormSelector("I2C address","p218_addr",len(optionvalues),options,optionvalues,None,int(choice1))
+  options = ["0x20","0x21","0x22","0x23","0x30","0x31","0x32","0x33"]
+  optionvalues = [0x20,0x21,0x22,0x23,0x30,0x31,0x32,0x33]
+  webserver.addFormSelector("I2C address","p219_addr",len(optionvalues),options,optionvalues,None,int(choice1))
   webserver.addFormNote("Enable <a href='pinout'>I2C bus</a> first, than <a href='i2cscanner'>search for the used address</a>!")
 
   choice1 = int(float(self.taskdevicepluginconfig[1]))
   options = ["1","2","3","4"]
   optionvalues = [1,2,3,4]
-  webserver.addFormSelector("Step","p218_step",len(options),options,optionvalues,None,choice1)
+  webserver.addFormSelector("Step","p219_step",len(options),options,optionvalues,None,choice1)
   try:
    minv = int(self.taskdevicepluginconfig[2])
   except:
    minv = 0
-  webserver.addFormNumericBox("Limit min.","p218_min",minv,-65535,65535)
+  webserver.addFormNumericBox("Limit min.","p219_min",minv,-65535,65535)
   try:
    maxv = int(self.taskdevicepluginconfig[3])
   except:
    maxv = 100
   if minv>=maxv:
    maxv = minv+1
-  webserver.addFormNumericBox("Limit max.","p218_max",maxv,-65535,65535)
+  webserver.addFormNumericBox("Limit max.","p219_max",maxv,-65535,65535)
+  if self.enc:
+     try:
+       eid = self.enc.readIDCode()
+       ever = self.enc.readVersion()
+       webserver.addFormNote("Rotary found. ID: "+str(eid)+" Version: "+str(ever))
+     except Exception as e:
+      print(e)
   return True
 
  def webform_save(self,params): # process settings post reply
    p1 = self.taskdevicepin[0]
    p2 = self.taskdevicepluginconfig[0]
-   par = webserver.arg("p218_addr",params)
+   par = webserver.arg("p219_addr",params)
    try:
     self.taskdevicepluginconfig[0] = int(par)
    except:
@@ -183,14 +164,14 @@ class Plugin(plugin.PluginProto):
     self.taskdevicepin[0]=-1
 
    try:
-    self.taskdevicepluginconfig[1] = int(webserver.arg("p218_step",params))
+    self.taskdevicepluginconfig[1] = int(webserver.arg("p219_step",params))
    except:
     self.taskdevicepluginconfig[1] = 1
    try:
-    self.taskdevicepluginconfig[2] = int(webserver.arg("p218_min",params))
+    self.taskdevicepluginconfig[2] = int(webserver.arg("p219_min",params))
    except:
     self.taskdevicepluginconfig[2] = 0
-   par = webserver.arg("p218_max",params)
+   par = webserver.arg("p219_max",params)
    if par == "":
     par = 100
    if int(self.taskdevicepluginconfig[2])>=int(par):
@@ -207,30 +188,26 @@ class Plugin(plugin.PluginProto):
 
  def plugin_read(self):
   result = False
-  if self.initialized and self.enabled and self.readinprogress==0:
+  if self.initialized and self.enabled and self.readinprogress==0 and self.enc is not None and self.enc.lock==False:
     self.readinprogress = 1
     try:
-     bstat = (1-self.sea.digital_read(self.PIN_BUTTON)) #pullup button
+     self.enc.lock = True
+     bstat = int(self.enc.readStatus(0x02))
     except Exception as e:
-     print(e)
+     print("btn failed",e)
      bstat = 0
     try:
-     rpos = self.sea.encoder_position()
+     cpos = self.enc.readCounter32()
+     self.enc.lock = False
     except Exception as e:
-     print(e)
-     self.readinprogress = 0
+     self.readinprogress=0
+     self.enc.lock = False
      return False #retry?
-    try:
-     cpos = rpos * int(self.taskdevicepluginconfig[1])
-    except:
-     cpos = rpos
     if cpos < int(self.taskdevicepluginconfig[2]): #enforce min limit
        cpos = int(self.taskdevicepluginconfig[2])
     if cpos > int(self.taskdevicepluginconfig[3]): #enforce max limit
        cpos = int(self.taskdevicepluginconfig[3])
     self.set_value(1,cpos,True)
-    if rpos != int(cpos / int(self.taskdevicepluginconfig[1])): #sync i2c device with logical position
-       self.sea.set_encoder_position(int(cpos / int(self.taskdevicepluginconfig[1])))
     self.set_value(2,bstat,True)
     self._lastdataservetime = rpieTime.millis()
     self.readinprogress = 0
@@ -244,54 +221,22 @@ class Plugin(plugin.PluginProto):
      except:
       inval = -1
      if int(inval) != int(self.interruptval): #read state if interrupt pin changed
-         self.p218_handler(0)
+         self.p219_handler(0)
      self.interruptval = inval
      return self.timer100ms
 
- def p218_handler(self,channel):
+ def btn_handler(self):
+     self.plugin_read()
+
+ def p219_handler(self,channel=0):
      tnow = rpieTime.millis()
-     self.plugin_read() #read state if interrupt called
-     for t in range(0,len(Settings.Tasks)):
-      if (Settings.Tasks[t] and (type(Settings.Tasks[t]) is not bool)):
-         if (Settings.Tasks[t].enabled and Settings.Tasks[t].taskindex != self.taskindex and Settings.Tasks[t].pluginid == self.pluginid):
+     if self.enc:
+      if self.enc.lock == False:
+       self.enc.updateStatus()
+       for t in range(0,len(Settings.Tasks)):
+         if (Settings.Tasks[t] and (type(Settings.Tasks[t]) is not bool)):
+          if (Settings.Tasks[t].enabled and Settings.Tasks[t].taskindex != self.taskindex and Settings.Tasks[t].pluginid == self.pluginid):
             if int(Settings.Tasks[t].taskdevicepin[0]) == int(self.taskdevicepin[0]): #make sure if every rotary is notified on the same interrupt pin
              if tnow - Settings.Tasks[t]._lastdataservetime >= 100: #updated long time ago
                 Settings.Tasks[t].plugin_read()
-
- def plugin_write(self,cmd):
-  res = False
-  if self.initialized == False:
-   return res
-  cmdarr = cmd.split(",")
-  cmdarr[0] = cmdarr[0].strip().lower()
-  if cmdarr[0] == "rotarypixel":
-   if cmdarr[1].strip().lower() != self.taskname:
-      return False # not for this device
-   try:
-    r = int(cmdarr[2].strip())
-    g = int(cmdarr[3].strip())
-    b = int(cmdarr[4].strip())
-   except:
-    misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Neopixel error "+str(e))
-    r = 0
-    g = 0
-    b = 0
-   try:
-    br = int(cmdarr[5].strip())
-   except:
-    br = -1
-   try:
-    if self.pixel is not None:
-      if br>100:
-         br=100
-      br = float(br/100)
-      if br > -1:
-       self.pixel.brightness = br
-      self.pixel.fill( (r,g,b) )
-      res = True
-   except Exception as e:
-     misc.addLog(rpieGlobals.LOG_LEVEL_ERROR,"Neopixel error "+str(e))
-     res = False
-   if res:
-     misc.addLog(rpieGlobals.LOG_LEVEL_DEBUG,"NeoPixel set to ("+str(r)+","+str(g)+","+str(b)+")")
-  return res
+       self.enc.lock = False
