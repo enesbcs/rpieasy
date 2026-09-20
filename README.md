@@ -1,7 +1,7 @@
 [![Code size](https://img.shields.io/github/languages/code-size/enesbcs/rpieasy)]() [![Last commit](https://img.shields.io/github/last-commit/enesbcs/rpieasy)]()
 
-# To support the development you can:
-- Add Python code by [Pull Request](https://github.com/enesbcs/rpieasy/pulls)
+# This version will be archived soon!
+[Please use RPEasy2](https://github.com/enesbcs/rpieasy2)
 
 # RPIEasy
 
